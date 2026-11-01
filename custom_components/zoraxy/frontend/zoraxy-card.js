@@ -368,18 +368,19 @@ class ZoraxyCard extends HTMLElement {
       .ctrl .icon { grid-row: span 2; }
       .ctrl .cl, .ctrl .cs { min-width: 0; max-width: 100%; text-align: start; }
       .ctrl .cl { flex: none; }
-      /* A rule's domain comes first: its target gives way completely before it. */
+      /* A certificate, rule or redirect row puts its domain on a line of its own (the whole width), its expiry,
+         target and buttons under it: on one line the domain would leave the target no room at all. */
+      .row { flex-wrap: wrap; row-gap: 2px; }
+      .row-left { flex: 1 0 100%; }
+      .row-right { margin-left: auto; }
+      /* Under its domain, the target takes what the buttons leave, down to nothing on the narrowest card. */
       .row-sub { min-width: 0; }
     }
     @container (max-width: 150px) {
       .header .logo { display: none; }
-      /* Phone width at 4 columns: the label and its state take the whole tile; a certificate, rule or redirect
-         row puts its domain on a line of its own (the whole width), its expiry, target and buttons under it. */
+      /* Phone width at 4 columns: the label and its state take the whole tile. */
       .ctrl { grid-template-columns: minmax(0, 1fr); }
       .ctrl .icon { display: none; }
-      .row { flex-wrap: wrap; row-gap: 2px; }
-      .row-left { flex: 1 0 100%; }
-      .row-right { margin-left: auto; }
     }
     @media (prefers-reduced-motion: reduce) {
       .sec-arrow, .ctrl, .icon-btn { transition: none; }
