@@ -77,11 +77,67 @@ test('card version is the manifest version', () => {
 
 test('I18N locales all carry the same keys', () => {
   const langs = Object.keys(ZoraxyCard.I18N);
-  for (const lang of ['en', 'fr', 'de', 'es']) assert.ok(langs.includes(lang), `missing ${lang}`);
+  for (const lang of ['en', 'fr', 'de', 'es', 'sr', 'sr-Latn']) assert.ok(langs.includes(lang), `missing ${lang}`);
   const reference = Object.keys(ZoraxyCard.I18N.en).sort();
   for (const lang of langs) {
     assert.deepEqual(Object.keys(ZoraxyCard.I18N[lang]).sort(), reference, `keys of ${lang}`);
   }
+});
+
+test('I18N parity: Serbian has exactly the English keys and placeholders', () => {
+  const en = ZoraxyCard.I18N.en;
+  const placeholders = (s) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join();
+  for (const lang of ['sr', 'sr-Latn']) {
+    const strings = ZoraxyCard.I18N[lang];
+    assert.ok(strings, `missing ${lang}`);
+    assert.deepEqual(Object.keys(strings).sort(), Object.keys(en).sort(), `${lang}: keys`);
+    for (const key of Object.keys(en)) {
+      assert.equal(typeof strings[key], typeof en[key], `${lang}.${key}: type`);
+      if (Array.isArray(en[key])) assert.equal(strings[key].length, en[key].length, `${lang}.${key}: length`);
+      assert.equal(placeholders(String(strings[key])), placeholders(String(en[key])), `${lang}.${key}: placeholders`);
+    }
+  }
+});
+
+test('I18N Serbian: the Cyrillic and Latin cards say the same thing, letter for letter', () => {
+  const cyr = 'абвгдђежзијклљмнњопрстћуфхцчџш';
+  const lat = ['a', 'b', 'v', 'g', 'd', 'đ', 'e', 'ž', 'z', 'i', 'j', 'k', 'l', 'lj', 'm', 'n', 'nj', 'o', 'p', 'r', 's', 't', 'ć', 'u', 'f', 'h', 'c', 'č', 'dž', 'š'];
+  const map = new Map();
+  [...cyr].forEach((c, i) => {
+    map.set(c, lat[i]);
+    map.set(c.toUpperCase(), lat[i][0].toUpperCase() + lat[i].slice(1));
+  });
+  for (const [key, text] of Object.entries(ZoraxyCard.I18N.sr)) {
+    assert.equal([...text].map((c) => map.get(c) ?? c).join(''), ZoraxyCard.I18N['sr-Latn'][key], key);
+  }
+});
+
+test('I18N Serbian: no Latin letter in sr, no Cyrillic letter in sr-Latn (names and acronyms aside)', () => {
+  const kept = /Zoraxy|HTTPS|URL|Home Assistant|zoraxy_reverse_proxy_zoraxy|\{\w+\}/g;
+  for (const [key, text] of Object.entries(ZoraxyCard.I18N.sr)) {
+    assert.ok(!/[A-Za-z]/.test(text.replace(kept, '')), `sr.${key}: ${text}`);
+  }
+  for (const [key, text] of Object.entries(ZoraxyCard.I18N['sr-Latn'])) {
+    assert.ok(!/[Ѐ-ӿ]/.test(text), `sr-Latn.${key}: ${text}`);
+  }
+});
+
+test('langOf: full locale, then the part before the dash, then English', () => {
+  assert.equal(ZoraxyCard.langOf('fr-FR'), 'fr');
+  assert.equal(ZoraxyCard.langOf('sr-Latn'), 'sr-Latn');
+  assert.equal(ZoraxyCard.langOf('sr'), 'sr');
+  assert.equal(ZoraxyCard.langOf('sr-Cyrl'), 'sr');
+  assert.equal(ZoraxyCard.langOf('pt-BR'), 'en');
+  assert.equal(ZoraxyCard.langOf(undefined), 'en');
+  // Home Assistant in sr-Latn picks the Latin script, unless the card option says otherwise.
+  assert.equal(ZoraxyCard.langOfHass({ locale: { language: 'sr-Latn' }, language: 'sr-Latn' }), 'sr-Latn');
+  assert.equal(ZoraxyCard.langOfHass({ language: 'sr-Latn' }), 'sr-Latn');
+  assert.equal(ZoraxyCard.langOfHass({ locale: { language: 'sr-Latn' } }, { language: 'sr' }), 'sr');
+  const card = makeCard();
+  card._hass.locale.language = 'sr-Latn';
+  assert.equal(card._t('certsSection'), 'Sertifikati');
+  card._hass.locale.language = 'sr';
+  assert.equal(card._t('certsSection'), 'Сертификати');
 });
 
 test('every I18N key is read by the card or an editor', () => {
@@ -228,7 +284,9 @@ test('the editors offer the language picker, labelled in the picked language', (
     const names = editor._form.schema.map((f) => f.name);
     assert.equal(names.at(-1), 'language');
     const picker = editor._form.schema.at(-1).selector.select.options;
-    assert.deepEqual([...picker.map((o) => o.value)], ['', 'en', 'fr', 'de', 'es']);
+    assert.deepEqual([...picker.map((o) => o.value)], ['', 'en', 'fr', 'de', 'es', 'sr', 'sr-Latn']);
+    assert.equal(picker.find((o) => o.value === 'sr').label, 'Српски');
+    assert.equal(picker.find((o) => o.value === 'sr-Latn').label, 'Srpski (latinica)');
     assert.equal(picker[0].label, ZoraxyCard.I18N.de.lang_auto);
     assert.equal(editor._form.computeLabel({ name: 'language' }), 'Sprache');
     editor.setConfig({});
