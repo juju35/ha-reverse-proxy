@@ -244,8 +244,10 @@ class ZoraxyCard extends HTMLElement {
     .sec-header[aria-expanded="false"] { margin-bottom: 0; }
     .section-title { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; text-transform: uppercase;
                      letter-spacing: .04em; color: var(--secondary-text-color); }
+    .section-title { min-width: 0; }
+    .section-title > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .section-title .icon { width: 16px; height: 16px; }
-    .sec-arrow { color: var(--secondary-text-color); display: flex; transition: transform .2s ease; }
+    .sec-arrow { color: var(--secondary-text-color); display: flex; flex: none; transition: transform .2s ease; }
     .sec-arrow.closed { transform: rotate(-90deg); }
     .controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
     .ctrl { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px; border-radius: 10px; cursor: pointer;
@@ -259,8 +261,11 @@ class ZoraxyCard extends HTMLElement {
     .row + .row { border-top: 1px solid var(--divider-color); }
     .row-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
     .row-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    /* A row with a target (rules, redirects): the target gives way before the domain, ellipsis + title. */
+    .row-right:has(> .row-sub) { flex-shrink: 1; min-width: 0; }
+    .row-right > :not(.row-sub), .row-sub.row-code { flex-shrink: 0; }
     .row-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .row-sub { font-size: 11px; color: var(--secondary-text-color); max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .row-sub { font-size: 11px; color: var(--secondary-text-color); max-width: 130px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .domain-link { cursor: pointer; }
     .domain-link:hover { text-decoration: underline; }
     .sec-header:focus-visible, .domain-link:focus-visible { outline: 2px solid var(--zx-accent); outline-offset: 2px; border-radius: 4px; }
@@ -470,7 +475,7 @@ class ZoraxyCard extends HTMLElement {
   // Generic row: dot + label on the left, content on the right
   _row(dotOn, label, right) {
     return `<div class="row">
-      <div class="row-left">${this._dot(dotOn)}<span class="row-label">${zoraxyEsc(label)}</span></div>
+      <div class="row-left">${this._dot(dotOn)}<span class="row-label" title="${zoraxyEsc(label)}">${zoraxyEsc(label)}</span></div>
       <div class="row-right">${right}</div>
     </div>`;
   }
@@ -479,7 +484,7 @@ class ZoraxyCard extends HTMLElement {
     const open = this._sectionOpen[id] === true;
     return `<div class="section">
       <div class="sec-header" data-id="${id}" role="button" tabindex="0" aria-expanded="${open}">
-        <div class="section-title">${this._mdi(icon)}<span>${zoraxyEsc(title)}</span></div>
+        <div class="section-title">${this._mdi(icon)}<span title="${zoraxyEsc(title)}">${zoraxyEsc(title)}</span></div>
         <span class="sec-arrow${open ? "" : " closed"}" data-id="${id}">${this._mdi(ZoraxyCard.ICONS.chevronDown)}</span>
       </div>
       <div class="sec-content" data-id="${id}" style="display:${open ? "block" : "none"};">${content}</div>
@@ -495,8 +500,8 @@ class ZoraxyCard extends HTMLElement {
       const domain = zoraxyEsc(r.domain);
       // A wildcard rule (*.example.org) is not a valid URL: plain label, no link.
       const left = String(r.domain ?? "").includes("*")
-        ? `<span class="row-label">${domain}</span>`
-        : `<span class="row-label domain-link" role="link" tabindex="0" data-href="https://${domain}">${domain}</span>`;
+        ? `<span class="row-label" title="${domain}">${domain}</span>`
+        : `<span class="row-label domain-link" title="${domain}" role="link" tabindex="0" data-href="https://${domain}">${domain}</span>`;
       const right = `<span class="row-sub" title="${target}">${target}</span>
         <button class="icon-btn rule-btn ${r.enabled ? "ok" : "crit"}"
           data-rule-domain="${domain}"
@@ -549,7 +554,7 @@ class ZoraxyCard extends HTMLElement {
       const dst   = r.TargetURL || "?";
       const code  = r.StatusCode ? `${r.StatusCode}` : "";
       const https = dst.startsWith("https");
-      const right = `<span class="row-sub">→ ${zoraxyEsc(code)}</span>
+      const right = `<span class="row-sub row-code">→ ${zoraxyEsc(code)}</span>
         <span class="row-sub" title="${zoraxyEsc(dst)}">${zoraxyEsc(dst)}</span>
         ${https ? this._mdi(ZoraxyCard.ICONS.lock) : ""}`;
       return this._row(true, src, right);

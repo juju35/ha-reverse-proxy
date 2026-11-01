@@ -462,3 +462,14 @@ test('every transition is switched off under prefers-reduced-motion', () => {
     assert.deepEqual(animated.filter((s) => !reduced.includes(s)), []);
   }
 });
+
+test('rule and generic rows give the full domain as a title, for the ellipsis', () => {
+  const card = makeCard();
+  const html = card._buildRules([
+    { domain: 'photos.example.org', target: '192.168.1.20:2342', enabled: true },
+    { domain: '*.example.org', target: '192.168.1.30:80', enabled: false },
+  ]);
+  assert.match(html, /class="row-label domain-link" title="photos\.example\.org"/);
+  assert.match(html, /class="row-label" title="\*\.example\.org"/);
+  assert.match(card._row(true, 'nas.example.org', ''), /class="row-label" title="nas\.example\.org"/);
+});
