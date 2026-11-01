@@ -245,6 +245,8 @@ class ZoraxyCard extends HTMLElement {
   static CSS = `
     :host {
       display: block;
+      min-width: 0;
+      --zx-natural-width: 360px;
       --zx-accent: var(--primary-color, #03a9f4);
       --zx-ok: var(--success-color, #43a047);
       --zx-warn: var(--warning-color, #ffa600);
@@ -252,6 +254,12 @@ class ZoraxyCard extends HTMLElement {
     }
     /* The card is a size container: the header and the controls adapt to the card's width, not the window's. */
     ha-card { overflow: hidden; container-type: inline-size; }
+    /* A size container has no width of its own content: in a parent that sizes to its content (an inline-block,
+       a grid "auto" column) the card would fall to a few pixels. This empty, zero-height grid gives the card a
+       natural (max-content) width without any minimum (its min-content width is 0): in a "1fr 1fr" grid
+       (layout-card, a grid or horizontal stack), wrapped or not, the card still shrinks to its track.
+       contain-intrinsic-inline-size or a min-width on the host would be a minimum and overflow there. */
+    :host::before { content: ""; display: grid; grid-template-columns: minmax(0, var(--zx-natural-width)); height: 0; }
     .icon { width: 18px; height: 18px; fill: currentColor; flex: none; }
     .ok { --c: var(--zx-ok); } .warn { --c: var(--zx-warn); } .crit { --c: var(--zx-crit); } .idle { --c: var(--secondary-text-color); }
     .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--c, var(--zx-ok)); flex: none; display: inline-block; }
@@ -262,10 +270,11 @@ class ZoraxyCard extends HTMLElement {
     .chip .ct { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
     .header { display: flex; align-items: center; gap: 10px; padding: 12px 12px 8px; }
     .logo { width: 40px; height: 40px; flex: none; }
-    /* Narrow header: the title block gives way but keeps about four letters (5ch of the 16 px title); the status
-       pill gives way next (at most half the header, its text in an ellipsis); the icon buttons never shrink. */
-    .titles { flex: 1 1 auto; min-width: 5ch; font-size: 16px; }
-    #status { display: flex; flex: 0 1 auto; min-width: 0; max-width: 50%; }
+    /* Narrow header: the title block takes what the status pill leaves (from a zero basis) and keeps about four
+       letters (5ch of the 16 px title); the pill keeps its whole text and only gives way (ellipsis) when even
+       that minimum title does not fit; the icon buttons never shrink. */
+    .titles { flex: 1 1 0; min-width: 5ch; font-size: 16px; }
+    #status { display: flex; flex: 0 1 auto; min-width: 0; }
     .name { font-size: 16px; font-weight: 500; line-height: 1.25; color: var(--primary-text-color); text-decoration: none;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
     a.name:hover { text-decoration: underline; }
@@ -342,17 +351,35 @@ class ZoraxyCard extends HTMLElement {
     .modal-actions .btn:focus-visible { outline: 2px solid var(--zx-accent); outline-offset: 2px; }
     /* Narrow card (the mini card's full view at 4 columns): smaller logo and gaps, the status pill shows its dot
        only (its text stays in its title and for screen readers), the controls go one per line. */
-    @container (max-width: 200px) {
+    /* Up to ~260 px (a phone's half-width section, with the mini card's detail button): tighter header gaps, so
+       a long status ("Niedostępny", "Nicht verfügbar") keeps its whole text next to the title. */
+    @container (max-width: 260px) {
       .header { gap: 6px; }
+    }
+    @container (max-width: 200px) {
       .header .logo { width: 28px; height: 28px; }
       #status .ct { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
       #status .chip { padding: 1px 8px; }
       .controls { grid-template-columns: minmax(0, 1fr); }
-      .ctrl { flex-direction: row; justify-content: flex-start; gap: 6px; padding: 6px 8px; }
-      .ctrl .cl { flex: 1 1 auto; min-width: 0; text-align: start; }
+      /* One tile per line: the icon, then the label with its state under it (a long state such as
+         "Niedostępny" no longer squeezes the label down to a few letters per line). */
+      .ctrl { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 6px; align-items: center;
+              justify-items: start; padding: 6px 8px; }
+      .ctrl .icon { grid-row: span 2; }
+      .ctrl .cl, .ctrl .cs { min-width: 0; max-width: 100%; text-align: start; }
+      .ctrl .cl { flex: none; }
+      /* A rule's domain comes first: its target gives way completely before it. */
+      .row-sub { min-width: 0; }
     }
     @container (max-width: 150px) {
       .header .logo { display: none; }
+      /* Phone width at 4 columns: the label and its state take the whole tile; a certificate, rule or redirect
+         row puts its domain on a line of its own (the whole width), its expiry, target and buttons under it. */
+      .ctrl { grid-template-columns: minmax(0, 1fr); }
+      .ctrl .icon { display: none; }
+      .row { flex-wrap: wrap; row-gap: 2px; }
+      .row-left { flex: 1 0 100%; }
+      .row-right { margin-left: auto; }
     }
     @media (prefers-reduced-motion: reduce) {
       .sec-arrow, .ctrl, .icon-btn { transition: none; }
@@ -950,7 +977,9 @@ class ZoraxyMiniCard extends ZoraxyCard {
     .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
     .head { display: flex; align-items: center; gap: 8px; min-width: 0; }
     /* The title gives way but keeps about four letters; the link stays the size of its text. */
-    .mini .name { flex: 1 1 auto; min-width: 5ch; max-width: max-content; }
+    .mini .name { flex: 1 1 0; min-width: 5ch; max-width: max-content; }
+    /* Natural width in a parent that sizes to its content (see :host::before in the full card). */
+    :host { --zx-natural-width: 300px; }
     .head #status { margin-left: auto; }
     .rs { display: flex; flex-wrap: wrap; gap: 2px 4px; margin-left: -4px; }
     .rs:empty { display: none; }
@@ -1090,6 +1119,8 @@ class ZoraxyMiniCard extends ZoraxyCard {
     if (!head) return;
     const button = document.createElement("button");
     button.className = "zoom";
+    // Found again by _restoreFocus after a state update redraws the card (ZoraxyCard.FOCUS_ATTRS).
+    button.dataset.action = "zoom";
     button.title = this._t(this._zoomed ? "zoomOut" : "zoomIn");
     button.setAttribute("aria-label", button.title);
     button.innerHTML = this._mdi(ZoraxyCard.ICONS[this._zoomed ? "arrowCollapse" : "arrowExpand"]);
@@ -1098,7 +1129,7 @@ class ZoraxyMiniCard extends ZoraxyCard {
       this._zoomed = !this._zoomed;
       this._render();
       // Keyboard use (Enter / Space: no click count) keeps the focus on the button that replaced this one.
-      if (ev.detail === 0) this.shadowRoot.querySelector(".zoom")?.focus();
+      if (ev.detail === 0) this.shadowRoot.querySelector(".zoom")?.focus({ preventScroll: true });
     });
     head.appendChild(button);
   }
