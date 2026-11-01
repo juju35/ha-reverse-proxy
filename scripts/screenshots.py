@@ -1,14 +1,16 @@
 """Render the Zoraxy card and mini card with mock entities and save the README screenshots.
 
-Usage: python scripts/screenshots.py  (needs `pip install playwright` and `playwright install chromium`)
-The clock is frozen so certificate countdowns stay the same. Every shot is in English, with 16 px of
+Usage: python scripts/screenshots.py  (needs `pip install playwright pillow` and `playwright install chromium`)
+The clock is frozen so certificate countdowns stay the same. A file is rewritten only when its decoded pixels
+change (PNG bytes can differ for the same picture), so an unchanged render commits nothing. Every shot is in English, with 16 px of
 theme background around the card (full card 460 px wide, mini card 380 px, 460 px zoomed in).
 """
 
+import io
 import os
 from pathlib import Path
 
-from playwright.sync_api import sync_playwright
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 CARD_JS = (ROOT / "custom_components/zoraxy/frontend/zoraxy-card.js").read_text()
@@ -106,7 +108,25 @@ def page_html(theme, width):
 </style></head><body><div id="root"></div></body></html>"""
 
 
+def same_pixels(png: bytes, path: Path) -> bool:
+    """True when the file at path decodes to exactly the same image (size and RGBA pixels) as png."""
+    if not path.exists():
+        return False
+    with Image.open(io.BytesIO(png)) as new, Image.open(path) as old:
+        return new.size == old.size and new.convert("RGBA").tobytes() == old.convert("RGBA").tobytes()
+
+
+def save_if_changed(png: bytes, path: Path) -> bool:
+    """Write png to path unless the file already holds the same pixels; True when written."""
+    if same_pixels(png, path):
+        return False
+    path.write_bytes(png)
+    return True
+
+
 def main():
+    from playwright.sync_api import sync_playwright  # noqa: PLC0415 - the pixel helpers above import without it
+
     out_dir = ROOT / "screenshots"
     out_dir.mkdir(exist_ok=True)
     with sync_playwright() as p:
@@ -148,12 +168,12 @@ def main():
             page.wait_for_timeout(300)
             # The card with 16 px of theme background around it
             box = page.locator("#root").bounding_box()
-            page.screenshot(
-                path=str(out_dir / f"{shot['file']}.png"),
+            png = page.screenshot(
                 clip={"x": 0, "y": 0, "width": width + 32, "height": int(box["height"] + 0.999) + 32},
                 animations="disabled",
             )
-            print(f"screenshots/{shot['file']}.png")
+            written = save_if_changed(png, out_dir / f"{shot['file']}.png")
+            print(f"screenshots/{shot['file']}.png{'' if written else ' (unchanged)'}")
             page.close()
         browser.close()
 

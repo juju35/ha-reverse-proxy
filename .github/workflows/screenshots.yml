@@ -34,7 +34,8 @@ jobs:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.13"
-      - run: pip install playwright==1.64.1
+      # Pillow: the script compares decoded pixels and rewrites a screenshot only when its picture changed.
+      - run: pip install playwright==1.64.1 pillow==11.3.0
       # Download the browser binary (no apt here) separately from its system libraries. The download is time-boxed
       # and retried too, so a stalled CDN is abandoned instead of freezing the job.
       - name: Install Chromium
