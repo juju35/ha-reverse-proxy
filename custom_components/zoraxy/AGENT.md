@@ -25,7 +25,12 @@ custom_components/zoraxy/
 │   ├── de.json          # German translations
 │   ├── es.json          # Spanish translations
 │   ├── sr.json          # Serbian (Cyrillic) translations
-│   └── sr-Latn.json     # Serbian (Latin) translations
+│   ├── sr-Latn.json     # Serbian (Latin) translations
+│   ├── it.json          # Italian translations
+│   ├── nl.json          # Dutch translations
+│   ├── pt.json          # European Portuguese translations
+│   ├── pt-BR.json       # Copy of pt.json (pt-BR uses the European Portuguese texts)
+│   └── pl.json          # Polish translations
 └── brand/
     ├── icon.png         # 256×256 integration icon
     ├── icon@2x.png      # 512×512 integration icon
