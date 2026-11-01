@@ -77,11 +77,74 @@ test('card version is the manifest version', () => {
 
 test('I18N locales all carry the same keys', () => {
   const langs = Object.keys(ZoraxyCard.I18N);
-  for (const lang of ['en', 'fr', 'de', 'es']) assert.ok(langs.includes(lang), `missing ${lang}`);
+  for (const lang of ['en', 'fr', 'de', 'es', 'sr', 'sr-Latn', 'it', 'nl', 'pt', 'pl']) assert.ok(langs.includes(lang), `missing ${lang}`);
   const reference = Object.keys(ZoraxyCard.I18N.en).sort();
   for (const lang of langs) {
     assert.deepEqual(Object.keys(ZoraxyCard.I18N[lang]).sort(), reference, `keys of ${lang}`);
   }
+});
+
+test('I18N parity: every language has exactly the English keys and placeholders, none empty', () => {
+  const en = ZoraxyCard.I18N.en;
+  const placeholders = (s) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join();
+  for (const lang of ['fr', 'de', 'es', 'sr', 'sr-Latn', 'it', 'nl', 'pt', 'pl']) {
+    const strings = ZoraxyCard.I18N[lang];
+    assert.ok(strings, `missing ${lang}`);
+    assert.deepEqual(Object.keys(strings).sort(), Object.keys(en).sort(), `${lang}: keys`);
+    for (const key of Object.keys(en)) {
+      assert.equal(typeof strings[key], typeof en[key], `${lang}.${key}: type`);
+      if (Array.isArray(en[key])) assert.equal(strings[key].length, en[key].length, `${lang}.${key}: length`);
+      assert.equal(placeholders(String(strings[key])), placeholders(String(en[key])), `${lang}.${key}: placeholders`);
+      assert.ok(String(strings[key]).trim(), `${lang}.${key}: empty`);
+    }
+  }
+});
+
+test('I18N Serbian: the Cyrillic and Latin cards say the same thing, letter for letter', () => {
+  const cyr = 'абвгдђежзијклљмнњопрстћуфхцчџш';
+  const lat = ['a', 'b', 'v', 'g', 'd', 'đ', 'e', 'ž', 'z', 'i', 'j', 'k', 'l', 'lj', 'm', 'n', 'nj', 'o', 'p', 'r', 's', 't', 'ć', 'u', 'f', 'h', 'c', 'č', 'dž', 'š'];
+  const map = new Map();
+  [...cyr].forEach((c, i) => {
+    map.set(c, lat[i]);
+    map.set(c.toUpperCase(), lat[i][0].toUpperCase() + lat[i].slice(1));
+  });
+  for (const [key, text] of Object.entries(ZoraxyCard.I18N.sr)) {
+    assert.equal([...text].map((c) => map.get(c) ?? c).join(''), ZoraxyCard.I18N['sr-Latn'][key], key);
+  }
+});
+
+test('I18N Serbian: no Latin letter in sr, no Cyrillic letter in sr-Latn (names and acronyms aside)', () => {
+  const kept = /Zoraxy|HTTPS|URL|Home Assistant|zoraxy_reverse_proxy_zoraxy|\{\w+\}/g;
+  for (const [key, text] of Object.entries(ZoraxyCard.I18N.sr)) {
+    assert.ok(!/[A-Za-z]/.test(text.replace(kept, '')), `sr.${key}: ${text}`);
+  }
+  for (const [key, text] of Object.entries(ZoraxyCard.I18N['sr-Latn'])) {
+    assert.ok(!/[Ѐ-ӿ]/.test(text), `sr-Latn.${key}: ${text}`);
+  }
+});
+
+test('langOf: full locale, then the part before the dash, then English', () => {
+  assert.equal(ZoraxyCard.langOf('fr-FR'), 'fr');
+  assert.equal(ZoraxyCard.langOf('sr-Latn'), 'sr-Latn');
+  assert.equal(ZoraxyCard.langOf('sr'), 'sr');
+  assert.equal(ZoraxyCard.langOf('sr-Cyrl'), 'sr');
+  assert.equal(ZoraxyCard.langOf('ja'), 'en');
+  assert.equal(ZoraxyCard.langOf('it-IT'), 'it');
+  assert.equal(ZoraxyCard.langOf('nl-BE'), 'nl');
+  assert.equal(ZoraxyCard.langOf('pt'), 'pt');
+  // Brazilian Portuguese falls back to European Portuguese, the only Portuguese the card has.
+  assert.equal(ZoraxyCard.langOf('pt-BR'), 'pt');
+  assert.equal(ZoraxyCard.langOf('pl-PL'), 'pl');
+  assert.equal(ZoraxyCard.langOf(undefined), 'en');
+  // Home Assistant in sr-Latn picks the Latin script, unless the card option says otherwise.
+  assert.equal(ZoraxyCard.langOfHass({ locale: { language: 'sr-Latn' }, language: 'sr-Latn' }), 'sr-Latn');
+  assert.equal(ZoraxyCard.langOfHass({ language: 'sr-Latn' }), 'sr-Latn');
+  assert.equal(ZoraxyCard.langOfHass({ locale: { language: 'sr-Latn' } }, { language: 'sr' }), 'sr');
+  const card = makeCard();
+  card._hass.locale.language = 'sr-Latn';
+  assert.equal(card._t('certsSection'), 'Sertifikati');
+  card._hass.locale.language = 'sr';
+  assert.equal(card._t('certsSection'), 'Сертификати');
 });
 
 test('every I18N key is read by the card or an editor', () => {
@@ -228,7 +291,13 @@ test('the editors offer the language picker, labelled in the picked language', (
     const names = editor._form.schema.map((f) => f.name);
     assert.equal(names.at(-1), 'language');
     const picker = editor._form.schema.at(-1).selector.select.options;
-    assert.deepEqual([...picker.map((o) => o.value)], ['', 'en', 'fr', 'de', 'es']);
+    assert.deepEqual([...picker.map((o) => o.value)], ['', 'en', 'fr', 'de', 'es', 'sr', 'sr-Latn', 'it', 'nl', 'pt', 'pl']);
+    assert.deepEqual(
+      ['it', 'nl', 'pt', 'pl'].map((v) => picker.find((o) => o.value === v).label),
+      ['Italiano', 'Nederlands', 'Português (Portugal)', 'Polski'],
+    );
+    assert.equal(picker.find((o) => o.value === 'sr').label, 'Српски');
+    assert.equal(picker.find((o) => o.value === 'sr-Latn').label, 'Srpski (latinica)');
     assert.equal(picker[0].label, ZoraxyCard.I18N.de.lang_auto);
     assert.equal(editor._form.computeLabel({ name: 'language' }), 'Sprache');
     editor.setConfig({});
@@ -243,4 +312,164 @@ test('the editors offer the language picker, labelled in the picked language', (
 test('French control labels are translated', () => {
   assert.equal(ZoraxyCard.I18N.fr.httpsRedirect, 'Redirection HTTPS');
   assert.equal(ZoraxyCard.I18N.fr.devMode, 'Mode dev');
+});
+
+// ── Colour contrast of the state-coloured text (WCAG 2.x) ─────────────────────
+// A tiny evaluator for the colour syntax the card uses: hex, transparent, var() with fallback and
+// color-mix(in srgb, …). The themes are Home Assistant's default light and dark palettes.
+const THEMES = {
+  light: {
+    '--primary-text-color': '#212121', '--secondary-text-color': '#727272', '--card-background-color': '#ffffff',
+    '--secondary-background-color': '#e5e5e5', '--primary-color': '#03a9f4',
+    '--success-color': '#43a047', '--warning-color': '#ffa600', '--error-color': '#db4437',
+  },
+  dark: {
+    '--primary-text-color': '#e1e1e1', '--secondary-text-color': '#9b9b9b', '--card-background-color': '#1c1c1c',
+    '--secondary-background-color': '#282828', '--primary-color': '#03a9f4',
+    '--success-color': '#43a047', '--warning-color': '#ffa600', '--error-color': '#db4437',
+  },
+};
+const STATE_VARS = { ok: 'var(--zx-ok)', warn: 'var(--zx-warn)', crit: 'var(--zx-crit)', idle: 'var(--secondary-text-color)' };
+
+function splitTop(s, sep = ',') {
+  const out = [];
+  let depth = 0;
+  let cur = '';
+  for (const ch of s) {
+    if (ch === '(') depth++;
+    if (ch === ')') depth--;
+    if (ch === sep && depth === 0) {
+      out.push(cur.trim());
+      cur = '';
+    } else cur += ch;
+  }
+  out.push(cur.trim());
+  return out;
+}
+
+// → [r, g, b, a] with r, g, b in 0..255 (not premultiplied).
+function evalColor(expr, vars) {
+  const e = expr.trim();
+  if (e === 'transparent') return [0, 0, 0, 0];
+  if (/^#[0-9a-f]{6}$/i.test(e)) return [1, 3, 5].map((i) => Number.parseInt(e.slice(i, i + 2), 16)).concat(1);
+  let m = e.match(/^var\((--[\w-]+)\s*(?:,(.*))?\)$/s);
+  if (m) {
+    if (vars[m[1]] !== undefined) return evalColor(vars[m[1]], vars);
+    if (m[2] === undefined) throw new Error(`undefined ${m[1]}`);
+    return evalColor(m[2], vars);
+  }
+  m = e.match(/^color-mix\(in srgb,(.*)\)$/s);
+  if (m) {
+    const [a, b] = splitTop(m[1]).map((part) => {
+      const pm = part.match(/^(.*?)\s+([\d.]+)%$/s);
+      return pm ? { c: evalColor(pm[1], vars), p: Number(pm[2]) / 100 } : { c: evalColor(part, vars), p: null };
+    });
+    const pa = a.p ?? 1 - b.p;
+    const pb = b.p ?? 1 - pa;
+    // Premultiplied interpolation, as CSS Color 5 specifies.
+    const alpha = a.c[3] * pa + b.c[3] * pb;
+    const rgb = [0, 1, 2].map((i) => (alpha ? (a.c[i] * a.c[3] * pa + b.c[i] * b.c[3] * pb) / alpha : 0));
+    return [...rgb, alpha];
+  }
+  throw new Error(`cannot evaluate ${e}`);
+}
+
+const over = (fg, bg) => [0, 1, 2].map((i) => fg[i] * fg[3] + bg[i] * (1 - fg[3])).concat(1);
+const luminance = (c) =>
+  c.slice(0, 3).reduce((sum, v, i) => {
+    const s = v / 255;
+    const lin = s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+    return sum + lin * [0.2126, 0.7152, 0.0722][i];
+  }, 0);
+const contrast = (a, b) => {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+};
+
+// The declaration `prop` of the rule whose selector list contains exactly `selector`.
+function decl(css, selector, prop) {
+  for (const m of css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    if (!m[1].split(',').map((s) => s.trim()).includes(selector)) continue;
+    const d = m[2].split(';').map((s) => s.trim()).find((s) => s.startsWith(`${prop}:`));
+    if (d) return d.slice(prop.length + 1).trim();
+  }
+  return undefined;
+}
+
+function cardVars(theme, state) {
+  const vars = { ...THEMES[theme] };
+  for (const [k, v] of Object.entries({
+    '--zx-accent': 'var(--primary-color, #03a9f4)', '--zx-ok': 'var(--success-color, #43a047)',
+    '--zx-warn': 'var(--warning-color, #ffa600)', '--zx-crit': 'var(--error-color, #db4437)',
+  })) vars[k] = v;
+  if (state !== 'none') vars['--c'] = STATE_VARS[state];
+  return vars;
+}
+
+// [css, text selector, background selector (null: the card itself), states]
+const TEXT_ON_STATE = [
+  ['card', '.chip', '.chip', ['ok', 'warn', 'crit']],
+  ['card', '.icon-btn.rule-btn', '.icon-btn.rule-btn', ['ok', 'crit']],
+  ['card', '.cs', '.ctrl', ['ok', 'idle']],
+  ['mini', '.r.pill', '.r.pill', ['ok', 'warn', 'crit']],
+  // Edge cases: a chip without a state class (its colour falls back to --zx-ok), and the hovered pills.
+  ['card', '.chip', '.chip', ['none']],
+  ['card', '.icon-btn.rule-btn', '.icon-btn.rule-btn:hover', ['ok', 'crit']],
+  ['mini', '.r.pill', '.r.pill:hover', ['ok', 'warn', 'crit']],
+];
+
+function textContrast(cssName, textSel, bgSel, theme, state) {
+  const css = cssName === 'card' ? ZoraxyCard.CSS : ZoraxyMiniCard.CSS;
+  const vars = cardVars(theme, state);
+  const card = evalColor('var(--card-background-color)', vars);
+  const bgDecl = decl(css, bgSel, 'background');
+  const bg = bgDecl ? over(evalColor(bgDecl, vars), card) : card;
+  const fg = over(evalColor(decl(css, textSel, 'color'), vars), bg);
+  return contrast(fg, bg);
+}
+
+test('state-coloured text reaches 4.5:1 in the light and dark themes', () => {
+  const failures = [];
+  for (const [cssName, textSel, bgSel, states] of TEXT_ON_STATE) {
+    for (const theme of ['light', 'dark']) {
+      for (const state of states) {
+        const ratio = textContrast(cssName, textSel, bgSel, theme, state);
+        if (ratio < 4.5) failures.push(`${textSel} ${state} ${theme}: ${ratio.toFixed(2)}:1`);
+      }
+    }
+  }
+  assert.deepEqual(failures, []);
+});
+
+test('the dot and the icons keep the plain state colour', () => {
+  assert.equal(decl(ZoraxyCard.CSS, '.dot', 'background'), 'var(--c, var(--zx-ok))');
+  assert.equal(decl(ZoraxyCard.CSS, '.ctrl .icon', 'color'), 'var(--c, var(--secondary-text-color))');
+  assert.equal(decl(ZoraxyMiniCard.CSS, '.r .icon', 'color'), 'var(--c)');
+});
+
+test('every transition is switched off under prefers-reduced-motion', () => {
+  for (const raw of [ZoraxyCard.CSS, ZoraxyMiniCard.CSS]) {
+    const css = raw.replace(/\/\*[\s\S]*?\*\//g, '');
+    const block = css.match(/@media \(prefers-reduced-motion: reduce\)\s*\{([\s\S]*?\})\s*\}/);
+    assert.ok(block, 'no prefers-reduced-motion media query');
+    const reduced = [...block[1].matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+      .filter((m) => /transition:\s*none/.test(m[2]))
+      .flatMap((m) => m[1].split(',').map((s) => s.trim()));
+    const animated = [...css.replace(block[0], '').matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+      .filter((m) => /(^|;)\s*(transition|animation)\s*:/.test(m[2]))
+      .flatMap((m) => m[1].split(',').map((s) => s.trim()));
+    assert.ok(animated.length > 0);
+    assert.deepEqual(animated.filter((s) => !reduced.includes(s)), []);
+  }
+});
+
+test('rule and generic rows give the full domain as a title, for the ellipsis', () => {
+  const card = makeCard();
+  const html = card._buildRules([
+    { domain: 'photos.example.org', target: '192.168.1.20:2342', enabled: true },
+    { domain: '*.example.org', target: '192.168.1.30:80', enabled: false },
+  ]);
+  assert.match(html, /class="row-label domain-link" title="photos\.example\.org"/);
+  assert.match(html, /class="row-label" title="\*\.example\.org"/);
+  assert.match(card._row(true, 'nas.example.org', ''), /class="row-label" title="nas\.example\.org"/);
 });

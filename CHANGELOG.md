@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.11.7 (2026-11-01)
+### What's new
+- Added Italian, Dutch, European Portuguese and Polish translations: the configuration and options flows, the entity names, the action, the error messages and both cards (full and mini, with their visual editors) follow Home Assistant in `it`, `nl`, `pt` and `pl` (pt-BR uses the European Portuguese texts, in the integration and in the cards); the card's `language` option offers all four.
+
+## 1.11.6 (2026-11-01)
+### What's new
+- Added Serbian (Cyrillic and Latin) translations: the configuration and options flows, the entity names, the action, the error messages and both cards (full and mini, with their visual editors) follow Home Assistant in `sr` and `sr-Latn`; the card's `language` option offers both.
+
+## 1.11.5
+### Fixes
+- Card: the text of the coloured chips (status, certificate expiry, proxy rule On / Off, switch states) is darker in the light theme and lighter in the dark theme, so it is readable on its tinted background; the chips keep their state colour.
+- Card: the section arrow and button transitions are turned off when the system asks for reduced motion.
+
 ## 1.11.4
 ### Maintenance
 - Card: removed three unused translations (domain, target, status) from the four languages; nothing changes on screen.

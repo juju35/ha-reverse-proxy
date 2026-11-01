@@ -36,6 +36,9 @@ jobs:
 
   release:
     needs: [lint, validate, hacs]
+    # A manual run from another branch (a PR whose version is already bumped) must not publish
+    # a release from an unmerged commit.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
