@@ -483,10 +483,12 @@ class ZoraxyCard extends HTMLElement {
   _attr(id, attr) { return this._hass?.states[id]?.attributes?.[attr]; }
   _isOn(id) { return this._state(id) === "on"; }
 
-  async _toggle(id) {
+  // The service is decided by the caller (at the click or when the popup opens), never re-read from the state:
+  // a confirmed "turn off" must not turn the switch on if it went off meanwhile.
+  async _setSwitch(id, on) {
     // Home Assistant already shows the error (HomeAssistantError) in a toast.
     await this._hass
-      .callService("homeassistant", this._isOn(id) ? "turn_off" : "turn_on", { entity_id: id })
+      .callService("homeassistant", on ? "turn_on" : "turn_off", { entity_id: id })
       .catch((e) => console.warn("Zoraxy:", e?.message ?? e));
   }
   async _pressButton(id) {
@@ -834,10 +836,12 @@ class ZoraxyCard extends HTMLElement {
     const entity = `switch.${this._prefix()}_${suffix}`;
     // Unavailable or unknown: nothing to toggle (the tile is disabled, keyboard included).
     if (!this._ctrlState(id)) return;
-    if (confirm && this._isOn(entity)) {
-      this._openConfirm({ text: this._t(confirm), ok: this._t("disableRule"), run: () => this._toggle(entity), from: { id } });
+    const on = !this._isOn(entity);
+    if (confirm && !on) {
+      // The confirmed action is frozen now: "turn off", whatever the state when OK is pressed.
+      this._openConfirm({ text: this._t(confirm), ok: this._t("disableRule"), run: () => this._setSwitch(entity, false), from: { id } });
     } else {
-      this._toggle(entity);
+      this._setSwitch(entity, on);
     }
   }
 
