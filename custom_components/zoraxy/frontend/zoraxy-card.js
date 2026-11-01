@@ -1,4 +1,4 @@
-const ZORAXY_CARD_VERSION = '1.11.5';
+const ZORAXY_CARD_VERSION = '1.11.6';
 
 // Escapes a value interpolated into innerHTML, as text or inside a quoted attribute (as parcelEsc in ha-parcel).
 function zoraxyEsc(s) {
@@ -107,6 +107,40 @@ class ZoraxyCard extends HTMLElement {
       ruleCount: "{a}/{n} reglas", certCount: "{n} cert.",
       ed_zoom: "Botón de detalle", ed_zoom_helper: "Cambia a la tarjeta completa y vuelve",
       ed_language: "Idioma", lang_auto: "Auto (idioma de Home Assistant)",
+    },
+    sr: {
+      active: "Активан", inactive: "Неактиван",
+      rules: "Правила", activeRules: "Активна", certs: "Серт.", port: "Порт",
+      controls: "Контроле", httpsRedirect: "HTTPS преусмеравање", port80: "Порт 80", devMode: "Развојни режим",
+      certsSection: "Сертификати", proxyRules: "Прокси правила", redirections: "Преусмеравања",
+      noCerts: "Није пронађен ниједан сертификат.", noRules: "Ниједно правило није подешено.", noRedirects: "Ниједно преусмеравање није подешено.",
+      expired: "Истекао", renew: "Обнови", daysLeft: "{n} д",
+      on: "Укљ.", off: "Искљ.",
+      enableRule: "Омогући", disableRule: "Онемогући",
+      ed_zoraxy_url: "URL адреса за Zoraxy", ed_entity_prefix: "Префикс ентитета",
+      ed_zoraxy_url_helper: "Отвара се кликом на наслов картице",
+      ed_entity_prefix_helper: "Заједнички део идентификатора ентитета, на пример zoraxy_reverse_proxy_zoraxy",
+      zoomIn: "Прикажи целу картицу", zoomOut: "Назад на компактни приказ",
+      ruleCount: "Правила: {a}/{n}", certCount: "Серт.: {n}",
+      ed_zoom: "Дугме за детаље", ed_zoom_helper: "Пребацује картицу на пун приказ и назад",
+      ed_language: "Језик", lang_auto: "Аутоматски (језик Home Assistant-а)",
+    },
+    "sr-Latn": {
+      active: "Aktivan", inactive: "Neaktivan",
+      rules: "Pravila", activeRules: "Aktivna", certs: "Sert.", port: "Port",
+      controls: "Kontrole", httpsRedirect: "HTTPS preusmeravanje", port80: "Port 80", devMode: "Razvojni režim",
+      certsSection: "Sertifikati", proxyRules: "Proksi pravila", redirections: "Preusmeravanja",
+      noCerts: "Nije pronađen nijedan sertifikat.", noRules: "Nijedno pravilo nije podešeno.", noRedirects: "Nijedno preusmeravanje nije podešeno.",
+      expired: "Istekao", renew: "Obnovi", daysLeft: "{n} d",
+      on: "Uklj.", off: "Isklj.",
+      enableRule: "Omogući", disableRule: "Onemogući",
+      ed_zoraxy_url: "URL adresa za Zoraxy", ed_entity_prefix: "Prefiks entiteta",
+      ed_zoraxy_url_helper: "Otvara se klikom na naslov kartice",
+      ed_entity_prefix_helper: "Zajednički deo identifikatora entiteta, na primer zoraxy_reverse_proxy_zoraxy",
+      zoomIn: "Prikaži celu karticu", zoomOut: "Nazad na kompaktni prikaz",
+      ruleCount: "Pravila: {a}/{n}", certCount: "Sert.: {n}",
+      ed_zoom: "Dugme za detalje", ed_zoom_helper: "Prebacuje karticu na pun prikaz i nazad",
+      ed_language: "Jezik", lang_auto: "Automatski (jezik Home Assistant-a)",
     },
   };
 
@@ -279,10 +313,12 @@ class ZoraxyCard extends HTMLElement {
     return ZoraxyCard.langOf(config?.language || hass?.locale?.language || hass?.language);
   }
 
-  // The supported language matching a locale ("de-AT" → "de"), English otherwise.
+  // The supported language matching a locale: the whole locale when the card has it ("sr-Latn"), else the part
+  // before the dash ("de-AT" → "de"), English otherwise.
   static langOf(locale) {
-    const lang = String(locale || "en").toLowerCase().slice(0, 2);
-    return Object.hasOwn(ZoraxyCard.I18N, lang) ? lang : "en";
+    const value = String(locale || "en").toLowerCase();
+    const langs = Object.keys(ZoraxyCard.I18N);
+    return langs.find((l) => l.toLowerCase() === value) ?? langs.find((l) => l === value.split("-")[0]) ?? "en";
   }
 
   _t(key) { return ZoraxyCard.I18N[this._lang()]?.[key] ?? ZoraxyCard.I18N.en[key] ?? key; }
@@ -752,6 +788,8 @@ class ZoraxyCardEditor extends HTMLElement {
       { value: "fr", label: "Français" },
       { value: "de", label: "Deutsch" },
       { value: "es", label: "Español" },
+      { value: "sr", label: "Српски" },
+      { value: "sr-Latn", label: "Srpski (latinica)" },
     ];
     return [...this.SCHEMA, { name: "language", selector: { select: { mode: "dropdown", options } } }];
   }

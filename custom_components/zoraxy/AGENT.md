@@ -20,8 +20,12 @@ custom_components/zoraxy/
 ├── manifest.json        # HA integration manifest
 ├── icons.json           # MDI icon per translation key
 ├── translations/
+│   ├── en.json          # English translations
 │   ├── fr.json          # French translations
-│   └── en.json          # English translations
+│   ├── de.json          # German translations
+│   ├── es.json          # Spanish translations
+│   ├── sr.json          # Serbian (Cyrillic) translations
+│   └── sr-Latn.json     # Serbian (Latin) translations
 └── brand/
     ├── icon.png         # 256×256 integration icon
     ├── icon@2x.png      # 512×512 integration icon

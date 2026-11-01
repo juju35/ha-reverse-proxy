@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.11.6 (2026-11-01)
+### What's new
+- Added Serbian (Cyrillic and Latin) translations: the configuration and options flows, the entity names, the action, the error messages and both cards (full and mini, with their visual editors) follow Home Assistant in `sr` and `sr-Latn`; the card's `language` option offers both.
+
 ## 1.11.5
 ### Fixes
 - Card: the text of the coloured chips (status, certificate expiry, proxy rule On / Off, switch states) is darker in the light theme and lighter in the dark theme, so it is readable on its tinted background; the chips keep their state colour.
