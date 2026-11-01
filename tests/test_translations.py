@@ -28,8 +28,8 @@ def _load(lang: str) -> dict[str, str]:
 
 
 def test_languages() -> None:
-    """English, French, German, Spanish, Serbian (Cyrillic and Latin), Italian, Dutch, Portuguese, Polish."""
-    expected = {"en", "fr", "de", "es", "sr", "sr-Latn", "it", "nl", "pt", "pl"}
+    """English, French, German, Spanish, Serbian (Cyrillic and Latin), Italian, Dutch, Portuguese (+pt-BR), Polish."""
+    expected = {"en", "fr", "de", "es", "sr", "sr-Latn", "it", "nl", "pt", "pt-BR", "pl"}
     assert {p.stem for p in TRANSLATIONS.glob("*.json")} >= expected
 
 
@@ -64,3 +64,8 @@ def test_serbian_scripts_are_not_mixed() -> None:
         assert not re.search(r"[A-Za-z]", _KEPT_LATIN.sub("", text)), f"sr: {key}"
     for key, text in _load("sr-Latn").items():
         assert not re.search(r"[Ѐ-ӿ]", text), f"sr-Latn: {key}"
+
+
+def test_brazilian_portuguese_is_european_portuguese() -> None:
+    """pt-BR uses the European Portuguese texts: Home Assistant does not fall back from pt-BR to pt."""
+    assert _load("pt-BR") == _load("pt")

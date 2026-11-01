@@ -131,7 +131,7 @@
       "message": "Zoraxy: não foi possível alterar a regra {domain}: {error}"
     },
     "acme_email_unavailable": {
-      "message": "Zoraxy: email ACME não disponível"
+      "message": "Zoraxy: e-mail ACME não disponível"
     },
     "wildcard_renewal": {
       "message": "Zoraxy: {domain} é um certificado wildcard, que requer um desafio DNS: renove-o no Zoraxy"

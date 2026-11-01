@@ -294,7 +294,7 @@ test('the editors offer the language picker, labelled in the picked language', (
     assert.deepEqual([...picker.map((o) => o.value)], ['', 'en', 'fr', 'de', 'es', 'sr', 'sr-Latn', 'it', 'nl', 'pt', 'pl']);
     assert.deepEqual(
       ['it', 'nl', 'pt', 'pl'].map((v) => picker.find((o) => o.value === v).label),
-      ['Italiano', 'Nederlands', 'Português', 'Polski'],
+      ['Italiano', 'Nederlands', 'Português (Portugal)', 'Polski'],
     );
     assert.equal(picker.find((o) => o.value === 'sr').label, 'Српски');
     assert.equal(picker.find((o) => o.value === 'sr-Latn').label, 'Srpski (latinica)');

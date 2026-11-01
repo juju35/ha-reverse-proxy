@@ -212,7 +212,7 @@ The integration and the card follow the language of Home Assistant (the card's `
 | Português (Portugal) | `pt` |
 | Polski | `pl` |
 
-Brazilian Portuguese (`pt-BR`) falls back to European Portuguese. Contributions for additional languages are welcome!
+Brazilian Portuguese (`pt-BR`): pt-BR uses the European Portuguese texts, in the integration (`pt-BR.json` is a copy of `pt.json`) and in the card. Contributions for additional languages are welcome!
 
 ## License
 

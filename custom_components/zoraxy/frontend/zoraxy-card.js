@@ -149,7 +149,7 @@ class ZoraxyCard extends HTMLElement {
       certsSection: "Certificati", proxyRules: "Regole proxy", redirections: "Reindirizzamenti",
       noCerts: "Nessun certificato trovato.", noRules: "Nessuna regola configurata.", noRedirects: "Nessun reindirizzamento configurato.",
       expired: "Scaduto", renew: "Rinnova", daysLeft: "{n} g",
-      on: "Acceso", off: "Spento",
+      on: "On", off: "Off",
       enableRule: "Abilita", disableRule: "Disabilita",
       ed_zoraxy_url: "URL di Zoraxy", ed_entity_prefix: "Prefisso delle entità",
       ed_zoraxy_url_helper: "Aperto facendo clic sul titolo della scheda",
@@ -183,7 +183,7 @@ class ZoraxyCard extends HTMLElement {
       certsSection: "Certificados", proxyRules: "Regras de proxy", redirections: "Redirecionamentos",
       noCerts: "Nenhum certificado encontrado.", noRules: "Nenhuma regra configurada.", noRedirects: "Nenhum redirecionamento configurado.",
       expired: "Expirado", renew: "Renovar", daysLeft: "{n} d",
-      on: "Ligado", off: "Desligado",
+      on: "On", off: "Off",
       enableRule: "Ativar", disableRule: "Desativar",
       ed_zoraxy_url: "URL do Zoraxy", ed_entity_prefix: "Prefixo das entidades",
       ed_zoraxy_url_helper: "Aberto ao clicar no título do cartão",
@@ -247,13 +247,13 @@ class ZoraxyCard extends HTMLElement {
     .section-title .icon { width: 16px; height: 16px; }
     .sec-arrow { color: var(--secondary-text-color); display: flex; transition: transform .2s ease; }
     .sec-arrow.closed { transform: rotate(-90deg); }
-    .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
     .ctrl { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px; border-radius: 10px; cursor: pointer;
             border: none; width: 100%; font-family: inherit; color: var(--primary-text-color);
             background: var(--secondary-background-color, rgba(127,127,127,.08)); transition: background .15s; }
     .ctrl .icon { color: var(--c, var(--secondary-text-color)); }
     .ctrl:hover { background: color-mix(in srgb, var(--zx-accent) 15%, var(--secondary-background-color, transparent)); }
-    .cl { font-size: 11px; color: var(--secondary-text-color); text-align: center; }
+    .cl { font-size: 11px; color: var(--secondary-text-color); text-align: center; overflow-wrap: anywhere; }
     .cs { font-size: 11px; font-weight: 500; color: color-mix(in srgb, var(--c) 50%, var(--primary-text-color)); }
     .row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; gap: 8px; font-size: 13px; }
     .row + .row { border-top: 1px solid var(--divider-color); }
@@ -708,6 +708,9 @@ class ZoraxyMiniCard extends ZoraxyCard {
     .r { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; padding: 0 6px 0 4px; border-radius: 999px;
          font-size: 12px; font-weight: 500; line-height: 18px; white-space: nowrap; color: var(--primary-text-color); }
     .r .icon { width: 13px; height: 13px; color: var(--c); }
+    /* A chip never gets wider than the card: its text ends in an ellipsis (full text in the tooltip). */
+    .r { box-sizing: border-box; max-width: 100%; min-width: 0; }
+    .r .rt { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
     .r.pill { color: color-mix(in srgb, var(--c) 50%, var(--primary-text-color)); background: color-mix(in srgb, var(--c) 14%, transparent); }
     .r:hover { background: color-mix(in srgb, var(--c) 20%, var(--secondary-background-color, transparent)); }
     /* A pill keeps a light tint on hover, so its darkened text stays readable. */
@@ -757,7 +760,7 @@ class ZoraxyMiniCard extends ZoraxyCard {
   _miniChip(entity, icon, text, cls, pill) {
     return `<button class="r ${cls}${pill ? " pill" : ""}" data-entity="${zoraxyEsc(entity)}" title="${zoraxyEsc(text)}">${this._mdi(
       ZoraxyCard.ICONS[icon],
-    )}${zoraxyEsc(text)}</button>`;
+    )}<span class="rt">${zoraxyEsc(text)}</span></button>`;
   }
 
   _miniChips() {
@@ -860,7 +863,7 @@ class ZoraxyCardEditor extends HTMLElement {
       { value: "sr-Latn", label: "Srpski (latinica)" },
       { value: "it", label: "Italiano" },
       { value: "nl", label: "Nederlands" },
-      { value: "pt", label: "Português" },
+      { value: "pt", label: "Português (Portugal)" },
       { value: "pl", label: "Polski" },
     ];
     return [...this.SCHEMA, { name: "language", selector: { select: { mode: "dropdown", options } } }];

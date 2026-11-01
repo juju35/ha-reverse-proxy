@@ -134,7 +134,7 @@
       "message": "Zoraxy: email ACME non disponibile"
     },
     "wildcard_renewal": {
-      "message": "Zoraxy: {domain} è un certificato wildcard, che richiede una verifica DNS: rinnovalo in Zoraxy"
+      "message": "Zoraxy: {domain} è un certificato wildcard, che richiede una verifica DNS: rinnovarlo in Zoraxy"
     },
     "renewal_failed": {
       "message": "Zoraxy: rinnovo di {domain} non riuscito: {error}"

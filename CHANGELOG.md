@@ -2,7 +2,7 @@
 
 ## 1.11.7 (2026-11-01)
 ### What's new
-- Added Italian, Dutch, European Portuguese and Polish translations: the configuration and options flows, the entity names, the action, the error messages and both cards (full and mini, with their visual editors) follow Home Assistant in `it`, `nl`, `pt` and `pl` (Brazilian Portuguese falls back to European Portuguese); the card's `language` option offers all four.
+- Added Italian, Dutch, European Portuguese and Polish translations: the configuration and options flows, the entity names, the action, the error messages and both cards (full and mini, with their visual editors) follow Home Assistant in `it`, `nl`, `pt` and `pl` (pt-BR uses the European Portuguese texts, in the integration and in the cards); the card's `language` option offers all four.
 
 ## 1.11.6 (2026-11-01)
 ### What's new

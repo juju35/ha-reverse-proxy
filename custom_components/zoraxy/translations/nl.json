@@ -106,7 +106,7 @@
   },
   "services": {
     "toggle_proxy_rule": {
-      "name": "Proxyregel schakelen",
+      "name": "Proxyregel omschakelen",
       "description": "Een Zoraxy-proxyregel in- of uitschakelen.",
       "fields": {
         "domain": {

@@ -29,6 +29,7 @@ custom_components/zoraxy/
 │   ├── it.json          # Italian translations
 │   ├── nl.json          # Dutch translations
 │   ├── pt.json          # European Portuguese translations
+│   ├── pt-BR.json       # Copy of pt.json (pt-BR uses the European Portuguese texts)
 │   └── pl.json          # Polish translations
 └── brand/
     ├── icon.png         # 256×256 integration icon
