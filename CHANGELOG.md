@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.11.5
+### Fixes
+- Card: the text of the coloured chips (status, certificate expiry, proxy rule On / Off, switch states) is darker in the light theme and lighter in the dark theme, so it is readable on its tinted background; the chips keep their state colour.
+- Card: the section arrow and button transitions are turned off when the system asks for reduced motion.
+
 ## 1.11.4
 ### Maintenance
 - Card: removed three unused translations (domain, target, status) from the four languages; nothing changes on screen.

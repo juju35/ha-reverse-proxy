@@ -1,4 +1,4 @@
-const ZORAXY_CARD_VERSION = '1.11.4';
+const ZORAXY_CARD_VERSION = '1.11.5';
 
 // Escapes a value interpolated into innerHTML, as text or inside a quoted attribute (as parcelEsc in ha-parcel).
 function zoraxyEsc(s) {
