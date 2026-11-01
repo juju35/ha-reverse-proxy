@@ -1,4 +1,4 @@
-const ZORAXY_CARD_VERSION = '1.11.4';
+const ZORAXY_CARD_VERSION = '1.11.5';
 
 // Escapes a value interpolated into innerHTML, as text or inside a quoted attribute (as parcelEsc in ha-parcel).
 function zoraxyEsc(s) {
@@ -123,7 +123,8 @@ class ZoraxyCard extends HTMLElement {
     .ok { --c: var(--zx-ok); } .warn { --c: var(--zx-warn); } .crit { --c: var(--zx-crit); } .idle { --c: var(--secondary-text-color); }
     .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--c, var(--zx-ok)); flex: none; display: inline-block; }
     .chip { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;
-            background: color-mix(in srgb, var(--c, var(--zx-ok)) 15%, transparent); color: var(--c, var(--zx-ok)); white-space: nowrap; }
+            background: color-mix(in srgb, var(--c, var(--zx-ok)) 15%, transparent); white-space: nowrap;
+            color: color-mix(in srgb, var(--c, var(--zx-ok)) 50%, var(--primary-text-color)); }
     .header { display: flex; align-items: center; gap: 10px; padding: 12px 12px 8px; }
     .logo { width: 40px; height: 40px; flex: none; }
     .titles { flex: 1; min-width: 0; }
@@ -151,7 +152,7 @@ class ZoraxyCard extends HTMLElement {
     .ctrl .icon { color: var(--c, var(--secondary-text-color)); }
     .ctrl:hover { background: color-mix(in srgb, var(--zx-accent) 15%, var(--secondary-background-color, transparent)); }
     .cl { font-size: 11px; color: var(--secondary-text-color); text-align: center; }
-    .cs { font-size: 11px; font-weight: 500; color: var(--c); }
+    .cs { font-size: 11px; font-weight: 500; color: color-mix(in srgb, var(--c) 50%, var(--primary-text-color)); }
     .row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; gap: 8px; font-size: 13px; }
     .row + .row { border-top: 1px solid var(--divider-color); }
     .row-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
@@ -168,10 +169,13 @@ class ZoraxyCard extends HTMLElement {
                 font-size: 12px; font-weight: 500; color: var(--primary-text-color); transition: background .15s;
                 background: var(--secondary-background-color, rgba(127,127,127,.12)); }
     .icon-btn:hover { background: color-mix(in srgb, var(--primary-text-color) 8%, var(--secondary-background-color, transparent)); }
-    .icon-btn.rule-btn { color: var(--c); background: color-mix(in srgb, var(--c) 16%, transparent); }
+    .icon-btn.rule-btn { color: color-mix(in srgb, var(--c) 50%, var(--primary-text-color)); background: color-mix(in srgb, var(--c) 16%, transparent); }
     .icon-btn.rule-btn:hover { background: color-mix(in srgb, var(--c) 24%, transparent); }
     .icon-btn:disabled { opacity: .5; cursor: not-allowed; }
     .icon-btn.busy { color: var(--zx-warn); }
+    @media (prefers-reduced-motion: reduce) {
+      .sec-arrow, .ctrl, .icon-btn { transition: none; }
+    }
   `;
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
@@ -600,8 +604,10 @@ class ZoraxyMiniCard extends ZoraxyCard {
     .r { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; padding: 0 6px 0 4px; border-radius: 999px;
          font-size: 12px; font-weight: 500; line-height: 18px; white-space: nowrap; color: var(--primary-text-color); }
     .r .icon { width: 13px; height: 13px; color: var(--c); }
-    .r.pill { color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); }
+    .r.pill { color: color-mix(in srgb, var(--c) 50%, var(--primary-text-color)); background: color-mix(in srgb, var(--c) 14%, transparent); }
     .r:hover { background: color-mix(in srgb, var(--c) 20%, var(--secondary-background-color, transparent)); }
+    /* A pill keeps a light tint on hover, so its darkened text stays readable. */
+    .r.pill:hover { background: color-mix(in srgb, var(--c) 20%, transparent); }
     .r:focus-visible { outline: 2px solid var(--zx-accent); outline-offset: 2px; }
     .zoom { all: unset; flex: none; cursor: pointer; width: 24px; height: 24px; margin: -4px -4px -4px 0; border-radius: 50%;
             display: grid; place-items: center; color: var(--secondary-text-color); }
