@@ -35,6 +35,8 @@ const context = {
   console,
   Date,
   Infinity,
+  setTimeout,
+  clearTimeout,
 };
 vm.createContext(context);
 vm.runInContext(
@@ -114,7 +116,7 @@ test('I18N Serbian: the Cyrillic and Latin cards say the same thing, letter for 
 });
 
 test('I18N Serbian: no Latin letter in sr, no Cyrillic letter in sr-Latn (names and acronyms aside)', () => {
-  const kept = /Zoraxy|HTTPS|URL|Home Assistant|zoraxy_reverse_proxy_zoraxy|\{\w+\}/g;
+  const kept = /Zoraxy|HTTPS|HTTP|ACME|URL|Home Assistant|zoraxy_reverse_proxy_zoraxy|\{\w+\}/g;
   for (const [key, text] of Object.entries(ZoraxyCard.I18N.sr)) {
     assert.ok(!/[A-Za-z]/.test(text.replace(kept, '')), `sr.${key}: ${text}`);
   }
@@ -154,6 +156,8 @@ test('every I18N key is read by the card or an editor', () => {
   for (const call of code.matchAll(/\b_?t\(([^()]*)\)/g)) {
     for (const lit of call[1].matchAll(/["']([A-Za-z0-9_]+)["']/g)) used.add(lit[1]);
   }
+  // The control tiles name their label and confirmation keys in ZoraxyCard.CONTROLS.
+  for (const c of ZoraxyCard.CONTROLS) for (const key of [c.label, c.confirm].filter(Boolean)) used.add(key);
   // Editor labels are built as ed_<field> and ed_<field>_helper.
   const fields = new Set(
     [ZoraxyCardEditor, ZoraxyMiniCardEditor].flatMap((E) => E.schema(() => '').map((f) => f.name)),
@@ -416,6 +420,8 @@ const TEXT_ON_STATE = [
   ['card', '.chip', '.chip', ['none']],
   ['card', '.icon-btn.rule-btn', '.icon-btn.rule-btn:hover', ['ok', 'crit']],
   ['mini', '.r.pill', '.r.pill:hover', ['ok', 'warn', 'crit']],
+  // The confirmation's main button (its --c is set by the rule itself, on the popup's card-coloured background).
+  ['card', '.modal-actions .btn.primary', '.modal-actions .btn.primary', ['crit']],
 ];
 
 function textContrast(cssName, textSel, bgSel, theme, state) {
@@ -472,4 +478,277 @@ test('rule and generic rows give the full domain as a title, for the ellipsis', 
   assert.match(html, /class="row-label domain-link" title="photos\.example\.org"/);
   assert.match(html, /class="row-label" title="\*\.example\.org"/);
   assert.match(card._row(true, 'nas.example.org', ''), /class="row-label" title="nas\.example\.org"/);
+});
+
+// ── Review pass 9: narrow header, control labels, rule rows, confirmation, unavailable states ──────────────
+
+// Every declaration of the rules whose selector list contains `selector`, inside `@container (max-width: …)`
+// blocks when `container` is true, outside them otherwise.
+function rules(css, selector, container = false) {
+  const clean = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const blocks = [...clean.matchAll(/@container \(max-width: (\d+)px\)\s*\{((?:[^{}]*\{[^{}]*\})*)\s*\}/g)];
+  const inside = blocks.map((b) => b[2]).join('\n');
+  const outside = blocks.reduce((rest, b) => rest.replace(b[0], ''), clean);
+  const out = {};
+  for (const m of (container ? inside : outside).matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    if (!m[1].split(',').map((s) => s.trim()).includes(selector)) continue;
+    for (const d of m[2].split(';')) {
+      const i = d.indexOf(':');
+      if (i > 0) out[d.slice(0, i).trim()] = d.slice(i + 1).trim();
+    }
+  }
+  return out;
+}
+
+test('narrow header: the title keeps about four letters, the status pill gives way, the icon buttons never shrink', () => {
+  for (const css of [ZoraxyCard.CSS, ZoraxyMiniCard.CSS]) {
+    assert.equal(rules(css, 'ha-card')['container-type'], 'inline-size');
+    const titles = rules(css, '.titles');
+    assert.equal(titles.flex, '1 1 auto');
+    assert.match(titles['min-width'], /^[4-6](\.\d+)?ch$/);
+    const status = rules(css, '#status');
+    assert.equal(status.flex, '0 1 auto');
+    assert.equal(status['min-width'], '0');
+    assert.equal(status['max-width'], '50%');
+    const chip = rules(css, '.chip');
+    assert.equal(chip['min-width'], '0');
+    assert.equal(chip['max-width'], '100%');
+    const text = rules(css, '.chip .ct');
+    assert.equal(text['text-overflow'], 'ellipsis');
+    assert.equal(text.overflow, 'hidden');
+    // Under the threshold the pill shows its dot only, its text hidden visually but still read out.
+    const narrow = rules(css, '#status .ct', true);
+    assert.equal(narrow.position, 'absolute');
+    assert.equal(narrow['clip-path'], 'inset(50%)');
+    assert.notEqual(narrow.display, 'none');
+  }
+  const mini = ZoraxyMiniCard.CSS;
+  const name = rules(mini, '.mini .name');
+  assert.equal(name.flex, '1 1 auto');
+  assert.match(name['min-width'], /^[4-6](\.\d+)?ch$/);
+  assert.equal(rules(mini, '.head #status').flex, undefined, 'the mini pill keeps the shrinkable flex of #status');
+  assert.match(rules(mini, '.zoom').flex, /^none$/);
+});
+
+test('the status pill carries its text as a title, and says unavailable rather than inactive', () => {
+  const card = makeCard();
+  assert.match(card._statusChip('on'), /class="chip ok" title="Active"><span class="dot"><\/span><span class="ct">Active<\/span>/);
+  assert.match(card._statusChip('off'), /class="chip crit" title="Inactive"/);
+  for (const state of ['unavailable', 'unknown', undefined]) {
+    const html = card._statusChip(state);
+    assert.match(html, /class="chip idle" title="Unavailable"/);
+    assert.doesNotMatch(html, /Inactive/);
+  }
+  card._hass.locale.language = 'pl';
+  assert.match(card._statusChip('unavailable'), /title="Niedostępny"/);
+});
+
+test('control tile labels break at a soft hyphen, never in the middle of a word', () => {
+  assert.notEqual(rules(ZoraxyCard.CSS, '.cl')['overflow-wrap'], 'anywhere');
+  // The label takes the free height: the On / Off lines of the three tiles line up.
+  assert.equal(rules(ZoraxyCard.CSS, '.cl').flex, '1 0 auto');
+  // A 245 px card leaves about 60 px of text per tile: 11 letters at 11 px. Longer words need a break point.
+  for (const [lang, strings] of Object.entries(ZoraxyCard.I18N)) {
+    for (const key of ['httpsRedirect', 'port80', 'devMode']) {
+      for (const word of strings[key].split(/[\s-]/)) {
+        const parts = word.split('­');
+        assert.ok(parts.every((p) => [...p].length <= 11), `${lang}.${key}: "${word}" needs a soft hyphen`);
+      }
+    }
+  }
+  // The soft hyphen never shows in a single-line text (mini chip, tooltip).
+  assert.equal(ZoraxyCard.I18N.it.httpsRedirect.replace('­', ''), 'Reindirizzamento HTTPS');
+});
+
+test('a rule row gives way on its target first, down to about four characters, before the domain', () => {
+  const right = rules(ZoraxyCard.CSS, '.row-right:has(> .row-sub)');
+  assert.equal(right.flex, '1 1 auto');
+  assert.equal(right['min-width'], undefined, 'the row end keeps its automatic minimum (target 4ch + button)');
+  const sub = rules(ZoraxyCard.CSS, '.row-sub');
+  assert.equal(sub.width, '0');
+  assert.equal(sub['flex-grow'], '1');
+  assert.equal(sub['min-width'], '4ch');
+  assert.equal(sub['max-width'], 'max-content');
+  // The redirect code (→ 301) keeps its own width.
+  const code = rules(ZoraxyCard.CSS, '.row-sub.row-code');
+  assert.equal(code.width, 'auto');
+  assert.equal(code['flex-grow'], '0');
+});
+
+// A card with the three controls and a fake callService recording the calls.
+function controlCard(over = {}) {
+  const states = {};
+  for (const suffix of ['redirection_https', 'ecoute_port_80', 'mode_developpement']) {
+    const on = suffix !== 'mode_developpement';
+    states[`binary_sensor.${PREFIX}_${suffix}`] = { state: on ? 'on' : 'off', attributes: {} };
+    states[`switch.${PREFIX}_${suffix}`] = { state: on ? 'on' : 'off', attributes: {} };
+  }
+  for (const [id, state] of Object.entries(over)) states[id] = { state, attributes: {} };
+  const card = makeCard(states);
+  card.calls = [];
+  card._hass.callService = (domain, service, data) => {
+    card.calls.push(`${domain}.${service} ${data.entity_id ?? `${data.domain}=${data.enable}`}`);
+    return Promise.resolve();
+  };
+  return card;
+}
+
+test('turning port 80 off asks first; turning it on, and the other controls, act at once', () => {
+  const card = controlCard();
+  card._onCtrl('ctrl-port80');
+  assert.deepEqual(card.calls, [], 'no call before the confirmation');
+  assert.equal(card._confirm.text, ZoraxyCard.I18N.en.confirmPort80Off);
+  assert.deepEqual({ ...card._confirm.from }, { id: 'ctrl-port80' });
+  const { run } = card._confirm;
+  card._closeConfirm();
+  run();
+  assert.deepEqual(card.calls, [`homeassistant.turn_off switch.${PREFIX}_ecoute_port_80`]);
+
+  // Turning on, HTTPS redirect off and dev mode on: one click, no popup.
+  const other = controlCard({ [`switch.${PREFIX}_ecoute_port_80`]: 'off', [`binary_sensor.${PREFIX}_ecoute_port_80`]: 'off' });
+  for (const id of ['ctrl-port80', 'ctrl-https', 'ctrl-devmode']) other._onCtrl(id);
+  assert.equal(other._confirm, undefined);
+  assert.deepEqual(other.calls, [
+    `homeassistant.turn_on switch.${PREFIX}_ecoute_port_80`,
+    `homeassistant.turn_off switch.${PREFIX}_redirection_https`,
+    `homeassistant.turn_on switch.${PREFIX}_mode_developpement`,
+  ]);
+});
+
+test('cancelling the confirmation does nothing, and a double click on its button does not act twice', () => {
+  const card = controlCard();
+  card._onCtrl('ctrl-port80');
+  card._closeConfirm();
+  assert.equal(card._confirm, null);
+  // The second click of a double click lands on the tile under the popup: ignored.
+  card._onCtrl('ctrl-port80');
+  assert.equal(card._confirm, null);
+  assert.deepEqual(card.calls, []);
+  card._confirmClosedAt = Date.now() - ZoraxyCard.CONFIRM_GUARD_MS - 1;
+  card._onCtrl('ctrl-port80');
+  assert.ok(card._confirm, 'a later click asks again');
+});
+
+test('a click outside the card closes the confirmation without acting', () => {
+  const card = controlCard();
+  card._onCtrl('ctrl-port80');
+  card.connectedCallback();
+  card._onOutside({ composedPath: () => [] });
+  assert.equal(card._confirm, null);
+  assert.deepEqual(card.calls, []);
+});
+
+test('disabling a proxy rule asks first; enabling it acts at once', async () => {
+  const card = controlCard();
+  const btn = (domain, enabled) => ({ dataset: { ruleDomain: domain, ruleEnabled: String(enabled) }, disabled: false, focus() {} });
+  const on = btn('nas.example.org', true);
+  card.shadowRoot.querySelectorAll = (sel) => (sel === '.rule-btn' ? [on] : []);
+  card._onRule(on);
+  assert.deepEqual(card.calls, []);
+  assert.equal(card._confirm.text, 'Disable the proxy rule for nas.example.org? The service will no longer be reachable through Zoraxy.');
+  const { run } = card._confirm;
+  card._closeConfirm();
+  await run();
+  assert.deepEqual(card.calls, ['zoraxy.toggle_proxy_rule nas.example.org=false']);
+  clearTimeout(card._refreshTimer);
+
+  card._confirmClosedAt = 0;
+  card.calls = [];
+  await card._onRule(btn('off.example.org', false));
+  assert.equal(card._confirm, null);
+  assert.deepEqual(card.calls, ['zoraxy.toggle_proxy_rule off.example.org=true']);
+  clearTimeout(card._refreshTimer);
+});
+
+test('the confirmation text is escaped (a rule domain comes from Zoraxy)', () => {
+  const card = controlCard();
+  card._confirm = { text: '<img src=x onerror=alert(1)>', ok: 'OK' };
+  const html = card._confirmHtml();
+  assert.doesNotMatch(html, /<img/);
+  assert.match(html, /role="dialog" aria-modal="true"/);
+  assert.match(html, /data-action="confirm_cancel">Cancel</);
+});
+
+test('unavailable or unknown controls say so, are disabled and do nothing', () => {
+  for (const [id, state] of [
+    [`switch.${PREFIX}_ecoute_port_80`, 'unavailable'],
+    [`binary_sensor.${PREFIX}_ecoute_port_80`, 'unknown'],
+  ]) {
+    const card = controlCard({ [id]: state });
+    assert.equal(card._ctrlState('ctrl-port80'), null);
+    card._onCtrl('ctrl-port80');
+    assert.equal(card._confirm, undefined);
+    assert.deepEqual(card.calls, []);
+    card._render();
+    const tile = card.shadowRoot.innerHTML.match(/<button class="ctrl[^"]*" id="ctrl-port80"[\s\S]*?<\/button>/)[0];
+    assert.match(tile, / disabled>/);
+    assert.match(tile, /<span class="cs">Unavailable<\/span>/);
+    assert.doesNotMatch(tile, />Off</);
+  }
+  // A missing switch entity (older install, wrong prefix) is unavailable too.
+  const card = controlCard();
+  delete card._hass.states[`switch.${PREFIX}_mode_developpement`];
+  assert.equal(card._ctrlState('ctrl-devmode'), null);
+  // The others still work.
+  assert.equal(card._ctrlState('ctrl-https'), 'on');
+});
+
+test('an unavailable rules sensor is not shown as "no rule"', () => {
+  const card = makeCard({ [`sensor.${PREFIX}_regles_proxy`]: { state: 'unavailable', attributes: {} } });
+  card._render();
+  const html = card.shadowRoot.innerHTML;
+  assert.match(html, /Proxy rules \(–\)/);
+  assert.match(html, /Redirections \(–\)/);
+  assert.doesNotMatch(html, /No rule configured|No redirect configured|\(0\)/);
+  // Known and empty: "no rule" again.
+  const empty = makeCard({ [`sensor.${PREFIX}_regles_proxy`]: { state: '0', attributes: { rules: [], redirects: [] } } });
+  empty._render();
+  assert.match(empty.shadowRoot.innerHTML, /Proxy rules \(0\)[\s\S]*No rule configured/);
+});
+
+test('the mini card does not report "HTTPS redirect off" when the sensor is unavailable', () => {
+  for (const state of ['unavailable', 'unknown']) {
+    const html = makeCard({ [`binary_sensor.${PREFIX}_redirection_https`]: { state, attributes: {} } }, ZoraxyMiniCard)._miniChips();
+    assert.doesNotMatch(html, /HTTPS redirect/);
+  }
+  const off = makeCard({ [`binary_sensor.${PREFIX}_redirection_https`]: { state: 'off', attributes: {} } }, ZoraxyMiniCard)._miniChips();
+  assert.match(off, /HTTPS redirect Off/);
+});
+
+test('the renew button of an unavailable certificate button entity is disabled', () => {
+  const states = {
+    [`sensor.${PREFIX}_cert_a_example`]: { state: isoInDays(40), attributes: { domain: 'a.example' } },
+    [`sensor.${PREFIX}_cert_b_example`]: { state: isoInDays(40), attributes: { domain: 'b.example' } },
+    // Never pressed: "unknown", still usable.
+    [`button.${PREFIX}_renouveler_a_example`]: { state: 'unknown', attributes: {} },
+    [`button.${PREFIX}_renouveler_b_example`]: { state: 'unavailable', attributes: {} },
+  };
+  const html = makeCard(states)._buildCerts(PREFIX);
+  assert.match(html, /data-entity="button\.zoraxy_reverse_proxy_zoraxy_renouveler_a_example" title="Renew">/);
+  assert.match(html, /data-entity="button\.zoraxy_reverse_proxy_zoraxy_renouveler_b_example" title="Renew" disabled>/);
+});
+
+test('both cards set their language on ha-card (hyphenation, screen readers)', () => {
+  for (const Cls of [ZoraxyCard, ZoraxyMiniCard]) {
+    const card = makeCard({}, Cls);
+    card._hass.locale.language = 'sr-Latn';
+    card._render();
+    assert.match(card.shadowRoot.innerHTML, /<ha-card lang="sr-Latn">/);
+  }
+});
+
+test('a redraw gives the focus back to the same control', () => {
+  const card = makeCard();
+  const el = (cls, attrs) => ({ classList: cls.split(' '), getAttribute: (a) => attrs[a] ?? null, focused: false, focus() { this.focused = true; } });
+  card.shadowRoot.activeElement = el('ctrl ok', { id: 'ctrl-port80' });
+  const key = card._focusKey();
+  // After the redraw nothing has the focus; the tile is now "idle" (its state changed).
+  card.shadowRoot.activeElement = null;
+  const header = el('sec-header', { 'data-id': 'controls' });
+  const tile = el('ctrl idle', { id: 'ctrl-port80' });
+  card.shadowRoot.querySelectorAll = (sel) => (sel === '[id]' ? [tile] : [header]);
+  card._restoreFocus(key);
+  assert.equal(tile.focused, true);
+  // Nothing focused before: nothing to restore.
+  assert.equal(card._focusKey(), null);
 });
