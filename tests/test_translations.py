@@ -28,16 +28,18 @@ def _load(lang: str) -> dict[str, str]:
 
 
 def test_languages() -> None:
-    """English, French, German, Spanish and Serbian (Cyrillic and Latin) are shipped."""
-    assert {p.stem for p in TRANSLATIONS.glob("*.json")} >= {"en", "fr", "de", "es", "sr", "sr-Latn"}
+    """English, French, German, Spanish, Serbian (Cyrillic and Latin), Italian, Dutch, Portuguese, Polish."""
+    expected = {"en", "fr", "de", "es", "sr", "sr-Latn", "it", "nl", "pt", "pl"}
+    assert {p.stem for p in TRANSLATIONS.glob("*.json")} >= expected
 
 
 @pytest.mark.parametrize("lang", sorted(p.stem for p in TRANSLATIONS.glob("*.json") if p.stem != "en"))
 def test_parity(lang: str) -> None:
-    """Same keys as English, same placeholders in every string."""
+    """Same keys as English, same placeholders in every string, no empty string."""
     en, other = _load("en"), _load(lang)
     assert sorted(other) == sorted(en)
     for key, text in en.items():
+        assert other[key].strip(), f"{lang}: {key} is empty"
         assert sorted(PLACEHOLDER.findall(other[key])) == sorted(PLACEHOLDER.findall(text)), f"{lang}: {key}"
 
 

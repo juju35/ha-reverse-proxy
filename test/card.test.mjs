@@ -77,17 +77,17 @@ test('card version is the manifest version', () => {
 
 test('I18N locales all carry the same keys', () => {
   const langs = Object.keys(ZoraxyCard.I18N);
-  for (const lang of ['en', 'fr', 'de', 'es', 'sr', 'sr-Latn']) assert.ok(langs.includes(lang), `missing ${lang}`);
+  for (const lang of ['en', 'fr', 'de', 'es', 'sr', 'sr-Latn', 'it', 'nl', 'pt', 'pl']) assert.ok(langs.includes(lang), `missing ${lang}`);
   const reference = Object.keys(ZoraxyCard.I18N.en).sort();
   for (const lang of langs) {
     assert.deepEqual(Object.keys(ZoraxyCard.I18N[lang]).sort(), reference, `keys of ${lang}`);
   }
 });
 
-test('I18N parity: Serbian has exactly the English keys and placeholders', () => {
+test('I18N parity: every language has exactly the English keys and placeholders, none empty', () => {
   const en = ZoraxyCard.I18N.en;
   const placeholders = (s) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join();
-  for (const lang of ['sr', 'sr-Latn']) {
+  for (const lang of ['fr', 'de', 'es', 'sr', 'sr-Latn', 'it', 'nl', 'pt', 'pl']) {
     const strings = ZoraxyCard.I18N[lang];
     assert.ok(strings, `missing ${lang}`);
     assert.deepEqual(Object.keys(strings).sort(), Object.keys(en).sort(), `${lang}: keys`);
@@ -95,6 +95,7 @@ test('I18N parity: Serbian has exactly the English keys and placeholders', () =>
       assert.equal(typeof strings[key], typeof en[key], `${lang}.${key}: type`);
       if (Array.isArray(en[key])) assert.equal(strings[key].length, en[key].length, `${lang}.${key}: length`);
       assert.equal(placeholders(String(strings[key])), placeholders(String(en[key])), `${lang}.${key}: placeholders`);
+      assert.ok(String(strings[key]).trim(), `${lang}.${key}: empty`);
     }
   }
 });
@@ -127,7 +128,13 @@ test('langOf: full locale, then the part before the dash, then English', () => {
   assert.equal(ZoraxyCard.langOf('sr-Latn'), 'sr-Latn');
   assert.equal(ZoraxyCard.langOf('sr'), 'sr');
   assert.equal(ZoraxyCard.langOf('sr-Cyrl'), 'sr');
-  assert.equal(ZoraxyCard.langOf('pt-BR'), 'en');
+  assert.equal(ZoraxyCard.langOf('ja'), 'en');
+  assert.equal(ZoraxyCard.langOf('it-IT'), 'it');
+  assert.equal(ZoraxyCard.langOf('nl-BE'), 'nl');
+  assert.equal(ZoraxyCard.langOf('pt'), 'pt');
+  // Brazilian Portuguese falls back to European Portuguese, the only Portuguese the card has.
+  assert.equal(ZoraxyCard.langOf('pt-BR'), 'pt');
+  assert.equal(ZoraxyCard.langOf('pl-PL'), 'pl');
   assert.equal(ZoraxyCard.langOf(undefined), 'en');
   // Home Assistant in sr-Latn picks the Latin script, unless the card option says otherwise.
   assert.equal(ZoraxyCard.langOfHass({ locale: { language: 'sr-Latn' }, language: 'sr-Latn' }), 'sr-Latn');
@@ -284,7 +291,11 @@ test('the editors offer the language picker, labelled in the picked language', (
     const names = editor._form.schema.map((f) => f.name);
     assert.equal(names.at(-1), 'language');
     const picker = editor._form.schema.at(-1).selector.select.options;
-    assert.deepEqual([...picker.map((o) => o.value)], ['', 'en', 'fr', 'de', 'es', 'sr', 'sr-Latn']);
+    assert.deepEqual([...picker.map((o) => o.value)], ['', 'en', 'fr', 'de', 'es', 'sr', 'sr-Latn', 'it', 'nl', 'pt', 'pl']);
+    assert.deepEqual(
+      ['it', 'nl', 'pt', 'pl'].map((v) => picker.find((o) => o.value === v).label),
+      ['Italiano', 'Nederlands', 'Português', 'Polski'],
+    );
     assert.equal(picker.find((o) => o.value === 'sr').label, 'Српски');
     assert.equal(picker.find((o) => o.value === 'sr-Latn').label, 'Srpski (latinica)');
     assert.equal(picker[0].label, ZoraxyCard.I18N.de.lang_auto);
