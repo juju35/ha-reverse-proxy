@@ -1,0 +1,146 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Zoraxy - Configuratie",
+        "data": {
+          "host": "Zoraxy-adres (URL met poort)",
+          "username": "Gebruikersnaam",
+          "password": "Wachtwoord",
+          "scan_interval": "Vernieuwingsinterval (seconden)",
+          "verify_ssl": "TLS-certificaat verifiëren"
+        },
+        "data_description": {
+          "verify_ssl": "Alleen uitschakelen voor een HTTPS-adres met een zelfondertekend certificaat."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Zoraxy - Nieuw wachtwoord",
+        "description": "Zoraxy heeft het wachtwoord van {username} op {host} geweigerd.",
+        "data": {
+          "password": "Wachtwoord"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Kan geen verbinding maken met Zoraxy",
+      "invalid_auth": "Ongeldige inloggegevens",
+      "unknown": "Onbekende fout"
+    },
+    "abort": {
+      "already_configured": "Zoraxy is al geconfigureerd",
+      "reauth_successful": "Wachtwoord bijgewerkt"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Zoraxy - Opties",
+        "data": {
+          "scan_interval": "Vernieuwingsinterval (seconden)",
+          "verify_ssl": "TLS-certificaat verifiëren"
+        },
+        "data_description": {
+          "verify_ssl": "Alleen uitschakelen voor een HTTPS-adres met een zelfondertekend certificaat."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "proxy_rules": {
+        "name": "Proxyregels"
+      },
+      "active_rules": {
+        "name": "Actieve regels"
+      },
+      "tls_certificates": {
+        "name": "TLS-certificaten"
+      },
+      "access_rules": {
+        "name": "Toegangsregels"
+      },
+      "inbound_port": {
+        "name": "Inkomende poort"
+      },
+      "certificate": {
+        "name": "Certificaat {domain}"
+      }
+    },
+    "binary_sensor": {
+      "proxy_running": {
+        "name": "Proxy actief"
+      },
+      "tls_enabled": {
+        "name": "TLS ingeschakeld"
+      },
+      "https_redirect": {
+        "name": "HTTPS-omleiding"
+      },
+      "port_80": {
+        "name": "Luisteren op poort 80"
+      },
+      "development_mode": {
+        "name": "Ontwikkelmodus"
+      },
+      "certificate_expiring": {
+        "name": "Certificaat {domain} verloopt binnenkort"
+      }
+    },
+    "switch": {
+      "https_redirect": {
+        "name": "HTTPS-omleiding"
+      },
+      "port_80": {
+        "name": "Luisteren op poort 80"
+      },
+      "development_mode": {
+        "name": "Ontwikkelmodus"
+      }
+    },
+    "button": {
+      "renew": {
+        "name": "{domain} vernieuwen"
+      }
+    }
+  },
+  "services": {
+    "toggle_proxy_rule": {
+      "name": "Proxyregel omschakelen",
+      "description": "Een Zoraxy-proxyregel in- of uitschakelen.",
+      "fields": {
+        "domain": {
+          "name": "Domein",
+          "description": "Het domein van de proxyregel (bijv. \"example.com\")."
+        },
+        "enable": {
+          "name": "Inschakelen",
+          "description": "Stel in op true om de regel in te schakelen, false om hem uit te schakelen. Weglaten om de regel om te schakelen."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_instance": {
+      "message": "Er is geen Zoraxy-instantie geladen"
+    },
+    "rule_not_found": {
+      "message": "Zoraxy-proxyregel {domain} niet gevonden"
+    },
+    "rule_change_failed": {
+      "message": "Zoraxy: kan de regel {domain} niet wijzigen: {error}"
+    },
+    "acme_email_unavailable": {
+      "message": "Zoraxy: ACME-e-mailadres niet beschikbaar"
+    },
+    "wildcard_renewal": {
+      "message": "Zoraxy: {domain} is een wildcardcertificaat, dat een DNS-challenge vereist: vernieuw het in Zoraxy"
+    },
+    "renewal_failed": {
+      "message": "Zoraxy: vernieuwen van {domain} mislukt: {error}"
+    },
+    "command_failed": {
+      "message": "Zoraxy: {error}"
+    }
+  }
+}

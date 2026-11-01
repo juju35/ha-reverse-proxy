@@ -24,7 +24,7 @@ Home Assistant integration and Lovelace card for the [Zoraxy](https://github.com
   - certificates with days left and a renewal button
   - proxy rules with an on/off button per rule, and HTTP redirects
 - A mini card in the same file: status and key figures on two lines, certificates expiring soon highlighted, and a detail button showing the full card
-- Visual editors for both cards, light and dark mode, English, French, German and Spanish
+- Visual editors for both cards, light and dark mode, English, French, German, Spanish, Serbian (Cyrillic and Latin), Italian, Dutch, European Portuguese and Polish
 - Automatic reconnection when the Zoraxy session expires (about one hour)
 
 ## Prerequisites
@@ -86,7 +86,7 @@ zoraxy_url: http://zoraxy.local:8000
 |---|---|---|
 | `zoraxy_url` | — | Zoraxy web interface (`http://` or `https://`), opened from the card title and shown under it |
 | `entity_prefix` | `zoraxy_reverse_proxy_zoraxy` | Common part of the entity ids |
-| `language` | Auto | Force the card language: `en`, `fr`, `de` or `es` (by default, the Home Assistant language) |
+| `language` | Auto | Force the card language: `en`, `fr`, `de`, `es`, `sr`, `sr-Latn`, `it`, `nl`, `pt` or `pl` (by default, the Home Assistant language) |
 
 With two Zoraxy instances, the second one's entities get `_2`-suffixed ids (`…_regles_proxy_2`) that the card cannot tell apart from the first instance's. Rename that instance's entity ids to their own prefix (for example `zoraxy_b_regles_proxy`, in **Settings → Devices & services → Entities**) and set `entity_prefix: zoraxy_b` on its card.
 
@@ -136,7 +136,7 @@ Same options as the full card, plus:
 | `switch.*_ecoute_port_80` | Turns the port 80 listener on or off |
 | `switch.*_mode_developpement` | Turns the development mode on or off |
 
-Names follow the Home Assistant language (English, French, German or Spanish) under the **Zoraxy Reverse Proxy** device. The entity ids keep their historical French suffixes so existing dashboards and automations keep working; on a new install they start with `zoraxy_reverse_proxy_zoraxy_`, the card's default prefix.
+Names follow the Home Assistant language (English, French, German, Spanish, Serbian in Cyrillic or Latin, Italian, Dutch, European Portuguese or Polish) under the **Zoraxy Reverse Proxy** device. The entity ids keep their historical French suffixes so existing dashboards and automations keep working; on a new install they start with `zoraxy_reverse_proxy_zoraxy_`, the card's default prefix.
 
 ### Service `zoraxy.toggle_proxy_rule`
 
@@ -205,8 +205,14 @@ The integration and the card follow the language of Home Assistant (the card's `
 | Français | `fr` |
 | Deutsch | `de` |
 | Español | `es` |
+| Српски | `sr` |
+| Srpski (latinica) | `sr-Latn` |
+| Italiano | `it` |
+| Nederlands | `nl` |
+| Português (Portugal) | `pt` |
+| Polski | `pl` |
 
-Contributions for additional languages are welcome!
+Brazilian Portuguese (`pt-BR`): pt-BR uses the European Portuguese texts, in the integration (`pt-BR.json` is a copy of `pt.json`) and in the card. Contributions for additional languages are welcome!
 
 ## License
 

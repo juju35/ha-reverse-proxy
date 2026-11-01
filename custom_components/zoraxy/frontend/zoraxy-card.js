@@ -1,4 +1,4 @@
-const ZORAXY_CARD_VERSION = '1.11.4';
+const ZORAXY_CARD_VERSION = '1.11.7';
 
 // Escapes a value interpolated into innerHTML, as text or inside a quoted attribute (as parcelEsc in ha-parcel).
 function zoraxyEsc(s) {
@@ -108,6 +108,108 @@ class ZoraxyCard extends HTMLElement {
       ed_zoom: "Botón de detalle", ed_zoom_helper: "Cambia a la tarjeta completa y vuelve",
       ed_language: "Idioma", lang_auto: "Auto (idioma de Home Assistant)",
     },
+    sr: {
+      active: "Активан", inactive: "Неактиван",
+      rules: "Правила", activeRules: "Активна", certs: "Серт.", port: "Порт",
+      controls: "Контроле", httpsRedirect: "HTTPS преусмеравање", port80: "Порт 80", devMode: "Развојни режим",
+      certsSection: "Сертификати", proxyRules: "Прокси правила", redirections: "Преусмеравања",
+      noCerts: "Није пронађен ниједан сертификат.", noRules: "Ниједно правило није подешено.", noRedirects: "Ниједно преусмеравање није подешено.",
+      expired: "Истекао", renew: "Обнови", daysLeft: "{n} д",
+      on: "Укљ.", off: "Искљ.",
+      enableRule: "Омогући", disableRule: "Онемогући",
+      ed_zoraxy_url: "URL адреса за Zoraxy", ed_entity_prefix: "Префикс ентитета",
+      ed_zoraxy_url_helper: "Отвара се кликом на наслов картице",
+      ed_entity_prefix_helper: "Заједнички део идентификатора ентитета, на пример zoraxy_reverse_proxy_zoraxy",
+      zoomIn: "Прикажи целу картицу", zoomOut: "Назад на компактни приказ",
+      ruleCount: "Правила: {a}/{n}", certCount: "Серт.: {n}",
+      ed_zoom: "Дугме за детаље", ed_zoom_helper: "Пребацује картицу на пун приказ и назад",
+      ed_language: "Језик", lang_auto: "Аутоматски (језик Home Assistant-а)",
+    },
+    "sr-Latn": {
+      active: "Aktivan", inactive: "Neaktivan",
+      rules: "Pravila", activeRules: "Aktivna", certs: "Sert.", port: "Port",
+      controls: "Kontrole", httpsRedirect: "HTTPS preusmeravanje", port80: "Port 80", devMode: "Razvojni režim",
+      certsSection: "Sertifikati", proxyRules: "Proksi pravila", redirections: "Preusmeravanja",
+      noCerts: "Nije pronađen nijedan sertifikat.", noRules: "Nijedno pravilo nije podešeno.", noRedirects: "Nijedno preusmeravanje nije podešeno.",
+      expired: "Istekao", renew: "Obnovi", daysLeft: "{n} d",
+      on: "Uklj.", off: "Isklj.",
+      enableRule: "Omogući", disableRule: "Onemogući",
+      ed_zoraxy_url: "URL adresa za Zoraxy", ed_entity_prefix: "Prefiks entiteta",
+      ed_zoraxy_url_helper: "Otvara se klikom na naslov kartice",
+      ed_entity_prefix_helper: "Zajednički deo identifikatora entiteta, na primer zoraxy_reverse_proxy_zoraxy",
+      zoomIn: "Prikaži celu karticu", zoomOut: "Nazad na kompaktni prikaz",
+      ruleCount: "Pravila: {a}/{n}", certCount: "Sert.: {n}",
+      ed_zoom: "Dugme za detalje", ed_zoom_helper: "Prebacuje karticu na pun prikaz i nazad",
+      ed_language: "Jezik", lang_auto: "Automatski (jezik Home Assistant-a)",
+    },
+    it: {
+      active: "Attivo", inactive: "Inattivo",
+      rules: "Regole", activeRules: "Attive", certs: "Cert.", port: "Porta",
+      controls: "Controlli", httpsRedirect: "Reindirizzamento HTTPS", port80: "Porta 80", devMode: "Modalità dev",
+      certsSection: "Certificati", proxyRules: "Regole proxy", redirections: "Reindirizzamenti",
+      noCerts: "Nessun certificato trovato.", noRules: "Nessuna regola configurata.", noRedirects: "Nessun reindirizzamento configurato.",
+      expired: "Scaduto", renew: "Rinnova", daysLeft: "{n} g",
+      on: "On", off: "Off",
+      enableRule: "Abilita", disableRule: "Disabilita",
+      ed_zoraxy_url: "URL di Zoraxy", ed_entity_prefix: "Prefisso delle entità",
+      ed_zoraxy_url_helper: "Aperto facendo clic sul titolo della scheda",
+      ed_entity_prefix_helper: "Parte comune degli ID entità, ad esempio zoraxy_reverse_proxy_zoraxy",
+      zoomIn: "Mostra la scheda completa", zoomOut: "Torna alla vista compatta",
+      ruleCount: "Regole: {a}/{n}", certCount: "Cert.: {n}",
+      ed_zoom: "Pulsante dettagli", ed_zoom_helper: "Passa alla scheda completa e ritorna",
+      ed_language: "Lingua", lang_auto: "Auto (lingua di Home Assistant)",
+    },
+    nl: {
+      active: "Actief", inactive: "Inactief",
+      rules: "Regels", activeRules: "Actief", certs: "Cert.", port: "Poort",
+      controls: "Bediening", httpsRedirect: "HTTPS-omleiding", port80: "Poort 80", devMode: "Dev-modus",
+      certsSection: "Certificaten", proxyRules: "Proxyregels", redirections: "Omleidingen",
+      noCerts: "Geen certificaat gevonden.", noRules: "Geen regel geconfigureerd.", noRedirects: "Geen omleiding geconfigureerd.",
+      expired: "Verlopen", renew: "Vernieuwen", daysLeft: "{n} d",
+      on: "Aan", off: "Uit",
+      enableRule: "Inschakelen", disableRule: "Uitschakelen",
+      ed_zoraxy_url: "Zoraxy-URL", ed_entity_prefix: "Entiteitsprefix",
+      ed_zoraxy_url_helper: "Wordt geopend bij een klik op de kaarttitel",
+      ed_entity_prefix_helper: "Gemeenschappelijk deel van de entiteits-ID's, bijvoorbeeld zoraxy_reverse_proxy_zoraxy",
+      zoomIn: "Volledige kaart tonen", zoomOut: "Terug naar de compacte weergave",
+      ruleCount: "Regels: {a}/{n}", certCount: "Cert.: {n}",
+      ed_zoom: "Detailknop", ed_zoom_helper: "Schakelt naar de volledige kaart en terug",
+      ed_language: "Taal", lang_auto: "Auto (taal van Home Assistant)",
+    },
+    pt: {
+      active: "Ativo", inactive: "Inativo",
+      rules: "Regras", activeRules: "Ativas", certs: "Cert.", port: "Porta",
+      controls: "Controlos", httpsRedirect: "Redirecionamento HTTPS", port80: "Porta 80", devMode: "Modo dev",
+      certsSection: "Certificados", proxyRules: "Regras de proxy", redirections: "Redirecionamentos",
+      noCerts: "Nenhum certificado encontrado.", noRules: "Nenhuma regra configurada.", noRedirects: "Nenhum redirecionamento configurado.",
+      expired: "Expirado", renew: "Renovar", daysLeft: "{n} d",
+      on: "On", off: "Off",
+      enableRule: "Ativar", disableRule: "Desativar",
+      ed_zoraxy_url: "URL do Zoraxy", ed_entity_prefix: "Prefixo das entidades",
+      ed_zoraxy_url_helper: "Aberto ao clicar no título do cartão",
+      ed_entity_prefix_helper: "Parte comum dos IDs de entidade, por exemplo zoraxy_reverse_proxy_zoraxy",
+      zoomIn: "Mostrar o cartão completo", zoomOut: "Voltar à vista compacta",
+      ruleCount: "Regras: {a}/{n}", certCount: "Cert.: {n}",
+      ed_zoom: "Botão de detalhe", ed_zoom_helper: "Muda para o cartão completo e volta",
+      ed_language: "Idioma", lang_auto: "Auto (idioma do Home Assistant)",
+    },
+    pl: {
+      active: "Aktywny", inactive: "Nieaktywny",
+      rules: "Reguły", activeRules: "Aktywne", certs: "Cert.", port: "Port",
+      controls: "Sterowanie", httpsRedirect: "Przekierowanie HTTPS", port80: "Port 80", devMode: "Tryb dev",
+      certsSection: "Certyfikaty", proxyRules: "Reguły proxy", redirections: "Przekierowania",
+      noCerts: "Nie znaleziono certyfikatu.", noRules: "Brak skonfigurowanych reguł.", noRedirects: "Brak skonfigurowanych przekierowań.",
+      expired: "Wygasł", renew: "Odnów", daysLeft: "{n} d",
+      on: "Wł.", off: "Wył.",
+      enableRule: "Włącz", disableRule: "Wyłącz",
+      ed_zoraxy_url: "Adres URL Zoraxy", ed_entity_prefix: "Prefiks encji",
+      ed_zoraxy_url_helper: "Otwierany po kliknięciu tytułu karty",
+      ed_entity_prefix_helper: "Wspólna część identyfikatorów encji, na przykład zoraxy_reverse_proxy_zoraxy",
+      zoomIn: "Pokaż pełną kartę", zoomOut: "Wróć do widoku kompaktowego",
+      ruleCount: "Reguły: {a}/{n}", certCount: "Cert.: {n}",
+      ed_zoom: "Przycisk szczegółów", ed_zoom_helper: "Przełącza na pełną kartę i z powrotem",
+      ed_language: "Język", lang_auto: "Auto (język Home Assistant)",
+    },
   };
 
   static CSS = `
@@ -123,7 +225,8 @@ class ZoraxyCard extends HTMLElement {
     .ok { --c: var(--zx-ok); } .warn { --c: var(--zx-warn); } .crit { --c: var(--zx-crit); } .idle { --c: var(--secondary-text-color); }
     .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--c, var(--zx-ok)); flex: none; display: inline-block; }
     .chip { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;
-            background: color-mix(in srgb, var(--c, var(--zx-ok)) 15%, transparent); color: var(--c, var(--zx-ok)); white-space: nowrap; }
+            background: color-mix(in srgb, var(--c, var(--zx-ok)) 15%, transparent); white-space: nowrap;
+            color: color-mix(in srgb, var(--c, var(--zx-ok)) 50%, var(--primary-text-color)); }
     .header { display: flex; align-items: center; gap: 10px; padding: 12px 12px 8px; }
     .logo { width: 40px; height: 40px; flex: none; }
     .titles { flex: 1; min-width: 0; }
@@ -141,23 +244,28 @@ class ZoraxyCard extends HTMLElement {
     .sec-header[aria-expanded="false"] { margin-bottom: 0; }
     .section-title { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; text-transform: uppercase;
                      letter-spacing: .04em; color: var(--secondary-text-color); }
+    .section-title { min-width: 0; }
+    .section-title > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .section-title .icon { width: 16px; height: 16px; }
-    .sec-arrow { color: var(--secondary-text-color); display: flex; transition: transform .2s ease; }
+    .sec-arrow { color: var(--secondary-text-color); display: flex; flex: none; transition: transform .2s ease; }
     .sec-arrow.closed { transform: rotate(-90deg); }
-    .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
     .ctrl { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px; border-radius: 10px; cursor: pointer;
             border: none; width: 100%; font-family: inherit; color: var(--primary-text-color);
             background: var(--secondary-background-color, rgba(127,127,127,.08)); transition: background .15s; }
     .ctrl .icon { color: var(--c, var(--secondary-text-color)); }
     .ctrl:hover { background: color-mix(in srgb, var(--zx-accent) 15%, var(--secondary-background-color, transparent)); }
-    .cl { font-size: 11px; color: var(--secondary-text-color); text-align: center; }
-    .cs { font-size: 11px; font-weight: 500; color: var(--c); }
+    .cl { font-size: 11px; color: var(--secondary-text-color); text-align: center; overflow-wrap: anywhere; }
+    .cs { font-size: 11px; font-weight: 500; color: color-mix(in srgb, var(--c) 50%, var(--primary-text-color)); }
     .row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; gap: 8px; font-size: 13px; }
     .row + .row { border-top: 1px solid var(--divider-color); }
     .row-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
     .row-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    /* A row with a target (rules, redirects): the target gives way before the domain, ellipsis + title. */
+    .row-right:has(> .row-sub) { flex-shrink: 1; min-width: 0; }
+    .row-right > :not(.row-sub), .row-sub.row-code { flex-shrink: 0; }
     .row-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .row-sub { font-size: 11px; color: var(--secondary-text-color); max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .row-sub { font-size: 11px; color: var(--secondary-text-color); max-width: 130px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .domain-link { cursor: pointer; }
     .domain-link:hover { text-decoration: underline; }
     .sec-header:focus-visible, .domain-link:focus-visible { outline: 2px solid var(--zx-accent); outline-offset: 2px; border-radius: 4px; }
@@ -168,10 +276,13 @@ class ZoraxyCard extends HTMLElement {
                 font-size: 12px; font-weight: 500; color: var(--primary-text-color); transition: background .15s;
                 background: var(--secondary-background-color, rgba(127,127,127,.12)); }
     .icon-btn:hover { background: color-mix(in srgb, var(--primary-text-color) 8%, var(--secondary-background-color, transparent)); }
-    .icon-btn.rule-btn { color: var(--c); background: color-mix(in srgb, var(--c) 16%, transparent); }
+    .icon-btn.rule-btn { color: color-mix(in srgb, var(--c) 50%, var(--primary-text-color)); background: color-mix(in srgb, var(--c) 16%, transparent); }
     .icon-btn.rule-btn:hover { background: color-mix(in srgb, var(--c) 24%, transparent); }
     .icon-btn:disabled { opacity: .5; cursor: not-allowed; }
     .icon-btn.busy { color: var(--zx-warn); }
+    @media (prefers-reduced-motion: reduce) {
+      .sec-arrow, .ctrl, .icon-btn { transition: none; }
+    }
   `;
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
@@ -275,10 +386,12 @@ class ZoraxyCard extends HTMLElement {
     return ZoraxyCard.langOf(config?.language || hass?.locale?.language || hass?.language);
   }
 
-  // The supported language matching a locale ("de-AT" → "de"), English otherwise.
+  // The supported language matching a locale: the whole locale when the card has it ("sr-Latn"), else the part
+  // before the dash ("de-AT" → "de"), English otherwise.
   static langOf(locale) {
-    const lang = String(locale || "en").toLowerCase().slice(0, 2);
-    return Object.hasOwn(ZoraxyCard.I18N, lang) ? lang : "en";
+    const value = String(locale || "en").toLowerCase();
+    const langs = Object.keys(ZoraxyCard.I18N);
+    return langs.find((l) => l.toLowerCase() === value) ?? langs.find((l) => l === value.split("-")[0]) ?? "en";
   }
 
   _t(key) { return ZoraxyCard.I18N[this._lang()]?.[key] ?? ZoraxyCard.I18N.en[key] ?? key; }
@@ -362,7 +475,7 @@ class ZoraxyCard extends HTMLElement {
   // Generic row: dot + label on the left, content on the right
   _row(dotOn, label, right) {
     return `<div class="row">
-      <div class="row-left">${this._dot(dotOn)}<span class="row-label">${zoraxyEsc(label)}</span></div>
+      <div class="row-left">${this._dot(dotOn)}<span class="row-label" title="${zoraxyEsc(label)}">${zoraxyEsc(label)}</span></div>
       <div class="row-right">${right}</div>
     </div>`;
   }
@@ -371,7 +484,7 @@ class ZoraxyCard extends HTMLElement {
     const open = this._sectionOpen[id] === true;
     return `<div class="section">
       <div class="sec-header" data-id="${id}" role="button" tabindex="0" aria-expanded="${open}">
-        <div class="section-title">${this._mdi(icon)}<span>${zoraxyEsc(title)}</span></div>
+        <div class="section-title">${this._mdi(icon)}<span title="${zoraxyEsc(title)}">${zoraxyEsc(title)}</span></div>
         <span class="sec-arrow${open ? "" : " closed"}" data-id="${id}">${this._mdi(ZoraxyCard.ICONS.chevronDown)}</span>
       </div>
       <div class="sec-content" data-id="${id}" style="display:${open ? "block" : "none"};">${content}</div>
@@ -387,8 +500,8 @@ class ZoraxyCard extends HTMLElement {
       const domain = zoraxyEsc(r.domain);
       // A wildcard rule (*.example.org) is not a valid URL: plain label, no link.
       const left = String(r.domain ?? "").includes("*")
-        ? `<span class="row-label">${domain}</span>`
-        : `<span class="row-label domain-link" role="link" tabindex="0" data-href="https://${domain}">${domain}</span>`;
+        ? `<span class="row-label" title="${domain}">${domain}</span>`
+        : `<span class="row-label domain-link" title="${domain}" role="link" tabindex="0" data-href="https://${domain}">${domain}</span>`;
       const right = `<span class="row-sub" title="${target}">${target}</span>
         <button class="icon-btn rule-btn ${r.enabled ? "ok" : "crit"}"
           data-rule-domain="${domain}"
@@ -441,7 +554,7 @@ class ZoraxyCard extends HTMLElement {
       const dst   = r.TargetURL || "?";
       const code  = r.StatusCode ? `${r.StatusCode}` : "";
       const https = dst.startsWith("https");
-      const right = `<span class="row-sub">→ ${zoraxyEsc(code)}</span>
+      const right = `<span class="row-sub row-code">→ ${zoraxyEsc(code)}</span>
         <span class="row-sub" title="${zoraxyEsc(dst)}">${zoraxyEsc(dst)}</span>
         ${https ? this._mdi(ZoraxyCard.ICONS.lock) : ""}`;
       return this._row(true, src, right);
@@ -600,8 +713,13 @@ class ZoraxyMiniCard extends ZoraxyCard {
     .r { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; padding: 0 6px 0 4px; border-radius: 999px;
          font-size: 12px; font-weight: 500; line-height: 18px; white-space: nowrap; color: var(--primary-text-color); }
     .r .icon { width: 13px; height: 13px; color: var(--c); }
-    .r.pill { color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); }
+    /* A chip never gets wider than the card: its text ends in an ellipsis (full text in the tooltip). */
+    .r { box-sizing: border-box; max-width: 100%; min-width: 0; }
+    .r .rt { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    .r.pill { color: color-mix(in srgb, var(--c) 50%, var(--primary-text-color)); background: color-mix(in srgb, var(--c) 14%, transparent); }
     .r:hover { background: color-mix(in srgb, var(--c) 20%, var(--secondary-background-color, transparent)); }
+    /* A pill keeps a light tint on hover, so its darkened text stays readable. */
+    .r.pill:hover { background: color-mix(in srgb, var(--c) 20%, transparent); }
     .r:focus-visible { outline: 2px solid var(--zx-accent); outline-offset: 2px; }
     .zoom { all: unset; flex: none; cursor: pointer; width: 24px; height: 24px; margin: -4px -4px -4px 0; border-radius: 50%;
             display: grid; place-items: center; color: var(--secondary-text-color); }
@@ -647,7 +765,7 @@ class ZoraxyMiniCard extends ZoraxyCard {
   _miniChip(entity, icon, text, cls, pill) {
     return `<button class="r ${cls}${pill ? " pill" : ""}" data-entity="${zoraxyEsc(entity)}" title="${zoraxyEsc(text)}">${this._mdi(
       ZoraxyCard.ICONS[icon],
-    )}${zoraxyEsc(text)}</button>`;
+    )}<span class="rt">${zoraxyEsc(text)}</span></button>`;
   }
 
   _miniChips() {
@@ -746,6 +864,12 @@ class ZoraxyCardEditor extends HTMLElement {
       { value: "fr", label: "Français" },
       { value: "de", label: "Deutsch" },
       { value: "es", label: "Español" },
+      { value: "sr", label: "Српски" },
+      { value: "sr-Latn", label: "Srpski (latinica)" },
+      { value: "it", label: "Italiano" },
+      { value: "nl", label: "Nederlands" },
+      { value: "pt", label: "Português (Portugal)" },
+      { value: "pl", label: "Polski" },
     ];
     return [...this.SCHEMA, { name: "language", selector: { select: { mode: "dropdown", options } } }];
   }
