@@ -805,16 +805,25 @@ test('narrow card (4 columns on a phone): the controls stack label and state, a 
   assert.equal(rules(css, '.ctrl .icon', 200)['grid-row'], 'span 2');
   assert.equal(rules(css, '.ctrl .cs', 200)['max-width'], '100%');
   assert.equal(rules(css, '.ctrl .cs', 200).overflow, undefined, 'the state is never cut');
-  // The rule's target gives way completely before its domain.
+  // Under its domain (see the next test), the rule's target gives way completely to the buttons.
   assert.equal(rules(css, '.row-sub', 200)['min-width'], '0');
-  // ≤ 150 px: label and state take the whole tile; a row's domain gets a line of its own, the rest under it.
+  // ≤ 150 px: label and state take the whole tile.
   assert.equal(rules(css, '.ctrl', 150)['grid-template-columns'], 'minmax(0, 1fr)');
   assert.equal(rules(css, '.ctrl .icon', 150).display, 'none');
-  assert.equal(rules(css, '.row', 150)['flex-wrap'], 'wrap');
-  assert.equal(rules(css, '.row-left', 150).flex, '1 0 100%');
-  assert.equal(rules(css, '.row-right', 150)['margin-left'], 'auto');
   // ≤ 260 px: tighter header gaps, so a long status keeps its whole text beside the title and detail button.
   assert.equal(rules(css, '.header', 260).gap, '6px');
+});
+
+test('a rule or redirect row wraps up to 200 px, so its target keeps a visible width on a phone', () => {
+  const css = ZoraxyCard.CSS;
+  // 151-200 px (the full card at 6 columns on a phone, the zoomed mini card at 160 px): without the wrap the
+  // domain took the whole line and the target fell to 0 px. The domain gets its own line, the target and the
+  // buttons go under it, exactly as at 150 px and below.
+  assert.equal(rules(css, '.row', 200)['flex-wrap'], 'wrap');
+  assert.equal(rules(css, '.row-left', 200).flex, '1 0 100%');
+  assert.equal(rules(css, '.row-right', 200)['margin-left'], 'auto');
+  // Above 200 px the row stays on one line.
+  assert.equal(rules(css, '.row')['flex-wrap'], undefined);
 });
 
 test('every focus given back by the card does not scroll the page (preventScroll)', () => {
