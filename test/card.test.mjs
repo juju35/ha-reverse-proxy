@@ -615,6 +615,40 @@ test('turning port 80 off asks first; turning it on, and the other controls, act
   ]);
 });
 
+test('the confirmed "turn port 80 off" never turns it on, even if it went off meanwhile (action frozen at the request)', () => {
+  const card = controlCard();
+  card._onCtrl('ctrl-port80');
+  // An automation or the Zoraxy UI turns port 80 off while the popup is open.
+  for (const id of [`switch.${PREFIX}_ecoute_port_80`, `binary_sensor.${PREFIX}_ecoute_port_80`]) {
+    card._hass.states[id] = { state: 'off', attributes: {} };
+  }
+  const { run } = card._confirm;
+  card._closeConfirm();
+  run();
+  assert.deepEqual(card.calls, [`homeassistant.turn_off switch.${PREFIX}_ecoute_port_80`]);
+  assert.ok(!card.calls.some((c) => c.includes('turn_on')), 'never turn_on');
+});
+
+test('a direct control click sends the service decided at the click (turn_on / turn_off, never a re-read toggle)', async () => {
+  const card = controlCard();
+  card._onCtrl('ctrl-https');
+  card._onCtrl('ctrl-devmode');
+  // Even if the state flips before the call resolves, the decided service is kept.
+  assert.deepEqual(card.calls, [
+    `homeassistant.turn_off switch.${PREFIX}_redirection_https`,
+    `homeassistant.turn_on switch.${PREFIX}_mode_developpement`,
+  ]);
+  // A failing call is only logged (HA shows the toast).
+  card._hass.callService = () => Promise.reject(new Error('boom'));
+  const warn = console.warn;
+  console.warn = () => {};
+  try {
+    await card._setSwitch(`switch.${PREFIX}_redirection_https`, true);
+  } finally {
+    console.warn = warn;
+  }
+});
+
 test('cancelling the confirmation does nothing, and a double click on its button does not act twice', () => {
   const card = controlCard();
   card._onCtrl('ctrl-port80');
