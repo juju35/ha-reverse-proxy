@@ -484,10 +484,14 @@ test('rule and generic rows give the full domain as a title, for the ellipsis', 
 
 // Every declaration of the rules whose selector list contains `selector`, inside `@container (max-width: …)`
 // blocks when `container` is true, outside them otherwise.
+// `container` may also be a width: only the `@container (max-width: <width>px)` blocks.
 function rules(css, selector, container = false) {
   const clean = css.replace(/\/\*[\s\S]*?\*\//g, '');
   const blocks = [...clean.matchAll(/@container \(max-width: (\d+)px\)\s*\{((?:[^{}]*\{[^{}]*\})*)\s*\}/g)];
-  const inside = blocks.map((b) => b[2]).join('\n');
+  const inside = blocks
+    .filter((b) => typeof container !== 'number' || Number(b[1]) === container)
+    .map((b) => b[2])
+    .join('\n');
   const outside = blocks.reduce((rest, b) => rest.replace(b[0], ''), clean);
   const out = {};
   for (const m of (container ? inside : outside).matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
@@ -503,13 +507,14 @@ function rules(css, selector, container = false) {
 test('narrow header: the title keeps about four letters, the status pill gives way, the icon buttons never shrink', () => {
   for (const css of [ZoraxyCard.CSS, ZoraxyMiniCard.CSS]) {
     assert.equal(rules(css, 'ha-card')['container-type'], 'inline-size');
+    // The title block takes what the pill leaves (zero basis): the pill is cut only when space really lacks.
     const titles = rules(css, '.titles');
-    assert.equal(titles.flex, '1 1 auto');
+    assert.equal(titles.flex, '1 1 0');
     assert.match(titles['min-width'], /^[4-6](\.\d+)?ch$/);
     const status = rules(css, '#status');
     assert.equal(status.flex, '0 1 auto');
     assert.equal(status['min-width'], '0');
-    assert.equal(status['max-width'], '50%');
+    assert.equal(status['max-width'], undefined, 'no cap: "Active" is not cut at 245-500 px');
     const chip = rules(css, '.chip');
     assert.equal(chip['min-width'], '0');
     assert.equal(chip['max-width'], '100%');
@@ -524,7 +529,7 @@ test('narrow header: the title keeps about four letters, the status pill gives w
   }
   const mini = ZoraxyMiniCard.CSS;
   const name = rules(mini, '.mini .name');
-  assert.equal(name.flex, '1 1 auto');
+  assert.equal(name.flex, '1 1 0');
   assert.match(name['min-width'], /^[4-6](\.\d+)?ch$/);
   assert.equal(rules(mini, '.head #status').flex, undefined, 'the mini pill keeps the shrinkable flex of #status');
   assert.match(rules(mini, '.zoom').flex, /^none$/);
@@ -768,6 +773,92 @@ test('both cards set their language on ha-card (hyphenation, screen readers)', (
     card._hass.locale.language = 'sr-Latn';
     card._render();
     assert.match(card.shadowRoot.innerHTML, /<ha-card lang="sr-Latn">/);
+  }
+});
+
+test('the card keeps a natural width in an inline-block, without a minimum width in a "1fr 1fr" grid', () => {
+  // A size container (container-type: inline-size) ignores its content's width: without help it falls to its
+  // padding (~24 px) in an inline-block or a grid "auto" column. contain-intrinsic-inline-size or a min-width in
+  // px would fix that but become a minimum: in a "1fr 1fr" grid (layout-card, grid or horizontal stack), wrapped
+  // or not, the card then refuses to shrink and overflows (measured 316-500 px).
+  for (const css of [ZoraxyCard.CSS, ZoraxyMiniCard.CSS]) {
+    const clean = css.replace(/\/\*[\s\S]*?\*\//g, '');
+    assert.doesNotMatch(clean, /contain-intrinsic/);
+    assert.equal(rules(css, 'ha-card')['container-type'], 'inline-size');
+    assert.equal(rules(css, ':host')['min-width'], '0');
+    // An empty, zero-height grid whose only column is minmax(0, W): max-content W, min-content 0.
+    const before = rules(css, ':host::before');
+    assert.equal(before.display, 'grid');
+    assert.equal(before.height, '0');
+    assert.equal(before['grid-template-columns'], 'minmax(0, var(--zx-natural-width))');
+  }
+  assert.equal(rules(ZoraxyCard.CSS, ':host')['--zx-natural-width'], '360px');
+  assert.equal(rules(ZoraxyMiniCard.CSS, ':host')['--zx-natural-width'], '300px');
+});
+
+test('narrow card (4 columns on a phone): the controls stack label and state, a row keeps its domain', () => {
+  const css = ZoraxyCard.CSS;
+  // ≤ 200 px: icon, then the label with its state under it; the state never squeezes the label.
+  const ctrl = rules(css, '.ctrl', 200);
+  assert.equal(ctrl.display, 'grid');
+  assert.equal(ctrl['grid-template-columns'], 'auto minmax(0, 1fr)');
+  assert.equal(rules(css, '.ctrl .icon', 200)['grid-row'], 'span 2');
+  assert.equal(rules(css, '.ctrl .cs', 200)['max-width'], '100%');
+  assert.equal(rules(css, '.ctrl .cs', 200).overflow, undefined, 'the state is never cut');
+  // The rule's target gives way completely before its domain.
+  assert.equal(rules(css, '.row-sub', 200)['min-width'], '0');
+  // ≤ 150 px: label and state take the whole tile; a row's domain gets a line of its own, the rest under it.
+  assert.equal(rules(css, '.ctrl', 150)['grid-template-columns'], 'minmax(0, 1fr)');
+  assert.equal(rules(css, '.ctrl .icon', 150).display, 'none');
+  assert.equal(rules(css, '.row', 150)['flex-wrap'], 'wrap');
+  assert.equal(rules(css, '.row-left', 150).flex, '1 0 100%');
+  assert.equal(rules(css, '.row-right', 150)['margin-left'], 'auto');
+  // ≤ 260 px: tighter header gaps, so a long status keeps its whole text beside the title and detail button.
+  assert.equal(rules(css, '.header', 260).gap, '6px');
+});
+
+test('every focus given back by the card does not scroll the page (preventScroll)', () => {
+  const calls = [...source.matchAll(/\.focus\(([^)]*)\)/g)].map((m) => m[1]);
+  assert.ok(calls.length >= 4);
+  for (const arg of calls) assert.match(arg, /^\{ preventScroll: true \}$/, `.focus(${arg})`);
+});
+
+test('the mini card detail button keeps the focus through a state update, without scrolling', () => {
+  const made = [];
+  const createElement = context.document.createElement;
+  context.document.createElement = () => {
+    const b = { dataset: {}, attrs: {}, listeners: {}, setAttribute(a, v) { this.attrs[a] = v; },
+      addEventListener(t, f) { this.listeners[t] = f; } };
+    made.push(b);
+    return b;
+  };
+  try {
+    const card = makeCard({}, ZoraxyMiniCard, {});
+    const head = { appendChild() {} };
+    card.shadowRoot.querySelector = (sel) => (sel === '.head, .header' ? head : null);
+    card._addZoom();
+    const [button] = made;
+    assert.equal(button.className, 'zoom');
+    assert.equal(button.dataset.action, 'zoom');
+    assert.ok(ZoraxyCard.FOCUS_ATTRS.includes('data-action'));
+    // A hass update redraws the card: the new detail button gets the focus back, without scrolling.
+    const el = (attrs) => ({ classList: ['zoom'], getAttribute: (a) => attrs[a] ?? null, args: null, focus(arg) { this.args = arg; } });
+    card.shadowRoot.activeElement = el({ 'data-action': 'zoom' });
+    const key = card._focusKey();
+    assert.deepEqual({ ...key }, { cls: 'zoom', attr: 'data-action', value: 'zoom' });
+    card.shadowRoot.activeElement = null;
+    const fresh = el({ 'data-action': 'zoom' });
+    card.shadowRoot.querySelectorAll = (sel) => (sel === '[data-action]' ? [fresh] : []);
+    card._restoreFocus(key);
+    assert.deepEqual({ ...fresh.args }, { preventScroll: true });
+    // Keyboard use of the button (no click count): the focus goes to the new button, without scrolling.
+    card._render = () => {};
+    const next = el({});
+    card.shadowRoot.querySelector = (sel) => (sel === '.zoom' ? next : null);
+    button.listeners.click({ detail: 0, stopPropagation() {} });
+    assert.deepEqual({ ...next.args }, { preventScroll: true });
+  } finally {
+    context.document.createElement = createElement;
   }
 });
 
