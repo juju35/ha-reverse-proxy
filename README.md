@@ -20,10 +20,11 @@ Home Assistant integration and Lovelace card for the [Zoraxy](https://github.com
 - A `zoraxy.toggle_proxy_rule` service to enable or disable a proxy rule from an automation
 - A Lovelace card, shipped with the integration and registered automatically:
   - proxy status and key metrics
-  - direct controls (HTTPS redirect, port 80, dev mode)
+  - direct controls (HTTPS redirect, port 80, dev mode); turning port 80 off asks for confirmation first, as it also stops the ACME HTTP challenges
   - certificates with days left and a renewal button
-  - proxy rules with an on/off button per rule, and HTTP redirects
-- A mini card in the same file: status and key figures on two lines, certificates expiring soon highlighted, and a detail button showing the full card
+  - proxy rules with an on/off button per rule (disabling a rule asks for confirmation first), and HTTP redirects
+  - an unavailable entity shows as *Unavailable* (its control disabled), never as *Off* or *Inactive*
+- A mini card in the same file: status and key figures on two lines, certificates expiring soon highlighted, and a detail button showing the full card; at its narrowest (4 columns of a Sections view) the status pill shows its coloured dot only
 - Visual editors for both cards, light and dark mode, English, French, German, Spanish, Serbian (Cyrillic and Latin), Italian, Dutch, European Portuguese and Polish
 - Automatic reconnection when the Zoraxy session expires (about one hour)
 
