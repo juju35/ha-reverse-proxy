@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.11.9 - 2026-11-02
 ### Fixes
 - Mini card: the Zoraxy logo keeps its full size (40 px) in the compact view, like the full card. It still gets smaller, then hides, on very narrow cards.
 
