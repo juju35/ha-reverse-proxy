@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+### Fixes
+- Mini card: the Zoraxy logo keeps its full size (40 px) in the compact view, like the full card. It still gets smaller, then hides, on very narrow cards.
+
 ## 1.11.8 (2026-11-01)
 ### Fixes
 - Cards: at their narrowest (the mini card at 4 columns of a Sections view, the full card at 6), the *Zoraxy* title no longer disappears and the detail button no longer sticks out of the card; the status pill gives way first and, on a very narrow card, shows only its coloured dot (its text stays in the tooltip and for screen readers).

@@ -973,8 +973,9 @@ class ZoraxyMiniCard extends ZoraxyCard {
   static CSS = `${ZoraxyCard.CSS}
     ha-card:has(.mini) { padding: 12px; }
     .mini { display: flex; align-items: center; gap: 10px; }
-    /* Top-aligned: 12 px from the card's top edge (the two lines are taller than the logo). */
-    .mini .logo { width: 32px; height: 32px; align-self: flex-start; }
+    /* Full-size logo (40 px, as on the full card), top-aligned: 12 px from the card's top edge (the two lines are
+       a little taller than the logo). */
+    .mini .logo { align-self: flex-start; }
     .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
     .head { display: flex; align-items: center; gap: 8px; min-width: 0; }
     /* The title gives way but keeps about four letters; the link stays the size of its text. */
