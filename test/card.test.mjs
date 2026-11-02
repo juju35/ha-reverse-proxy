@@ -535,6 +535,14 @@ test('narrow header: the title keeps about four letters, the status pill gives w
   assert.match(rules(mini, '.zoom').flex, /^none$/);
 });
 
+test('the mini card keeps the full card\'s 40 px logo; only a narrow card makes it smaller', () => {
+  const mini = ZoraxyMiniCard.CSS;
+  assert.equal(rules(mini, '.logo').width, '40px');
+  assert.equal(rules(mini, '.mini .logo').width, undefined, 'no mini-only logo size');
+  assert.equal(rules(mini, '.mini .logo').height, undefined, 'no mini-only logo size');
+  assert.equal(rules(mini, '.mini .logo', 200).width, '28px', 'the narrow breakpoint still shrinks it');
+});
+
 test('the status pill carries its text as a title, and says unavailable rather than inactive', () => {
   const card = makeCard();
   assert.match(card._statusChip('on'), /class="chip ok" title="Active"><span class="dot"><\/span><span class="ct">Active<\/span>/);
