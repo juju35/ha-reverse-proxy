@@ -5,7 +5,7 @@
 [![Validate](https://github.com/juju35/ha-zoraxy/actions/workflows/validate.yml/badge.svg)](https://github.com/juju35/ha-zoraxy/actions/workflows/validate.yml)
 [![Lint](https://github.com/juju35/ha-zoraxy/actions/workflows/lint.yml/badge.svg)](https://github.com/juju35/ha-zoraxy/actions/workflows/lint.yml)
 [![Release](https://img.shields.io/github/v/release/juju35/ha-zoraxy)](https://github.com/juju35/ha-zoraxy/releases/latest)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/juju35/ha-zoraxy/blob/main/LICENSE)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/julienstep9)
 
 Home Assistant integration and Lovelace card for the [Zoraxy](https://github.com/tobychui/zoraxy) reverse proxy (v3.3.2+): proxy status, controls, TLS certificates with ACME renewal, and proxy rules you can switch on and off from the dashboard.
@@ -161,15 +161,15 @@ data:
 
 | Full card (certificates open) | Full card, dark (certificates open) |
 |---|---|
-| ![card](screenshots/card.png) | ![card dark](screenshots/card-dark.png) |
+| ![card](https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/card.png) | ![card dark](https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/card-dark.png) |
 
 | Mini card | Mini card (dark) |
 |---|---|
-| ![mini](screenshots/mini.png) | ![mini dark](screenshots/mini-dark.png) |
+| ![mini](https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/mini.png) | ![mini dark](https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/mini-dark.png) |
 
 | Mini card zoomed in | Mini card zoomed in (dark) |
 |---|---|
-| ![mini zoomed](screenshots/mini-zoom.png) | ![mini zoomed dark](screenshots/mini-zoom-dark.png) |
+| ![mini zoomed](https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/mini-zoom.png) | ![mini zoomed dark](https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/mini-zoom-dark.png) |
 
 ## How it works
 
@@ -195,7 +195,7 @@ python scripts/screenshots.py   # renders both cards with mock entities into scr
 ### Releasing
 
 1. Bump the version in `custom_components/zoraxy/manifest.json` and `ZORAXY_CARD_VERSION` in the card
-2. Add a `## <version>` section at the top of [CHANGELOG.md](CHANGELOG.md)
+2. Add a `## <version>` section at the top of [CHANGELOG.md](https://github.com/juju35/ha-zoraxy/blob/main/CHANGELOG.md)
 3. Push to `main`: the **Release** workflow creates the tag and the GitHub release with the changelog section as notes
 
 ## Translations
@@ -231,7 +231,7 @@ Brazilian Portuguese (`pt-BR`): pt-BR uses the European Portuguese texts, in the
 
 ## License
 
-[MIT](LICENSE)
+[MIT](https://github.com/juju35/ha-zoraxy/blob/main/LICENSE)
 
 ## Support
 
