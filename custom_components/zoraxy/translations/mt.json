@@ -1,0 +1,146 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Zoraxy - Konfigurazzjoni",
+        "data": {
+          "host": "Indirizz ta' Zoraxy (URL bil-port)",
+          "username": "Isem tal-utent",
+          "password": "Password",
+          "scan_interval": "Intervall ta' aġġornament (sekondi)",
+          "verify_ssl": "Ivverifika ċ-ċertifikat TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Itfih biss għal indirizz HTTPS b'ċertifikat iffirmat minnu nnifsu."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Zoraxy - Password ġdida",
+        "description": "Zoraxy irrifjuta l-password ta' {username} fuq {host}.",
+        "data": {
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Ma jistax jikkonnettja ma' Zoraxy",
+      "invalid_auth": "Kredenzjali mhux validi",
+      "unknown": "Żball mhux magħruf"
+    },
+    "abort": {
+      "already_configured": "Zoraxy diġà kkonfigurat",
+      "reauth_successful": "Il-password ġiet aġġornata"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Zoraxy - Għażliet",
+        "data": {
+          "scan_interval": "Intervall ta' aġġornament (sekondi)",
+          "verify_ssl": "Ivverifika ċ-ċertifikat TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Itfih biss għal indirizz HTTPS b'ċertifikat iffirmat minnu nnifsu."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "proxy_rules": {
+        "name": "Regoli tal-proxy"
+      },
+      "active_rules": {
+        "name": "Regoli attivi"
+      },
+      "tls_certificates": {
+        "name": "Ċertifikati TLS"
+      },
+      "access_rules": {
+        "name": "Regoli tal-aċċess"
+      },
+      "inbound_port": {
+        "name": "Port tad-dħul"
+      },
+      "certificate": {
+        "name": "Ċertifikat {domain}"
+      }
+    },
+    "binary_sensor": {
+      "proxy_running": {
+        "name": "Proxy qed jaħdem"
+      },
+      "tls_enabled": {
+        "name": "TLS attivat"
+      },
+      "https_redirect": {
+        "name": "Ridirezzjoni HTTPS"
+      },
+      "port_80": {
+        "name": "Smigħ fuq il-port 80"
+      },
+      "development_mode": {
+        "name": "Modalità tal-iżvilupp"
+      },
+      "certificate_expiring": {
+        "name": "Ċertifikat {domain} dalwaqt jiskadi"
+      }
+    },
+    "switch": {
+      "https_redirect": {
+        "name": "Ridirezzjoni HTTPS"
+      },
+      "port_80": {
+        "name": "Smigħ fuq il-port 80"
+      },
+      "development_mode": {
+        "name": "Modalità tal-iżvilupp"
+      }
+    },
+    "button": {
+      "renew": {
+        "name": "Ġedded {domain}"
+      }
+    }
+  },
+  "services": {
+    "toggle_proxy_rule": {
+      "name": "Aqleb ir-regola tal-proxy",
+      "description": "Attiva jew iddiżattiva regola tal-proxy ta' Zoraxy.",
+      "fields": {
+        "domain": {
+          "name": "Dominju",
+          "description": "Id-dominju tar-regola tal-proxy (eż. \"example.com\")."
+        },
+        "enable": {
+          "name": "Attiva",
+          "description": "true biex tattiva r-regola, false biex tiddiżattivaha. Ħallih barra biex taqleb ir-regola."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_instance": {
+      "message": "L-ebda istanza ta' Zoraxy ma hija mgħobbija"
+    },
+    "rule_not_found": {
+      "message": "Ir-regola tal-proxy ta' Zoraxy {domain} ma nstabitx"
+    },
+    "rule_change_failed": {
+      "message": "Zoraxy: ma setgħetx tinbidel ir-regola {domain}: {error}"
+    },
+    "acme_email_unavailable": {
+      "message": "Zoraxy: l-email ACME mhix disponibbli"
+    },
+    "wildcard_renewal": {
+      "message": "Zoraxy: {domain} huwa ċertifikat wildcard, li jeħtieġ sfida DNS: ġeddu f'Zoraxy"
+    },
+    "renewal_failed": {
+      "message": "Zoraxy: it-tiġdid ta' {domain} ma rnexxiex: {error}"
+    },
+    "command_failed": {
+      "message": "Zoraxy: {error}"
+    }
+  }
+}

@@ -1,0 +1,146 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Zoraxy - Налаштування",
+        "data": {
+          "host": "Адреса Zoraxy (URL з портом)",
+          "username": "Ім'я користувача",
+          "password": "Пароль",
+          "scan_interval": "Інтервал оновлення (секунди)",
+          "verify_ssl": "Перевіряти сертифікат TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Вимикайте лише для адреси HTTPS із самопідписаним сертифікатом."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Zoraxy - Новий пароль",
+        "description": "Zoraxy відхилив пароль користувача {username} на {host}.",
+        "data": {
+          "password": "Пароль"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Не вдається підключитися до Zoraxy",
+      "invalid_auth": "Недійсні облікові дані",
+      "unknown": "Невідома помилка"
+    },
+    "abort": {
+      "already_configured": "Zoraxy вже налаштовано",
+      "reauth_successful": "Пароль оновлено"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Zoraxy - Параметри",
+        "data": {
+          "scan_interval": "Інтервал оновлення (секунди)",
+          "verify_ssl": "Перевіряти сертифікат TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Вимикайте лише для адреси HTTPS із самопідписаним сертифікатом."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "proxy_rules": {
+        "name": "Правила проксі"
+      },
+      "active_rules": {
+        "name": "Активні правила"
+      },
+      "tls_certificates": {
+        "name": "Сертифікати TLS"
+      },
+      "access_rules": {
+        "name": "Правила доступу"
+      },
+      "inbound_port": {
+        "name": "Вхідний порт"
+      },
+      "certificate": {
+        "name": "Сертифікат {domain}"
+      }
+    },
+    "binary_sensor": {
+      "proxy_running": {
+        "name": "Проксі працює"
+      },
+      "tls_enabled": {
+        "name": "TLS увімкнено"
+      },
+      "https_redirect": {
+        "name": "Перенаправлення HTTPS"
+      },
+      "port_80": {
+        "name": "Прослуховування порту 80"
+      },
+      "development_mode": {
+        "name": "Режим розробки"
+      },
+      "certificate_expiring": {
+        "name": "Сертифікат {domain} незабаром спливає"
+      }
+    },
+    "switch": {
+      "https_redirect": {
+        "name": "Перенаправлення HTTPS"
+      },
+      "port_80": {
+        "name": "Прослуховування порту 80"
+      },
+      "development_mode": {
+        "name": "Режим розробки"
+      }
+    },
+    "button": {
+      "renew": {
+        "name": "Оновити {domain}"
+      }
+    }
+  },
+  "services": {
+    "toggle_proxy_rule": {
+      "name": "Перемкнути правило проксі",
+      "description": "Вмикає або вимикає правило проксі Zoraxy.",
+      "fields": {
+        "domain": {
+          "name": "Домен",
+          "description": "Домен правила проксі (наприклад, «example.com»)."
+        },
+        "enable": {
+          "name": "Увімкнути",
+          "description": "true — увімкнути правило, false — вимкнути. Якщо не вказано, правило перемикається."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_instance": {
+      "message": "Не завантажено жодного екземпляра Zoraxy"
+    },
+    "rule_not_found": {
+      "message": "Правило проксі Zoraxy {domain} не знайдено"
+    },
+    "rule_change_failed": {
+      "message": "Zoraxy: не вдалося змінити правило {domain}: {error}"
+    },
+    "acme_email_unavailable": {
+      "message": "Zoraxy: адреса електронної пошти ACME недоступна"
+    },
+    "wildcard_renewal": {
+      "message": "Zoraxy: {domain} — wildcard-сертифікат, для якого потрібна перевірка DNS: оновіть його в Zoraxy"
+    },
+    "renewal_failed": {
+      "message": "Zoraxy: не вдалося оновити {domain}: {error}"
+    },
+    "command_failed": {
+      "message": "Zoraxy: {error}"
+    }
+  }
+}

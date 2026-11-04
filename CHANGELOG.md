@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.11.10 (2026-11-04)
+### What's new
+- Added Romanian, Danish, Swedish, Bulgarian, Russian, Ukrainian, Hungarian, Irish, Slovak, Czech, Slovenian, Maltese, Latvian and Greek translations: the configuration and options flows, the entity names, the action, the error messages and both cards (full and mini, with their visual editors) follow Home Assistant in `ro`, `da`, `sv`, `bg`, `ru`, `uk`, `hu`, `ga`, `sk`, `cs`, `sl`, `mt`, `lv` and `el`; the card's `language` option offers all fourteen.
+
 ## 1.11.9 - 2026-11-02
 ### Fixes
 - Mini card: the Zoraxy logo keeps its full size (40 px) in the compact view, like the full card. It still gets smaller, then hides, on very narrow cards.

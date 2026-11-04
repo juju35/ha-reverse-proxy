@@ -1,0 +1,146 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Zoraxy - Konfigurácia",
+        "data": {
+          "host": "Adresa Zoraxy (URL s portom)",
+          "username": "Používateľské meno",
+          "password": "Heslo",
+          "scan_interval": "Interval obnovenia (sekundy)",
+          "verify_ssl": "Overiť certifikát TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Vypnite iba pre adresu HTTPS so samopodpísaným certifikátom."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Zoraxy - Nové heslo",
+        "description": "Zoraxy odmietol heslo používateľa {username} na {host}.",
+        "data": {
+          "password": "Heslo"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Nie je možné pripojiť sa k Zoraxy",
+      "invalid_auth": "Neplatné prihlasovacie údaje",
+      "unknown": "Neznáma chyba"
+    },
+    "abort": {
+      "already_configured": "Zoraxy je už nakonfigurovaný",
+      "reauth_successful": "Heslo bolo aktualizované"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Zoraxy - Možnosti",
+        "data": {
+          "scan_interval": "Interval obnovenia (sekundy)",
+          "verify_ssl": "Overiť certifikát TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Vypnite iba pre adresu HTTPS so samopodpísaným certifikátom."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "proxy_rules": {
+        "name": "Pravidlá proxy"
+      },
+      "active_rules": {
+        "name": "Aktívne pravidlá"
+      },
+      "tls_certificates": {
+        "name": "Certifikáty TLS"
+      },
+      "access_rules": {
+        "name": "Pravidlá prístupu"
+      },
+      "inbound_port": {
+        "name": "Prichádzajúci port"
+      },
+      "certificate": {
+        "name": "Certifikát {domain}"
+      }
+    },
+    "binary_sensor": {
+      "proxy_running": {
+        "name": "Proxy beží"
+      },
+      "tls_enabled": {
+        "name": "TLS zapnuté"
+      },
+      "https_redirect": {
+        "name": "Presmerovanie HTTPS"
+      },
+      "port_80": {
+        "name": "Počúvanie na porte 80"
+      },
+      "development_mode": {
+        "name": "Vývojársky režim"
+      },
+      "certificate_expiring": {
+        "name": "Certifikát {domain} čoskoro vyprší"
+      }
+    },
+    "switch": {
+      "https_redirect": {
+        "name": "Presmerovanie HTTPS"
+      },
+      "port_80": {
+        "name": "Počúvanie na porte 80"
+      },
+      "development_mode": {
+        "name": "Vývojársky režim"
+      }
+    },
+    "button": {
+      "renew": {
+        "name": "Obnoviť {domain}"
+      }
+    }
+  },
+  "services": {
+    "toggle_proxy_rule": {
+      "name": "Prepnúť pravidlo proxy",
+      "description": "Povolí alebo zakáže pravidlo proxy v Zoraxy.",
+      "fields": {
+        "domain": {
+          "name": "Doména",
+          "description": "Doména pravidla proxy (napr. „example.com“)."
+        },
+        "enable": {
+          "name": "Povoliť",
+          "description": "true na povolenie pravidla, false na jeho zakázanie. Ak sa vynechá, pravidlo sa prepne."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_instance": {
+      "message": "Nie je načítaná žiadna inštancia Zoraxy"
+    },
+    "rule_not_found": {
+      "message": "Pravidlo proxy Zoraxy {domain} sa nenašlo"
+    },
+    "rule_change_failed": {
+      "message": "Zoraxy: pravidlo {domain} sa nepodarilo zmeniť: {error}"
+    },
+    "acme_email_unavailable": {
+      "message": "Zoraxy: e-mail ACME nie je k dispozícii"
+    },
+    "wildcard_renewal": {
+      "message": "Zoraxy: {domain} je wildcard certifikát, ktorý vyžaduje overenie DNS: obnovte ho v Zoraxy"
+    },
+    "renewal_failed": {
+      "message": "Zoraxy: obnovenie {domain} zlyhalo: {error}"
+    },
+    "command_failed": {
+      "message": "Zoraxy: {error}"
+    }
+  }
+}
