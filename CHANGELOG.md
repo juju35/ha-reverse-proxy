@@ -2,7 +2,7 @@
 
 ## 1.11.10 (2026-11-04)
 ### What's new
-- Added Romanian, Danish, Swedish, Bulgarian, Russian, Ukrainian, Hungarian, Irish, Slovak, Czech, Slovenian, Maltese, Latvian and Greek translations: the configuration and options flows, the entity names, the action, the error messages and both cards (full and mini, with their visual editors) follow Home Assistant in `ro`, `da`, `sv`, `bg`, `ru`, `uk`, `hu`, `ga`, `sk`, `cs`, `sl`, `mt`, `lv` and `el`; the card's `language` option offers all fourteen.
+- Added Romanian, Danish, Swedish, Bulgarian, Russian, Ukrainian, Hungarian, Slovak, Czech, Slovenian, Latvian and Greek translations: the configuration and options flows, the entity names, the action, the error messages and both cards (full and mini, with their visual editors) follow Home Assistant in `ro`, `da`, `sv`, `bg`, `ru`, `uk`, `hu`, `sk`, `cs`, `sl`, `lv` and `el`; the card's `language` option offers all twelve.
 
 ## 1.11.9 - 2026-11-02
 ### Fixes

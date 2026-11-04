@@ -79,7 +79,7 @@ test('card version is the manifest version', () => {
 
 test('I18N locales all carry the same keys', () => {
   const langs = Object.keys(ZoraxyCard.I18N);
-  for (const lang of ['en', 'fr', 'de', 'es', 'sr', 'sr-Latn', 'it', 'nl', 'pt', 'pl', 'ro', 'da', 'sv', 'bg', 'ru', 'uk', 'hu', 'ga', 'sk', 'cs', 'sl', 'mt', 'lv', 'el']) assert.ok(langs.includes(lang), `missing ${lang}`);
+  for (const lang of ['en', 'fr', 'de', 'es', 'sr', 'sr-Latn', 'it', 'nl', 'pt', 'pl', 'ro', 'da', 'sv', 'bg', 'ru', 'uk', 'hu', 'sk', 'cs', 'sl', 'lv', 'el']) assert.ok(langs.includes(lang), `missing ${lang}`);
   const reference = Object.keys(ZoraxyCard.I18N.en).sort();
   for (const lang of langs) {
     assert.deepEqual(Object.keys(ZoraxyCard.I18N[lang]).sort(), reference, `keys of ${lang}`);
@@ -89,7 +89,7 @@ test('I18N locales all carry the same keys', () => {
 test('I18N parity: every language has exactly the English keys and placeholders, none empty', () => {
   const en = ZoraxyCard.I18N.en;
   const placeholders = (s) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join();
-  for (const lang of ['fr', 'de', 'es', 'sr', 'sr-Latn', 'it', 'nl', 'pt', 'pl', 'ro', 'da', 'sv', 'bg', 'ru', 'uk', 'hu', 'ga', 'sk', 'cs', 'sl', 'mt', 'lv', 'el']) {
+  for (const lang of ['fr', 'de', 'es', 'sr', 'sr-Latn', 'it', 'nl', 'pt', 'pl', 'ro', 'da', 'sv', 'bg', 'ru', 'uk', 'hu', 'sk', 'cs', 'sl', 'lv', 'el']) {
     const strings = ZoraxyCard.I18N[lang];
     assert.ok(strings, `missing ${lang}`);
     assert.deepEqual(Object.keys(strings).sort(), Object.keys(en).sort(), `${lang}: keys`);
@@ -137,7 +137,7 @@ test('langOf: full locale, then the part before the dash, then English', () => {
   // Brazilian Portuguese falls back to European Portuguese, the only Portuguese the card has.
   assert.equal(ZoraxyCard.langOf('pt-BR'), 'pt');
   assert.equal(ZoraxyCard.langOf('pl-PL'), 'pl');
-  for (const lang of ['ro', 'da', 'sv', 'bg', 'ru', 'uk', 'hu', 'ga', 'sk', 'cs', 'sl', 'mt', 'lv', 'el']) {
+  for (const lang of ['ro', 'da', 'sv', 'bg', 'ru', 'uk', 'hu', 'sk', 'cs', 'sl', 'lv', 'el']) {
     assert.equal(ZoraxyCard.langOf(lang), lang);
     assert.equal(ZoraxyCard.langOf(`${lang}-${lang.toUpperCase()}`), lang);
   }
@@ -302,15 +302,15 @@ test('the editors offer the language picker, labelled in the picked language', (
     const picker = editor._form.schema.at(-1).selector.select.options;
     assert.deepEqual([...picker.map((o) => o.value)], [
       '', 'en', 'fr', 'de', 'es', 'sr', 'sr-Latn', 'it', 'nl', 'pt', 'pl',
-      'ro', 'da', 'sv', 'bg', 'ru', 'uk', 'hu', 'ga', 'sk', 'cs', 'sl', 'mt', 'lv', 'el',
+      'ro', 'da', 'sv', 'bg', 'ru', 'uk', 'hu', 'sk', 'cs', 'sl', 'lv', 'el',
     ]);
     assert.deepEqual(
       ['it', 'nl', 'pt', 'pl'].map((v) => picker.find((o) => o.value === v).label),
       ['Italiano', 'Nederlands', 'Português (Portugal)', 'Polski'],
     );
     assert.deepEqual(
-      ['ro', 'da', 'sv', 'bg', 'ru', 'uk', 'hu', 'ga', 'sk', 'cs', 'sl', 'mt', 'lv', 'el'].map((v) => picker.find((o) => o.value === v).label),
-      ['Română', 'Dansk', 'Svenska', 'Български', 'Русский', 'Українська', 'Magyar', 'Gaeilge', 'Slovenčina', 'Čeština', 'Slovenščina', 'Malti', 'Latviešu', 'Ελληνικά'],
+      ['ro', 'da', 'sv', 'bg', 'ru', 'uk', 'hu', 'sk', 'cs', 'sl', 'lv', 'el'].map((v) => picker.find((o) => o.value === v).label),
+      ['Română', 'Dansk', 'Svenska', 'Български', 'Русский', 'Українська', 'Magyar', 'Slovenčina', 'Čeština', 'Slovenščina', 'Latviešu', 'Ελληνικά'],
     );
     assert.equal(picker.find((o) => o.value === 'sr').label, 'Српски');
     assert.equal(picker.find((o) => o.value === 'sr-Latn').label, 'Srpski (latinica)');

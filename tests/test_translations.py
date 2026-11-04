@@ -30,7 +30,7 @@ def _load(lang: str) -> dict[str, str]:
 def test_languages() -> None:
     """The 10 first languages (+pt-BR) and Romanian to Greek."""
     expected = {"en", "fr", "de", "es", "sr", "sr-Latn", "it", "nl", "pt", "pt-BR", "pl"}
-    expected |= {"ro", "da", "sv", "bg", "ru", "uk", "hu", "ga", "sk", "cs", "sl", "mt", "lv", "el"}
+    expected |= {"ro", "da", "sv", "bg", "ru", "uk", "hu", "sk", "cs", "sl", "lv", "el"}
     assert {p.stem for p in TRANSLATIONS.glob("*.json")} >= expected
 
 

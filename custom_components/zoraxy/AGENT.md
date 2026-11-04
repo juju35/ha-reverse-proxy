@@ -38,11 +38,9 @@ custom_components/zoraxy/
 │   ├── ru.json          # Russian translations
 │   ├── uk.json          # Ukrainian translations
 │   ├── hu.json          # Hungarian translations
-│   ├── ga.json          # Irish translations
 │   ├── sk.json          # Slovak translations
 │   ├── cs.json          # Czech translations
 │   ├── sl.json          # Slovenian translations
-│   ├── mt.json          # Maltese translations
 │   ├── lv.json          # Latvian translations
 │   └── el.json          # Greek translations
 └── brand/
