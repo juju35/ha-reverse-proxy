@@ -12,7 +12,7 @@ Home Assistant integration and Lovelace card for the [Zoraxy](https://github.com
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=juju35&repository=ha-zoraxy&category=integration)
 
-![zoraxy-card](https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/card.png)
+<img src="https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/card.png" alt="zoraxy-card" width="400">
 
 ## Features
 
@@ -116,7 +116,7 @@ Same options as the full card, plus:
 |---|---|---|
 | `zoom` | `true` | Detail button switching to the full card and back |
 
-![zoraxy-mini-card](https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/mini.png)
+<img src="https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/mini.png" alt="zoraxy-mini-card" width="400">
 
 ### Entities
 
@@ -161,15 +161,15 @@ data:
 
 | Full card (certificates open) | Full card, dark (certificates open) |
 |---|---|
-| ![card](https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/card.png) | ![card dark](https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/card-dark.png) |
+| <img src="https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/card.png" alt="card" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/card-dark.png" alt="card dark" width="400"> |
 
 | Mini card | Mini card (dark) |
 |---|---|
-| ![mini](https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/mini.png) | ![mini dark](https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/mini-dark.png) |
+| <img src="https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/mini.png" alt="mini" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/mini-dark.png" alt="mini dark" width="400"> |
 
 | Mini card zoomed in | Mini card zoomed in (dark) |
 |---|---|
-| ![mini zoomed](https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/mini-zoom.png) | ![mini zoomed dark](https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/mini-zoom-dark.png) |
+| <img src="https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/mini-zoom.png" alt="mini zoomed" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/mini-zoom-dark.png" alt="mini zoomed dark" width="400"> |
 
 ## How it works
 
