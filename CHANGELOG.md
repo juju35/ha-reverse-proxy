@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.11.11 (2026-11-04)
+
+### Documentation
+- README: images and links use absolute URLs, so the screenshots, icons, badges and links display in HACS (relative paths broke there).
+- README: screenshots get a display size, so cards no longer show oversized in HACS and on GitHub.
+
 ## 1.11.10 (2026-11-04)
 ### What's new
 - Added Romanian, Danish, Swedish, Bulgarian, Russian, Ukrainian, Hungarian, Slovak, Czech, Slovenian, Latvian and Greek translations: the configuration and options flows, the entity names, the action, the error messages and both cards (full and mini, with their visual editors) follow Home Assistant in `ro`, `da`, `sv`, `bg`, `ru`, `uk`, `hu`, `sk`, `cs`, `sl`, `lv` and `el`; the card's `language` option offers all twelve.
