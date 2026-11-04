@@ -1,0 +1,146 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Zoraxy - Konfiguráció",
+        "data": {
+          "host": "Zoraxy címe (URL porttal)",
+          "username": "Felhasználónév",
+          "password": "Jelszó",
+          "scan_interval": "Frissítési időköz (másodperc)",
+          "verify_ssl": "TLS-tanúsítvány ellenőrzése"
+        },
+        "data_description": {
+          "verify_ssl": "Csak önaláírt tanúsítványt használó HTTPS-cím esetén kapcsolja ki."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Zoraxy - Új jelszó",
+        "description": "A Zoraxy elutasította {username} jelszavát itt: {host}.",
+        "data": {
+          "password": "Jelszó"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Nem sikerült csatlakozni a Zoraxyhoz",
+      "invalid_auth": "Érvénytelen hitelesítő adatok",
+      "unknown": "Ismeretlen hiba"
+    },
+    "abort": {
+      "already_configured": "A Zoraxy már konfigurálva van",
+      "reauth_successful": "A jelszó frissítve"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Zoraxy - Beállítások",
+        "data": {
+          "scan_interval": "Frissítési időköz (másodperc)",
+          "verify_ssl": "TLS-tanúsítvány ellenőrzése"
+        },
+        "data_description": {
+          "verify_ssl": "Csak önaláírt tanúsítványt használó HTTPS-cím esetén kapcsolja ki."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "proxy_rules": {
+        "name": "Proxyszabályok"
+      },
+      "active_rules": {
+        "name": "Aktív szabályok"
+      },
+      "tls_certificates": {
+        "name": "TLS-tanúsítványok"
+      },
+      "access_rules": {
+        "name": "Hozzáférési szabályok"
+      },
+      "inbound_port": {
+        "name": "Bejövő port"
+      },
+      "certificate": {
+        "name": "{domain} tanúsítvány"
+      }
+    },
+    "binary_sensor": {
+      "proxy_running": {
+        "name": "Proxy fut"
+      },
+      "tls_enabled": {
+        "name": "TLS engedélyezve"
+      },
+      "https_redirect": {
+        "name": "HTTPS-átirányítás"
+      },
+      "port_80": {
+        "name": "Figyelés a 80-as porton"
+      },
+      "development_mode": {
+        "name": "Fejlesztői mód"
+      },
+      "certificate_expiring": {
+        "name": "{domain} tanúsítvány hamarosan lejár"
+      }
+    },
+    "switch": {
+      "https_redirect": {
+        "name": "HTTPS-átirányítás"
+      },
+      "port_80": {
+        "name": "Figyelés a 80-as porton"
+      },
+      "development_mode": {
+        "name": "Fejlesztői mód"
+      }
+    },
+    "button": {
+      "renew": {
+        "name": "{domain} megújítása"
+      }
+    }
+  },
+  "services": {
+    "toggle_proxy_rule": {
+      "name": "Proxyszabály váltása",
+      "description": "Engedélyez vagy letilt egy Zoraxy-proxyszabályt.",
+      "fields": {
+        "domain": {
+          "name": "Domain",
+          "description": "A proxyszabály domainje (pl. „example.com”)."
+        },
+        "enable": {
+          "name": "Engedélyezés",
+          "description": "true a szabály engedélyezéséhez, false a letiltásához. Ha nincs megadva, a szabály állapota átvált."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_instance": {
+      "message": "Nincs betöltött Zoraxy-példány"
+    },
+    "rule_not_found": {
+      "message": "A(z) {domain} Zoraxy-proxyszabály nem található"
+    },
+    "rule_change_failed": {
+      "message": "Zoraxy: a(z) {domain} szabály nem módosítható: {error}"
+    },
+    "acme_email_unavailable": {
+      "message": "Zoraxy: az ACME e-mail-cím nem érhető el"
+    },
+    "wildcard_renewal": {
+      "message": "Zoraxy: a(z) {domain} wildcard tanúsítvány, amelyhez DNS-kihívás szükséges: újítsa meg a Zoraxyban"
+    },
+    "renewal_failed": {
+      "message": "Zoraxy: a(z) {domain} megújítása sikertelen: {error}"
+    },
+    "command_failed": {
+      "message": "Zoraxy: {error}"
+    }
+  }
+}

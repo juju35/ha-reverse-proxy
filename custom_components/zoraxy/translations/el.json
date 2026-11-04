@@ -1,0 +1,146 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Zoraxy - Διαμόρφωση",
+        "data": {
+          "host": "Διεύθυνση Zoraxy (URL με θύρα)",
+          "username": "Όνομα χρήστη",
+          "password": "Κωδικός πρόσβασης",
+          "scan_interval": "Διάστημα ανανέωσης (δευτερόλεπτα)",
+          "verify_ssl": "Επαλήθευση του πιστοποιητικού TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Απενεργοποιήστε το μόνο για διεύθυνση HTTPS με αυτοϋπογεγραμμένο πιστοποιητικό."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Zoraxy - Νέος κωδικός πρόσβασης",
+        "description": "Το Zoraxy απέρριψε τον κωδικό πρόσβασης του {username} στο {host}.",
+        "data": {
+          "password": "Κωδικός πρόσβασης"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Δεν είναι δυνατή η σύνδεση στο Zoraxy",
+      "invalid_auth": "Μη έγκυρα διαπιστευτήρια",
+      "unknown": "Άγνωστο σφάλμα"
+    },
+    "abort": {
+      "already_configured": "Το Zoraxy έχει ήδη διαμορφωθεί",
+      "reauth_successful": "Ο κωδικός πρόσβασης ενημερώθηκε"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Zoraxy - Επιλογές",
+        "data": {
+          "scan_interval": "Διάστημα ανανέωσης (δευτερόλεπτα)",
+          "verify_ssl": "Επαλήθευση του πιστοποιητικού TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Απενεργοποιήστε το μόνο για διεύθυνση HTTPS με αυτοϋπογεγραμμένο πιστοποιητικό."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "proxy_rules": {
+        "name": "Κανόνες proxy"
+      },
+      "active_rules": {
+        "name": "Ενεργοί κανόνες"
+      },
+      "tls_certificates": {
+        "name": "Πιστοποιητικά TLS"
+      },
+      "access_rules": {
+        "name": "Κανόνες πρόσβασης"
+      },
+      "inbound_port": {
+        "name": "Θύρα εισερχομένων"
+      },
+      "certificate": {
+        "name": "Πιστοποιητικό {domain}"
+      }
+    },
+    "binary_sensor": {
+      "proxy_running": {
+        "name": "Ο proxy εκτελείται"
+      },
+      "tls_enabled": {
+        "name": "TLS ενεργοποιημένο"
+      },
+      "https_redirect": {
+        "name": "Ανακατεύθυνση HTTPS"
+      },
+      "port_80": {
+        "name": "Ακρόαση στη θύρα 80"
+      },
+      "development_mode": {
+        "name": "Λειτουργία ανάπτυξης"
+      },
+      "certificate_expiring": {
+        "name": "Το πιστοποιητικό {domain} λήγει σύντομα"
+      }
+    },
+    "switch": {
+      "https_redirect": {
+        "name": "Ανακατεύθυνση HTTPS"
+      },
+      "port_80": {
+        "name": "Ακρόαση στη θύρα 80"
+      },
+      "development_mode": {
+        "name": "Λειτουργία ανάπτυξης"
+      }
+    },
+    "button": {
+      "renew": {
+        "name": "Ανανέωση {domain}"
+      }
+    }
+  },
+  "services": {
+    "toggle_proxy_rule": {
+      "name": "Εναλλαγή κανόνα proxy",
+      "description": "Ενεργοποιεί ή απενεργοποιεί έναν κανόνα proxy του Zoraxy.",
+      "fields": {
+        "domain": {
+          "name": "Τομέας",
+          "description": "Ο τομέας του κανόνα proxy (π.χ. «example.com»)."
+        },
+        "enable": {
+          "name": "Ενεργοποίηση",
+          "description": "true για ενεργοποίηση του κανόνα, false για απενεργοποίηση. Αν παραλειφθεί, ο κανόνας εναλλάσσεται."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_instance": {
+      "message": "Δεν έχει φορτωθεί καμία παρουσία του Zoraxy"
+    },
+    "rule_not_found": {
+      "message": "Ο κανόνας proxy {domain} του Zoraxy δεν βρέθηκε"
+    },
+    "rule_change_failed": {
+      "message": "Zoraxy: δεν ήταν δυνατή η αλλαγή του κανόνα {domain}: {error}"
+    },
+    "acme_email_unavailable": {
+      "message": "Zoraxy: το email ACME δεν είναι διαθέσιμο"
+    },
+    "wildcard_renewal": {
+      "message": "Zoraxy: το {domain} είναι πιστοποιητικό wildcard, που απαιτεί έλεγχο DNS: ανανεώστε το στο Zoraxy"
+    },
+    "renewal_failed": {
+      "message": "Zoraxy: η ανανέωση του {domain} απέτυχε: {error}"
+    },
+    "command_failed": {
+      "message": "Zoraxy: {error}"
+    }
+  }
+}

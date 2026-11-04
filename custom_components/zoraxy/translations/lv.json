@@ -1,0 +1,146 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Zoraxy - Konfigurācija",
+        "data": {
+          "host": "Zoraxy adrese (URL ar portu)",
+          "username": "Lietotājvārds",
+          "password": "Parole",
+          "scan_interval": "Atsvaidzināšanas intervāls (sekundes)",
+          "verify_ssl": "Pārbaudīt TLS sertifikātu"
+        },
+        "data_description": {
+          "verify_ssl": "Izslēdziet tikai HTTPS adresei ar pašparakstītu sertifikātu."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Zoraxy - Jauna parole",
+        "description": "Zoraxy noraidīja lietotāja {username} paroli resursdatorā {host}.",
+        "data": {
+          "password": "Parole"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Nevar izveidot savienojumu ar Zoraxy",
+      "invalid_auth": "Nederīgi akreditācijas dati",
+      "unknown": "Nezināma kļūda"
+    },
+    "abort": {
+      "already_configured": "Zoraxy jau ir konfigurēts",
+      "reauth_successful": "Parole atjaunināta"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Zoraxy - Opcijas",
+        "data": {
+          "scan_interval": "Atsvaidzināšanas intervāls (sekundes)",
+          "verify_ssl": "Pārbaudīt TLS sertifikātu"
+        },
+        "data_description": {
+          "verify_ssl": "Izslēdziet tikai HTTPS adresei ar pašparakstītu sertifikātu."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "proxy_rules": {
+        "name": "Starpniekservera kārtulas"
+      },
+      "active_rules": {
+        "name": "Aktīvās kārtulas"
+      },
+      "tls_certificates": {
+        "name": "TLS sertifikāti"
+      },
+      "access_rules": {
+        "name": "Piekļuves kārtulas"
+      },
+      "inbound_port": {
+        "name": "Ienākošais ports"
+      },
+      "certificate": {
+        "name": "Sertifikāts {domain}"
+      }
+    },
+    "binary_sensor": {
+      "proxy_running": {
+        "name": "Starpniekserveris darbojas"
+      },
+      "tls_enabled": {
+        "name": "TLS iespējots"
+      },
+      "https_redirect": {
+        "name": "HTTPS pāradresācija"
+      },
+      "port_80": {
+        "name": "Klausīšanās portā 80"
+      },
+      "development_mode": {
+        "name": "Izstrādes režīms"
+      },
+      "certificate_expiring": {
+        "name": "Sertifikāts {domain} drīz beigsies"
+      }
+    },
+    "switch": {
+      "https_redirect": {
+        "name": "HTTPS pāradresācija"
+      },
+      "port_80": {
+        "name": "Klausīšanās portā 80"
+      },
+      "development_mode": {
+        "name": "Izstrādes režīms"
+      }
+    },
+    "button": {
+      "renew": {
+        "name": "Atjaunot {domain}"
+      }
+    }
+  },
+  "services": {
+    "toggle_proxy_rule": {
+      "name": "Pārslēgt starpniekservera kārtulu",
+      "description": "Iespējo vai atspējo Zoraxy starpniekservera kārtulu.",
+      "fields": {
+        "domain": {
+          "name": "Domēns",
+          "description": "Starpniekservera kārtulas domēns (piem., \"example.com\")."
+        },
+        "enable": {
+          "name": "Iespējot",
+          "description": "true, lai iespējotu kārtulu, false, lai to atspējotu. Ja nav norādīts, kārtula tiek pārslēgta."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_instance": {
+      "message": "Nav ielādēta neviena Zoraxy instance"
+    },
+    "rule_not_found": {
+      "message": "Zoraxy starpniekservera kārtula {domain} nav atrasta"
+    },
+    "rule_change_failed": {
+      "message": "Zoraxy: neizdevās mainīt kārtulu {domain}: {error}"
+    },
+    "acme_email_unavailable": {
+      "message": "Zoraxy: ACME e-pasts nav pieejams"
+    },
+    "wildcard_renewal": {
+      "message": "Zoraxy: {domain} ir aizstājējzīmes (wildcard) sertifikāts, kam nepieciešama DNS pārbaude: atjaunojiet to programmā Zoraxy"
+    },
+    "renewal_failed": {
+      "message": "Zoraxy: {domain} atjaunošana neizdevās: {error}"
+    },
+    "command_failed": {
+      "message": "Zoraxy: {error}"
+    }
+  }
+}
