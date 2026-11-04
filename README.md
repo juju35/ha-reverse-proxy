@@ -6,6 +6,7 @@
 [![Lint](https://github.com/juju35/ha-zoraxy/actions/workflows/lint.yml/badge.svg)](https://github.com/juju35/ha-zoraxy/actions/workflows/lint.yml)
 [![Release](https://img.shields.io/github/v/release/juju35/ha-zoraxy)](https://github.com/juju35/ha-zoraxy/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/julienstep9)
 
 Home Assistant integration and Lovelace card for the [Zoraxy](https://github.com/tobychui/zoraxy) reverse proxy (v3.3.2+): proxy status, controls, TLS certificates with ACME renewal, and proxy rules you can switch on and off from the dashboard.
 
@@ -231,3 +232,9 @@ Brazilian Portuguese (`pt-BR`): pt-BR uses the European Portuguese texts, in the
 ## License
 
 [MIT](LICENSE)
+
+## Support
+
+If you find this project useful, you can support its development:
+
+<a href="https://buymeacoffee.com/julienstep9"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" height="50"></a>
