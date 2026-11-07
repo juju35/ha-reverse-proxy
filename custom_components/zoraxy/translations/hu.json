@@ -20,6 +20,15 @@
         "data": {
           "password": "Jelszó"
         }
+      },
+      "reconfigure": {
+        "title": "Zoraxy - Újrakonfigurálás",
+        "description": "Módosítsa ennek a Zoraxynak a címét vagy hitelesítő adatait. A bejelentkezés mentés előtt ellenőrzésre kerül.",
+        "data": {
+          "host": "Zoraxy címe (URL porttal)",
+          "username": "Felhasználónév",
+          "password": "Jelszó"
+        }
       }
     },
     "error": {
@@ -29,7 +38,8 @@
     },
     "abort": {
       "already_configured": "A Zoraxy már konfigurálva van",
-      "reauth_successful": "A jelszó frissítve"
+      "reauth_successful": "A jelszó frissítve",
+      "reconfigure_successful": "A konfiguráció frissítve"
     }
   },
   "options": {

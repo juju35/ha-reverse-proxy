@@ -489,6 +489,68 @@ async def test_reauth_with_same_password_reloads(hass, aioclient_mock, entry):
     assert setup_entry.call_count == 1
 
 
+def _start_reconfigure(hass, entry):
+    return hass.config_entries.flow.async_init(DOMAIN, context={"source": "reconfigure", "entry_id": entry.entry_id})
+
+
+async def test_reconfigure_changes_host_and_credentials(hass, aioclient_mock, entry):
+    """The address and credentials change without removing the entry, after a successful login."""
+    new_host = "http://zoraxy.lan:8001"
+    mock_zoraxy(aioclient_mock)
+    await _setup(hass, entry)
+    hass.config_entries.async_update_entry(entry, title=f"Zoraxy ({HOST})")
+    result = await _start_reconfigure(hass, entry)
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "reconfigure"
+    aioclient_mock.get(f"{new_host}/login.html", text=LOGIN_PAGE)
+    aioclient_mock.post(f"{new_host}/api/auth/login", text="OK")
+    with patch("custom_components.zoraxy.async_setup_entry", return_value=True) as setup_entry:
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {"host": f"{new_host}/", "username": "root", "password": "new"}
+        )
+        await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+    assert entry.data == {**DATA, "host": new_host, "username": "root", "password": "new"}
+    assert entry.unique_id == new_host
+    assert entry.title == f"Zoraxy ({new_host})"
+    assert setup_entry.call_count == 1  # reloaded once, by the update listener
+    # The login was checked against the new address with the new credentials.
+    login = next(c for c in aioclient_mock.mock_calls if str(c[1]) == f"{new_host}/api/auth/login")
+    assert login[2] == "username=root&password=new"
+
+
+@pytest.mark.parametrize(
+    ("login", "error"),
+    [
+        ({"exc": aiohttp.ClientConnectionError("refused")}, "cannot_connect"),
+        ({"text": '{"error":"Invalid username or password"}'}, "invalid_auth"),
+    ],
+)
+async def test_reconfigure_errors_keep_the_entry(hass, aioclient_mock, entry, login, error):
+    aioclient_mock.get(f"{HOST}/login.html", text=LOGIN_PAGE)
+    aioclient_mock.post(f"{HOST}/api/auth/login", **login)
+    result = await _start_reconfigure(hass, entry)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"host": HOST, "username": "admin", "password": "bad"}
+    )
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"] == {"base": error}
+    assert entry.data == DATA
+
+
+async def test_reconfigure_to_another_entry_host_aborts(hass, aioclient_mock, entry):
+    other = MockConfigEntry(domain=DOMAIN, data={**DATA, "host": "http://other:8000"}, unique_id="http://other:8000")
+    other.add_to_hass(hass)
+    result = await _start_reconfigure(hass, other)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"host": "HTTP://Zoraxy.local:8000", "username": "admin", "password": "secret"}
+    )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "already_configured"
+    assert other.data["host"] == "http://other:8000"
+
+
 async def test_polling_skips_root_rule_request(hass, aioclient_mock, entry):
     """Zoraxy answers type=root with a single object, never a list: the request was wasted at each poll."""
     mock_zoraxy(aioclient_mock)
@@ -824,3 +886,34 @@ async def test_large_list_attributes_not_recorded(hass, aioclient_mock, entry):
     # What the recorder strips from each state it writes.
     assert {"rules", "redirects"} <= rules.state_info["unrecorded_attributes"]
     assert "certificates" in certs.state_info["unrecorded_attributes"]
+
+
+# ── Diagnostics ───────────────────────────────────────────────────────────────
+
+
+async def test_diagnostics_redact_credentials(hass, aioclient_mock, entry):
+    from homeassistant.components.diagnostics import REDACTED
+
+    from custom_components.zoraxy.diagnostics import async_get_config_entry_diagnostics
+
+    rules = [
+        {
+            **HOST_RULES[0],
+            "BasicAuthCredentials": [{"Username": "bob", "PasswordHash": "abc123"}],
+            "AuthenticationProvider": {"token": "t0k", "ClientSecret": "s3cr3t"},
+        }
+    ]
+    mock_zoraxy(aioclient_mock, rules=rules)
+    await _setup(hass, entry)
+    diag = await async_get_config_entry_diagnostics(hass, entry)
+    data = diag["entry"]["data"]
+    assert data["host"] == data["username"] == data["password"] == REDACTED
+    assert data["scan_interval"] == 30
+    coordinator = diag["coordinator"]
+    assert coordinator["last_update_success"] is True
+    rule = coordinator["data"]["proxy_list"][0]
+    assert rule["RootOrMatchingDomain"] == "app.example.org"
+    assert rule["BasicAuthCredentials"][0] == {"Username": REDACTED, "PasswordHash": REDACTED}
+    assert rule["AuthenticationProvider"] == {"token": REDACTED, "ClientSecret": REDACTED}
+    for secret in ("secret", "bob", "abc123", "t0k", "s3cr3t", HOST):
+        assert secret not in str(diag)

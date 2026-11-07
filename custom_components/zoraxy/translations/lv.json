@@ -20,6 +20,15 @@
         "data": {
           "password": "Parole"
         }
+      },
+      "reconfigure": {
+        "title": "Zoraxy - Pārkonfigurēt",
+        "description": "Mainiet šī Zoraxy adresi vai pieteikšanās datus. Pieteikšanās tiek pārbaudīta pirms saglabāšanas.",
+        "data": {
+          "host": "Zoraxy adrese (URL ar portu)",
+          "username": "Lietotājvārds",
+          "password": "Parole"
+        }
       }
     },
     "error": {
@@ -29,7 +38,8 @@
     },
     "abort": {
       "already_configured": "Zoraxy jau ir konfigurēts",
-      "reauth_successful": "Parole atjaunināta"
+      "reauth_successful": "Parole atjaunināta",
+      "reconfigure_successful": "Konfigurācija atjaunināta"
     }
   },
   "options": {

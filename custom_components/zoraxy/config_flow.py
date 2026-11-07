@@ -48,6 +48,13 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
     }
 )
 STEP_REAUTH_DATA_SCHEMA = vol.Schema({vol.Required("password"): PASSWORD_SELECTOR})
+STEP_RECONFIGURE_DATA_SCHEMA = vol.Schema(
+    {
+        vol.Required("host"): str,
+        vol.Required("username"): str,
+        vol.Required("password"): PASSWORD_SELECTOR,
+    }
+)
 
 
 async def _validate(hass: HomeAssistant, host: str, username: str, password: str, verify_ssl: bool) -> str | None:
@@ -131,6 +138,52 @@ class ZoraxyConfigFlow(ConfigFlow, domain=DOMAIN):
             data_schema=STEP_REAUTH_DATA_SCHEMA,
             errors=errors,
             description_placeholders={"host": entry.data["host"], "username": entry.data["username"]},
+        )
+
+    async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Change the address or the credentials of an existing entry, checked by a login like the user step."""
+        errors: dict[str, str] = {}
+        entry = self._get_reconfigure_entry()
+        if user_input is not None:
+            host = user_input["host"].strip().rstrip("/")
+            unique_id = normalize_host(host)
+            if any(e.unique_id == unique_id for e in self._async_current_entries() if e.entry_id != entry.entry_id):
+                return self.async_abort(reason="already_configured")
+            settings = {**entry.data, **entry.options}
+            error = await _validate(
+                self.hass,
+                host,
+                user_input["username"],
+                user_input["password"],
+                settings.get(CONF_VERIFY_SSL, DEFAULT_VERIFY_SSL),
+            )
+            if error is None:
+                # Same reload rule as the reauth: the update listener reloads a changed loaded entry.
+                loaded = entry.state is ConfigEntryState.LOADED
+                title = entry.title
+                if title == f"Zoraxy ({entry.data['host']})":
+                    title = f"Zoraxy ({host})"
+                changed = self.hass.config_entries.async_update_entry(
+                    entry,
+                    title=title,
+                    unique_id=unique_id,
+                    data={
+                        **entry.data,
+                        "host": host,
+                        "username": user_input["username"],
+                        "password": user_input["password"],
+                    },
+                )
+                if not (loaded and changed):
+                    self.hass.config_entries.async_schedule_reload(entry.entry_id)
+                return self.async_abort(reason="reconfigure_successful")
+            errors["base"] = error
+
+        suggested = user_input or {"host": entry.data["host"], "username": entry.data["username"]}
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=self.add_suggested_values_to_schema(STEP_RECONFIGURE_DATA_SCHEMA, suggested),
+            errors=errors,
         )
 
     @staticmethod

@@ -20,6 +20,15 @@
         "data": {
           "password": "Пароль"
         }
+      },
+      "reconfigure": {
+        "title": "Zoraxy - Перенастройка",
+        "description": "Измените адрес или учётные данные этого Zoraxy. Вход проверяется перед сохранением.",
+        "data": {
+          "host": "Адрес Zoraxy (URL с портом)",
+          "username": "Имя пользователя",
+          "password": "Пароль"
+        }
       }
     },
     "error": {
@@ -29,7 +38,8 @@
     },
     "abort": {
       "already_configured": "Zoraxy уже настроен",
-      "reauth_successful": "Пароль обновлён"
+      "reauth_successful": "Пароль обновлён",
+      "reconfigure_successful": "Конфигурация обновлена"
     }
   },
   "options": {

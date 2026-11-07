@@ -20,6 +20,15 @@
         "data": {
           "password": "Heslo"
         }
+      },
+      "reconfigure": {
+        "title": "Zoraxy - Zmena konfigurácie",
+        "description": "Zmeňte adresu alebo prihlasovacie údaje tohto Zoraxy. Prihlásenie sa pred uložením overí.",
+        "data": {
+          "host": "Adresa Zoraxy (URL s portom)",
+          "username": "Používateľské meno",
+          "password": "Heslo"
+        }
       }
     },
     "error": {
@@ -29,7 +38,8 @@
     },
     "abort": {
       "already_configured": "Zoraxy je už nakonfigurovaný",
-      "reauth_successful": "Heslo bolo aktualizované"
+      "reauth_successful": "Heslo bolo aktualizované",
+      "reconfigure_successful": "Konfigurácia bola aktualizovaná"
     }
   },
   "options": {

@@ -20,6 +20,15 @@
         "data": {
           "password": "Lozinka"
         }
+      },
+      "reconfigure": {
+        "title": "Zoraxy - Ponovno konfigurisanje",
+        "description": "Promenite adresu ili podatke za prijavu ovog Zoraxy. Prijava se proverava pre čuvanja.",
+        "data": {
+          "host": "Zoraxy adresa (URL sa portom)",
+          "username": "Korisničko ime",
+          "password": "Lozinka"
+        }
       }
     },
     "error": {
@@ -29,7 +38,8 @@
     },
     "abort": {
       "already_configured": "Zoraxy je već konfigurisan",
-      "reauth_successful": "Lozinka je ažurirana"
+      "reauth_successful": "Lozinka je ažurirana",
+      "reconfigure_successful": "Konfiguracija je ažurirana"
     }
   },
   "options": {

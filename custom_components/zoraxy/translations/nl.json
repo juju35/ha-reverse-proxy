@@ -20,6 +20,15 @@
         "data": {
           "password": "Wachtwoord"
         }
+      },
+      "reconfigure": {
+        "title": "Zoraxy - Opnieuw configureren",
+        "description": "Wijzig het adres of de inloggegevens van deze Zoraxy. De aanmelding wordt gecontroleerd voordat er wordt opgeslagen.",
+        "data": {
+          "host": "Zoraxy-adres (URL met poort)",
+          "username": "Gebruikersnaam",
+          "password": "Wachtwoord"
+        }
       }
     },
     "error": {
@@ -29,7 +38,8 @@
     },
     "abort": {
       "already_configured": "Zoraxy is al geconfigureerd",
-      "reauth_successful": "Wachtwoord bijgewerkt"
+      "reauth_successful": "Wachtwoord bijgewerkt",
+      "reconfigure_successful": "Configuratie bijgewerkt"
     }
   },
   "options": {

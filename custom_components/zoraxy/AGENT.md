@@ -14,7 +14,8 @@ custom_components/zoraxy/
 ├── binary_sensor.py     # Binary sensors (status flags, cert expiry alerts)
 ├── switch.py            # Switches (HTTPS redirect, port 80, dev mode)
 ├── button.py            # Buttons (ACME certificate renewal per domain)
-├── config_flow.py       # Config flow (host, credentials, interval, verify_ssl), reauth, options
+├── config_flow.py       # Config flow (host, credentials, interval, verify_ssl), reauth, reconfigure, options
+├── diagnostics.py       # Config entry diagnostics, credentials redacted (TO_REDACT)
 ├── const.py             # Constants, safe_domain(), DEVICE_INFO_BASE
 ├── entity.py            # ZoraxyEntity base: device, translated name, entity id kept from 1.4.x
 ├── manifest.json        # HA integration manifest
@@ -85,6 +86,8 @@ Zoraxy v3.3.2 uses **gorilla/csrf** protection. Login flow:
 - Version 1.2: `verify_ssl` (new entries: true; entries migrated from 1.1: false, as the TLS certificate was never checked before), unique id = `normalize_host(host)`
 - Options override the data: `scan_interval` (10 s minimum), `verify_ssl`; changing them reloads the entry
 - Reauth stores the new password and lets the update listener reload the entry (it reloads it itself only when that listener is not registered, e.g. the setup failed, or nothing changed)
+- Reconfigure changes host, username and password (verify_ssl stays in the options), validated by `_validate` like the user step; refuses a host another entry uses (`already_configured`), moves the unique id and the default title, reloads like the reauth
+- Diagnostics redact the entry's host/username/password and, at any depth in the coordinator data, credential keys (basic auth `Username`/`PasswordHash`, tokens, secrets, cookies, emails)
 - `toggle_proxy_rule` is registered in `async_setup` and resolves the coordinator at each call (the one whose `proxy_list` has the domain); raises `ServiceValidationError` / `HomeAssistantError`, which the card's optimistic rollback relies on
 
 ## API Endpoints Used

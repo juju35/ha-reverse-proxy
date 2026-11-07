@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.12.0 - 2026-11-07
+### What's new
+- Diagnostics: **Download diagnostics** gives the entry settings and the last data read from Zoraxy, with the address, credentials, tokens, secrets, cookies and email addresses redacted.
+- Reconfigure: the address, username and password can be changed with **Reconfigure** without removing the integration; the new settings are saved only after a successful login.
+
 ## 1.11.12 - 2026-11-07
 ### Fixes
 - The full lists of proxy rules, redirections and certificates (attributes of the *Proxy rules* and *TLS certificates* sensors) are no longer written to the recorder at every change; the card still reads them from the state.
