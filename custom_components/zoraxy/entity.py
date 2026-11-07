@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Iterable
 
 from homeassistant.core import callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -54,21 +55,36 @@ def async_track_cert_entities(
     coordinator: ZoraxyDataUpdateCoordinator,
     entry,
     async_add_entities: Callable[[Iterable[Entity]], None],
-    factory: Callable[[str], Iterable[Entity]],
-) -> list[Entity]:
+    factory: Callable[[str], Iterable[ZoraxyEntity]],
+) -> list[ZoraxyEntity]:
     """Entities of the certificates listed now; those of a certificate added later in Zoraxy follow at its update.
 
     Without this, a new certificate only got its entities after a reload, while the count sensor already counted it.
+    Likewise, the entities of a certificate removed from Zoraxy are removed from the registry at the update that no
+    longer lists it (only when /api/cert/list actually answered), instead of staying until a reload.
     """
-    known: set[str] = set()
+    known: dict[str, list[ZoraxyEntity]] = {}
 
-    def new_entities() -> list[Entity]:
+    def new_entities() -> list[ZoraxyEntity]:
         domains = [d for d in (coordinator.data or {}).get("cert_list", []) if isinstance(d, str) and d not in known]
-        known.update(domains)
-        return [entity for domain in domains for entity in factory(domain)]
+        for domain in domains:
+            known[domain] = list(factory(domain))
+        return [entity for domain in domains for entity in known[domain]]
+
+    @callback
+    def _remove_gone() -> None:
+        if not coordinator.cert_list_loaded:
+            return
+        current = set((coordinator.data or {}).get("cert_list", []))
+        registry = er.async_get(coordinator.hass)
+        for domain in [d for d in known if d not in current]:
+            for entity in known.pop(domain):
+                if entity_id := registry.async_get_entity_id(entity._platform, DOMAIN, entity.unique_id):
+                    registry.async_remove(entity_id)
 
     @callback
     def _check() -> None:
+        _remove_gone()
         if entities := new_entities():
             async_add_entities(entities)
 

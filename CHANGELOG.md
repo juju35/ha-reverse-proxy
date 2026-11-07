@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.11.12 - 2026-11-07
+### Fixes
+- The full lists of proxy rules, redirections and certificates (attributes of the *Proxy rules* and *TLS certificates* sensors) are no longer written to the recorder at every change; the card still reads them from the state.
+- A certificate removed in Zoraxy now loses its sensor, binary sensor and renew button at the next update, instead of keeping stale entities until a reload.
+
 ## 1.11.11 (2026-11-04)
 
 ### Documentation
