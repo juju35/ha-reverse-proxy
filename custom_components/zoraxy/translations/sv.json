@@ -20,6 +20,15 @@
         "data": {
           "password": "Lösenord"
         }
+      },
+      "reconfigure": {
+        "title": "Zoraxy - Konfigurera om",
+        "description": "Ändra adressen eller inloggningsuppgifterna för denna Zoraxy. Inloggningen kontrolleras innan den sparas.",
+        "data": {
+          "host": "Zoraxy-adress (URL med port)",
+          "username": "Användarnamn",
+          "password": "Lösenord"
+        }
       }
     },
     "error": {
@@ -29,7 +38,8 @@
     },
     "abort": {
       "already_configured": "Zoraxy är redan konfigurerat",
-      "reauth_successful": "Lösenordet har uppdaterats"
+      "reauth_successful": "Lösenordet har uppdaterats",
+      "reconfigure_successful": "Konfigurationen har uppdaterats"
     }
   },
   "options": {

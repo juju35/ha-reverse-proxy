@@ -20,6 +20,15 @@
         "data": {
           "password": "Парола"
         }
+      },
+      "reconfigure": {
+        "title": "Zoraxy - Преконфигуриране",
+        "description": "Променете адреса или данните за вход на този Zoraxy. Входът се проверява преди запазване.",
+        "data": {
+          "host": "Адрес на Zoraxy (URL с порт)",
+          "username": "Потребителско име",
+          "password": "Парола"
+        }
       }
     },
     "error": {
@@ -29,7 +38,8 @@
     },
     "abort": {
       "already_configured": "Zoraxy вече е конфигуриран",
-      "reauth_successful": "Паролата е актуализирана"
+      "reauth_successful": "Паролата е актуализирана",
+      "reconfigure_successful": "Конфигурацията е актуализирана"
     }
   },
   "options": {

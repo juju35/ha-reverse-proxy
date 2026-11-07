@@ -20,6 +20,15 @@
         "data": {
           "password": "Κωδικός πρόσβασης"
         }
+      },
+      "reconfigure": {
+        "title": "Zoraxy - Επαναδιαμόρφωση",
+        "description": "Αλλάξτε τη διεύθυνση ή τα διαπιστευτήρια αυτού του Zoraxy. Η σύνδεση ελέγχεται πριν από την αποθήκευση.",
+        "data": {
+          "host": "Διεύθυνση Zoraxy (URL με θύρα)",
+          "username": "Όνομα χρήστη",
+          "password": "Κωδικός πρόσβασης"
+        }
       }
     },
     "error": {
@@ -29,7 +38,8 @@
     },
     "abort": {
       "already_configured": "Το Zoraxy έχει ήδη διαμορφωθεί",
-      "reauth_successful": "Ο κωδικός πρόσβασης ενημερώθηκε"
+      "reauth_successful": "Ο κωδικός πρόσβασης ενημερώθηκε",
+      "reconfigure_successful": "Η διαμόρφωση ενημερώθηκε"
     }
   },
   "options": {

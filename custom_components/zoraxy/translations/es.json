@@ -20,6 +20,15 @@
         "data": {
           "password": "Contraseña"
         }
+      },
+      "reconfigure": {
+        "title": "Zoraxy - Reconfigurar",
+        "description": "Cambie la dirección o las credenciales de este Zoraxy. El inicio de sesión se comprueba antes de guardar.",
+        "data": {
+          "host": "Dirección de Zoraxy (URL con puerto)",
+          "username": "Nombre de usuario",
+          "password": "Contraseña"
+        }
       }
     },
     "error": {
@@ -29,7 +38,8 @@
     },
     "abort": {
       "already_configured": "Zoraxy ya está configurado",
-      "reauth_successful": "Contraseña actualizada"
+      "reauth_successful": "Contraseña actualizada",
+      "reconfigure_successful": "Configuración actualizada"
     }
   },
   "options": {

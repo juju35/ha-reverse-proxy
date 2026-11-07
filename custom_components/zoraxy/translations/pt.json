@@ -20,6 +20,15 @@
         "data": {
           "password": "Palavra-passe"
         }
+      },
+      "reconfigure": {
+        "title": "Zoraxy - Reconfigurar",
+        "description": "Altere o endereço ou as credenciais deste Zoraxy. O início de sessão é verificado antes de guardar.",
+        "data": {
+          "host": "Endereço do Zoraxy (URL com porta)",
+          "username": "Nome de utilizador",
+          "password": "Palavra-passe"
+        }
       }
     },
     "error": {
@@ -29,7 +38,8 @@
     },
     "abort": {
       "already_configured": "O Zoraxy já está configurado",
-      "reauth_successful": "Palavra-passe atualizada"
+      "reauth_successful": "Palavra-passe atualizada",
+      "reconfigure_successful": "Configuração atualizada"
     }
   },
   "options": {

@@ -74,7 +74,7 @@ The card file `zoraxy-card.js` (full card and mini card) is part of the integrat
 | Refresh interval | `30` seconds (10 minimum) |
 | Verify the TLS certificate | On by default; turn it off only for an `https://` address with a self-signed certificate |
 
-The refresh interval and the TLS verification can be changed later with **Configure** on the integration. When Zoraxy refuses the password, Home Assistant asks for the new one in **Settings → Devices & services**. Entries created with version 1.5.0 or earlier keep the TLS verification off, as before; turn it on in the options if your certificate is valid.
+The refresh interval and the TLS verification can be changed later with **Configure** on the integration. To change the address, the username or the password without removing the integration, use **⋮ → Reconfigure** on it: the new settings are saved only once Zoraxy accepts the login. When Zoraxy refuses the password, Home Assistant asks for the new one in **Settings → Devices & services**. Entries created with version 1.5.0 or earlier keep the TLS verification off, as before; turn it on in the options if your certificate is valid.
 
 ### Card
 
@@ -184,6 +184,8 @@ logger:
   logs:
     custom_components.zoraxy: debug
 ```
+
+**⋮ → Download diagnostics** on the integration gives its settings and the last data read from Zoraxy, with the address, usernames, passwords, tokens, secrets, cookies and email addresses replaced by `**REDACTED**`.
 
 ## Development
 

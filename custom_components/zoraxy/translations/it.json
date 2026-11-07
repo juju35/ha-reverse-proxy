@@ -20,6 +20,15 @@
         "data": {
           "password": "Password"
         }
+      },
+      "reconfigure": {
+        "title": "Zoraxy - Riconfigura",
+        "description": "Modifica l'indirizzo o le credenziali di questo Zoraxy. L'accesso viene verificato prima del salvataggio.",
+        "data": {
+          "host": "Indirizzo di Zoraxy (URL con porta)",
+          "username": "Nome utente",
+          "password": "Password"
+        }
       }
     },
     "error": {
@@ -29,7 +38,8 @@
     },
     "abort": {
       "already_configured": "Zoraxy è già configurato",
-      "reauth_successful": "Password aggiornata"
+      "reauth_successful": "Password aggiornata",
+      "reconfigure_successful": "Configurazione aggiornata"
     }
   },
   "options": {

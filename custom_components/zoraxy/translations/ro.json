@@ -20,6 +20,15 @@
         "data": {
           "password": "Parolă"
         }
+      },
+      "reconfigure": {
+        "title": "Zoraxy - Reconfigurare",
+        "description": "Modificați adresa sau datele de autentificare ale acestui Zoraxy. Autentificarea este verificată înainte de salvare.",
+        "data": {
+          "host": "Adresa Zoraxy (URL cu port)",
+          "username": "Nume de utilizator",
+          "password": "Parolă"
+        }
       }
     },
     "error": {
@@ -29,7 +38,8 @@
     },
     "abort": {
       "already_configured": "Zoraxy este deja configurat",
-      "reauth_successful": "Parola a fost actualizată"
+      "reauth_successful": "Parola a fost actualizată",
+      "reconfigure_successful": "Configurația a fost actualizată"
     }
   },
   "options": {

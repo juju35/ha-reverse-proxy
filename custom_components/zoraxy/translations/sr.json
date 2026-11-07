@@ -20,6 +20,15 @@
         "data": {
           "password": "Лозинка"
         }
+      },
+      "reconfigure": {
+        "title": "Zoraxy - Поновно конфигурисање",
+        "description": "Промените адресу или податке за пријаву овог Zoraxy. Пријава се проверава пре чувања.",
+        "data": {
+          "host": "Zoraxy адреса (URL са портом)",
+          "username": "Корисничко име",
+          "password": "Лозинка"
+        }
       }
     },
     "error": {
@@ -29,7 +38,8 @@
     },
     "abort": {
       "already_configured": "Zoraxy је већ конфигурисан",
-      "reauth_successful": "Лозинка је ажурирана"
+      "reauth_successful": "Лозинка је ажурирана",
+      "reconfigure_successful": "Конфигурација је ажурирана"
     }
   },
   "options": {

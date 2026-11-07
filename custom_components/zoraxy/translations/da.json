@@ -20,6 +20,15 @@
         "data": {
           "password": "Adgangskode"
         }
+      },
+      "reconfigure": {
+        "title": "Zoraxy - Omkonfigurer",
+        "description": "Skift adressen eller loginoplysningerne for denne Zoraxy. Login kontrolleres, før der gemmes.",
+        "data": {
+          "host": "Zoraxy-adresse (URL med port)",
+          "username": "Brugernavn",
+          "password": "Adgangskode"
+        }
       }
     },
     "error": {
@@ -29,7 +38,8 @@
     },
     "abort": {
       "already_configured": "Zoraxy er allerede konfigureret",
-      "reauth_successful": "Adgangskoden er opdateret"
+      "reauth_successful": "Adgangskoden er opdateret",
+      "reconfigure_successful": "Konfigurationen er opdateret"
     }
   },
   "options": {

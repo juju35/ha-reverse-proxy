@@ -20,6 +20,15 @@
         "data": {
           "password": "Geslo"
         }
+      },
+      "reconfigure": {
+        "title": "Zoraxy - Ponovna konfiguracija",
+        "description": "Spremenite naslov ali poverilnice tega Zoraxy. Prijava se preveri pred shranjevanjem.",
+        "data": {
+          "host": "Naslov Zoraxy (URL z vrati)",
+          "username": "Uporabniško ime",
+          "password": "Geslo"
+        }
       }
     },
     "error": {
@@ -29,7 +38,8 @@
     },
     "abort": {
       "already_configured": "Zoraxy je že konfiguriran",
-      "reauth_successful": "Geslo je posodobljeno"
+      "reauth_successful": "Geslo je posodobljeno",
+      "reconfigure_successful": "Konfiguracija je posodobljena"
     }
   },
   "options": {
