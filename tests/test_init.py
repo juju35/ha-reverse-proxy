@@ -777,3 +777,50 @@ async def test_errors_are_translated(hass, aioclient_mock, entry):
         await hass.services.async_call(DOMAIN, "toggle_proxy_rule", {"domain": "nope.example.org"}, blocking=True)
     assert (err.value.translation_domain, err.value.translation_key) == (DOMAIN, "rule_not_found")
     assert "nope.example.org" in str(err.value)
+
+
+async def test_removed_certificate_entities_removed_without_reload(hass, aioclient_mock, entry):
+    """A certificate removed in Zoraxy loses its sensor, binary sensor and renew button at the next update."""
+    mock_zoraxy(aioclient_mock, certs=["a.example.org", "b.example.org"])
+    await _setup(hass, entry)
+    registry = er.async_get(hass)
+    gone = [f"sensor.{P}_cert_b_example_org", f"binary_sensor.{P}_cert_expirant_b_example_org"]
+    gone.append(f"button.{P}_renouveler_b_example_org")
+    assert all(hass.states.get(entity_id) for entity_id in gone)
+
+    # A failed /api/cert/list keeps them.
+    aioclient_mock.clear_requests()
+    mock_zoraxy(aioclient_mock, certs=500)
+    await entry.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    assert all(registry.async_get(entity_id) for entity_id in gone)
+
+    aioclient_mock.clear_requests()
+    mock_zoraxy(aioclient_mock, certs=["a.example.org"])
+    await entry.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    for entity_id in gone:
+        assert registry.async_get(entity_id) is None
+        assert hass.states.get(entity_id) is None
+    assert hass.states.get(f"sensor.{P}_cert_a_example_org") is not None
+
+    # Listed again, it gets its entities back.
+    aioclient_mock.clear_requests()
+    mock_zoraxy(aioclient_mock, certs=["a.example.org", "b.example.org"])
+    await entry.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    assert all(hass.states.get(entity_id) for entity_id in gone)
+
+
+async def test_large_list_attributes_not_recorded(hass, aioclient_mock, entry):
+    """The rules, redirects and certificates lists stay in the state but are left out of the recorder."""
+    mock_zoraxy(aioclient_mock)
+    await _setup(hass, entry)
+    rules = hass.states.get(f"sensor.{P}_regles_proxy")
+    certs = hass.states.get(f"sensor.{P}_certificats_tls")
+    assert rules.attributes["rules"][0]["domain"] == "app.example.org"
+    assert "redirects" in rules.attributes
+    assert certs.attributes["certificates"][0]["domain"] == "a.example.org"
+    # What the recorder strips from each state it writes.
+    assert {"rules", "redirects"} <= rules.state_info["unrecorded_attributes"]
+    assert "certificates" in certs.state_info["unrecorded_attributes"]

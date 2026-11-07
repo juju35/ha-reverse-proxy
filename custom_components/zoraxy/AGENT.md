@@ -115,7 +115,9 @@ Dynamic entities are created per certificate (from `/api/cert/list`):
 
 `safe_domain(domain)` converts `app.example.org` → `app_example_org`.
 
-Stale entities are cleaned up at startup via `_cleanup_stale_entities()` using `DYNAMIC_SUFFIXES = ("_cert_expiry_", "_cert_expiring_", "_renew_")`.
+Stale entities are cleaned up at startup via `_cleanup_stale_entities()` using `DYNAMIC_SUFFIXES = ("_cert_expiry_", "_cert_expiring_", "_renew_")`; at runtime, `async_track_cert_entities()` adds the entities of a new certificate and removes from the registry those of a certificate no longer listed (only when `cert_list_loaded`).
+
+The `rules` / `redirects` and `certificates` list attributes are in `_unrecorded_attributes`: kept in the state for the card, left out of the recorder.
 
 ## TLS Certificate Parsing
 

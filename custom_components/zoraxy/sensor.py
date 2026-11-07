@@ -42,6 +42,8 @@ class ZoraxyProxyRulesCountSensor(ZoraxyBaseSensor):
     _attr_translation_key = "proxy_rules"
     _legacy_name = "Zoraxy - Règles proxy"
     _attr_state_class = SensorStateClass.MEASUREMENT
+    # Full lists, rewritten at every change: kept in the state (the card reads them) but not in the recorder.
+    _unrecorded_attributes = frozenset({"rules", "redirects"})
 
     @property
     def unique_id(self):
@@ -91,6 +93,7 @@ class ZoraxyCertCountSensor(ZoraxyBaseSensor):
     _attr_translation_key = "tls_certificates"
     _legacy_name = "Zoraxy - Certificats TLS"
     _attr_state_class = SensorStateClass.MEASUREMENT
+    _unrecorded_attributes = frozenset({"certificates"})
 
     @property
     def unique_id(self):
