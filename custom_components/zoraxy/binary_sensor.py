@@ -8,7 +8,7 @@ from homeassistant.components.binary_sensor import BinarySensorDeviceClass, Bina
 
 from . import ZoraxyDataUpdateCoordinator
 from .const import EXPIRY_WARNING_DAYS, safe_domain
-from .entity import ZoraxyDomainEntity, ZoraxyEntity, async_track_cert_entities
+from .entity import ZoraxyDomainEntity, ZoraxyEntity, async_track_cert_entities, async_track_rule_entities
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -25,6 +25,12 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 entry,
                 async_add_entities,
                 lambda d: [ZoraxyCertExpiringBinarySensor(coordinator, entry, d)],
+            ),
+            *async_track_rule_entities(
+                coordinator,
+                entry,
+                async_add_entities,
+                lambda d: [ZoraxyUpstreamProblemBinarySensor(coordinator, entry, d)],
             ),
         ]
     )
@@ -147,3 +153,60 @@ class ZoraxyCertExpiringBinarySensor(ZoraxyDomainEntity, ZoraxyBaseBinarySensor)
             "expires": self._data().get("cert_expiry", {}).get(self._domain, "?"),
             "warning_days": EXPIRY_WARNING_DAYS,
         }
+
+
+# ── Per-rule sensors ───────────────────────────────────────────────────────────
+
+
+class ZoraxyUpstreamProblemBinarySensor(ZoraxyDomainEntity, ZoraxyBaseBinarySensor):
+    """On when Zoraxy's uptime monitor found an upstream of the rule offline at its last check.
+
+    Unknown when the monitor has no check of the rule: rule disabled, its monitoring turned off, not checked yet.
+    """
+
+    _attr_device_class = BinarySensorDeviceClass.PROBLEM
+    _attr_translation_key = "upstream_problem"
+    _legacy_name = "Zoraxy - Upstream {domain}"
+    # Latency and check time change at every check: kept in the state for the card, not in the recorder.
+    _unrecorded_attributes = frozenset({"upstreams"})
+
+    @property
+    def unique_id(self):
+        return f"{self._entry.entry_id}_upstream_problem_{safe_domain(self._domain)}"
+
+    def _checks(self) -> list[dict]:
+        """Last check of each upstream of the rule (several for a load-balanced rule), virtual directories aside."""
+        key = self._domain.lower()
+        uptime = self._data().get("uptime", {})
+        return [
+            record
+            for target, record in sorted(uptime.items())
+            if target == key or target.startswith(f"{key} (upstream:")
+        ]
+
+    @property
+    def is_on(self):
+        checks = self._checks()
+        if not checks:
+            return None
+        return any(not record.get("Online") for record in checks)
+
+    @property
+    def extra_state_attributes(self):
+        upstreams = []
+        for record in self._checks():
+            timestamp = record.get("Timestamp")
+            upstreams.append(
+                {
+                    "url": record.get("URL"),
+                    "online": bool(record.get("Online")),
+                    "status_code": record.get("StatusCode"),
+                    "latency_ms": record.get("Latency"),
+                    "checked": (
+                        datetime.fromtimestamp(timestamp, UTC).isoformat()
+                        if isinstance(timestamp, (int, float))
+                        else None
+                    ),
+                }
+            )
+        return {"domain": self._domain, "upstreams": upstreams}

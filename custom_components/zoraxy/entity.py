@@ -63,19 +63,55 @@ def async_track_cert_entities(
     Likewise, the entities of a certificate removed from Zoraxy are removed from the registry at the update that no
     longer lists it (only when /api/cert/list actually answered), instead of staying until a reload.
     """
+    return _async_track_domain_entities(
+        coordinator,
+        entry,
+        async_add_entities,
+        factory,
+        lambda: [d for d in (coordinator.data or {}).get("cert_list", []) if isinstance(d, str)],
+        lambda: coordinator.cert_list_loaded,
+    )
+
+
+def async_track_rule_entities(
+    coordinator: ZoraxyDataUpdateCoordinator,
+    entry,
+    async_add_entities: Callable[[Iterable[Entity]], None],
+    factory: Callable[[str], Iterable[ZoraxyEntity]],
+) -> list[ZoraxyEntity]:
+    """Entities of the proxy rules, added and removed with the rules like those of the certificates."""
+    return _async_track_domain_entities(
+        coordinator,
+        entry,
+        async_add_entities,
+        factory,
+        coordinator.rule_domains,
+        lambda: coordinator.proxy_list_loaded,
+    )
+
+
+def _async_track_domain_entities(
+    coordinator: ZoraxyDataUpdateCoordinator,
+    entry,
+    async_add_entities: Callable[[Iterable[Entity]], None],
+    factory: Callable[[str], Iterable[ZoraxyEntity]],
+    domains: Callable[[], list[str]],
+    loaded: Callable[[], bool],
+) -> list[ZoraxyEntity]:
+    """Entities of the domains listed now, then added and removed at each update (removed only when `loaded`)."""
     known: dict[str, list[ZoraxyEntity]] = {}
 
     def new_entities() -> list[ZoraxyEntity]:
-        domains = [d for d in (coordinator.data or {}).get("cert_list", []) if isinstance(d, str) and d not in known]
-        for domain in domains:
+        new = [d for d in dict.fromkeys(domains()) if d not in known]
+        for domain in new:
             known[domain] = list(factory(domain))
-        return [entity for domain in domains for entity in known[domain]]
+        return [entity for domain in new for entity in known[domain]]
 
     @callback
     def _remove_gone() -> None:
-        if not coordinator.cert_list_loaded:
+        if not loaded():
             return
-        current = set((coordinator.data or {}).get("cert_list", []))
+        current = set(domains())
         registry = er.async_get(coordinator.hass)
         for domain in [d for d in known if d not in current]:
             for entity in known.pop(domain):

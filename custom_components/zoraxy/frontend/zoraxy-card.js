@@ -1,4 +1,4 @@
-const ZORAXY_CARD_VERSION = '1.12.0';
+const ZORAXY_CARD_VERSION = '1.13.0';
 
 // Escapes a value interpolated into innerHTML, as text or inside a quoted attribute (as parcelEsc in ha-parcel).
 function zoraxyEsc(s) {
@@ -59,6 +59,8 @@ class ZoraxyCard extends HTMLElement {
       unavailable: "Indisponible", cancel: "Annuler",
       confirmPort80Off: "Arrêter l'écoute du port 80 ? Les requêtes HTTP et les challenges ACME HTTP n'atteindront plus Zoraxy.",
       confirmRuleOff: "Désactiver la règle proxy de {domain} ? Le service ne sera plus joignable via Zoraxy.",
+      down: "Hors ligne", upstreamDown: "Serveur cible hors ligne (moniteur de disponibilité de Zoraxy)", upstreamsDown: "Serveurs cibles hors ligne : {n}",
+      ed_device: "Appareil Zoraxy", ed_device_helper: "Avec plusieurs instances de Zoraxy, celle à afficher (vide : la première)",
     },
     en: {
       active: "Active", inactive: "Inactive",
@@ -79,6 +81,8 @@ class ZoraxyCard extends HTMLElement {
       unavailable: "Unavailable", cancel: "Cancel",
       confirmPort80Off: "Stop listening on port 80? Plain HTTP requests and ACME HTTP challenges will no longer reach Zoraxy.",
       confirmRuleOff: "Disable the proxy rule for {domain}? The service will no longer be reachable through Zoraxy.",
+      down: "Down", upstreamDown: "Upstream down (Zoraxy uptime monitor)", upstreamsDown: "Upstreams down: {n}",
+      ed_device: "Zoraxy device", ed_device_helper: "With several Zoraxy instances, the one to show (empty: the first one)",
     },
     de: {
       active: "Aktiv", inactive: "Inaktiv",
@@ -99,6 +103,8 @@ class ZoraxyCard extends HTMLElement {
       unavailable: "Nicht verfügbar", cancel: "Abbrechen",
       confirmPort80Off: "Port 80 nicht mehr abhören? HTTP-Anfragen und ACME-HTTP-Challenges erreichen Zoraxy dann nicht mehr.",
       confirmRuleOff: "Proxy-Regel für {domain} deaktivieren? Der Dienst ist dann über Zoraxy nicht mehr erreichbar.",
+      down: "Offline", upstreamDown: "Zielserver offline (Uptime-Monitor von Zoraxy)", upstreamsDown: "Zielserver offline: {n}",
+      ed_device: "Zoraxy-Gerät", ed_device_helper: "Bei mehreren Zoraxy-Instanzen die anzuzeigende (leer: die erste)",
     },
     es: {
       active: "Activo", inactive: "Inactivo",
@@ -119,6 +125,8 @@ class ZoraxyCard extends HTMLElement {
       unavailable: "No disponible", cancel: "Cancelar",
       confirmPort80Off: "¿Dejar de escuchar en el puerto 80? Las peticiones HTTP y los desafíos ACME HTTP ya no llegarán a Zoraxy.",
       confirmRuleOff: "¿Desactivar la regla de proxy de {domain}? El servicio dejará de ser accesible a través de Zoraxy.",
+      down: "Caído", upstreamDown: "Servidor de destino caído (monitor de disponibilidad de Zoraxy)", upstreamsDown: "Servidores de destino caídos: {n}",
+      ed_device: "Dispositivo Zoraxy", ed_device_helper: "Con varias instancias de Zoraxy, la que se muestra (vacío: la primera)",
     },
     sr: {
       active: "Активан", inactive: "Неактиван",
@@ -139,6 +147,8 @@ class ZoraxyCard extends HTMLElement {
       unavailable: "Недоступно", cancel: "Откажи",
       confirmPort80Off: "Престати са ослушкивањем порта 80? HTTP захтеви и ACME HTTP провере више неће стизати до Zoraxy-ја.",
       confirmRuleOff: "Онемогућити прокси правило за {domain}? Услуга више неће бити доступна преко Zoraxy-ја.",
+      down: "Не ради", upstreamDown: "Циљни сервер не ради (Zoraxy надзор доступности)", upstreamsDown: "Циљни сервери који не раде: {n}",
+      ed_device: "Zoraxy уређај", ed_device_helper: "Са више Zoraxy инстанци, она која се приказује (празно: прва)",
     },
     "sr-Latn": {
       active: "Aktivan", inactive: "Neaktivan",
@@ -159,6 +169,8 @@ class ZoraxyCard extends HTMLElement {
       unavailable: "Nedostupno", cancel: "Otkaži",
       confirmPort80Off: "Prestati sa osluškivanjem porta 80? HTTP zahtevi i ACME HTTP provere više neće stizati do Zoraxy-ja.",
       confirmRuleOff: "Onemogućiti proksi pravilo za {domain}? Usluga više neće biti dostupna preko Zoraxy-ja.",
+      down: "Ne radi", upstreamDown: "Ciljni server ne radi (Zoraxy nadzor dostupnosti)", upstreamsDown: "Ciljni serveri koji ne rade: {n}",
+      ed_device: "Zoraxy uređaj", ed_device_helper: "Sa više Zoraxy instanci, ona koja se prikazuje (prazno: prva)",
     },
     it: {
       active: "Attivo", inactive: "Inattivo",
@@ -179,6 +191,8 @@ class ZoraxyCard extends HTMLElement {
       unavailable: "Non disponibile", cancel: "Annulla",
       confirmPort80Off: "Smettere di ascoltare sulla porta 80? Le richieste HTTP e le verifiche ACME HTTP non raggiungeranno più Zoraxy.",
       confirmRuleOff: "Disabilitare la regola proxy di {domain}? Il servizio non sarà più raggiungibile tramite Zoraxy.",
+      down: "Offline", upstreamDown: "Server di destinazione offline (monitor di disponibilità di Zoraxy)", upstreamsDown: "Server di destinazione offline: {n}",
+      ed_device: "Dispositivo Zoraxy", ed_device_helper: "Con più istanze di Zoraxy, quella da mostrare (vuoto: la prima)",
     },
     nl: {
       active: "Actief", inactive: "Inactief",
@@ -199,6 +213,8 @@ class ZoraxyCard extends HTMLElement {
       unavailable: "Niet beschikbaar", cancel: "Annuleren",
       confirmPort80Off: "Niet meer luisteren op poort 80? HTTP-verzoeken en ACME HTTP-challenges bereiken Zoraxy dan niet meer.",
       confirmRuleOff: "Proxyregel voor {domain} uitschakelen? De dienst is dan niet meer bereikbaar via Zoraxy.",
+      down: "Offline", upstreamDown: "Doelserver offline (uptime-monitor van Zoraxy)", upstreamsDown: "Doelservers offline: {n}",
+      ed_device: "Zoraxy-apparaat", ed_device_helper: "Bij meerdere Zoraxy-instanties de te tonen instantie (leeg: de eerste)",
     },
     pt: {
       active: "Ativo", inactive: "Inativo",
@@ -219,6 +235,8 @@ class ZoraxyCard extends HTMLElement {
       unavailable: "Indisponível", cancel: "Cancelar",
       confirmPort80Off: "Deixar de escutar na porta 80? Os pedidos HTTP e os desafios ACME HTTP deixarão de chegar ao Zoraxy.",
       confirmRuleOff: "Desativar a regra de proxy de {domain}? O serviço deixará de estar acessível através do Zoraxy.",
+      down: "Em baixo", upstreamDown: "Servidor de destino em baixo (monitor de disponibilidade do Zoraxy)", upstreamsDown: "Servidores de destino em baixo: {n}",
+      ed_device: "Dispositivo Zoraxy", ed_device_helper: "Com várias instâncias do Zoraxy, a que é mostrada (vazio: a primeira)",
     },
     pl: {
       active: "Aktywny", inactive: "Nieaktywny",
@@ -239,6 +257,8 @@ class ZoraxyCard extends HTMLElement {
       unavailable: "Niedostępny", cancel: "Anuluj",
       confirmPort80Off: "Przestać nasłuchiwać na porcie 80? Żądania HTTP i wyzwania ACME HTTP nie będą już docierać do Zoraxy.",
       confirmRuleOff: "Wyłączyć regułę proxy dla {domain}? Usługa przestanie być dostępna przez Zoraxy.",
+      down: "Offline", upstreamDown: "Serwer docelowy offline (monitor dostępności Zoraxy)", upstreamsDown: "Serwery docelowe offline: {n}",
+      ed_device: "Urządzenie Zoraxy", ed_device_helper: "Przy kilku instancjach Zoraxy ta, którą pokazać (puste: pierwsza)",
     },
     ro: {
       active: "Activ", inactive: "Inactiv",
@@ -259,6 +279,8 @@ class ZoraxyCard extends HTMLElement {
       unavailable: "Indisponibil", cancel: "Anulează",
       confirmPort80Off: "Opriți ascultarea pe portul 80? Cererile HTTP și verificările ACME HTTP nu vor mai ajunge la Zoraxy.",
       confirmRuleOff: "Dezactivați regula proxy pentru {domain}? Serviciul nu va mai fi accesibil prin Zoraxy.",
+      down: "Offline", upstreamDown: "Server țintă offline (monitorul de disponibilitate Zoraxy)", upstreamsDown: "Servere țintă offline: {n}",
+      ed_device: "Dispozitiv Zoraxy", ed_device_helper: "Cu mai multe instanțe Zoraxy, cea afișată (gol: prima)",
     },
     da: {
       active: "Aktiv", inactive: "Inaktiv",
@@ -279,6 +301,8 @@ class ZoraxyCard extends HTMLElement {
       unavailable: "Utilgængelig", cancel: "Annuller",
       confirmPort80Off: "Stop med at lytte på port 80? HTTP-anmodninger og ACME HTTP-udfordringer når ikke længere frem til Zoraxy.",
       confirmRuleOff: "Deaktiver proxyreglen for {domain}? Tjenesten vil ikke længere kunne nås via Zoraxy.",
+      down: "Nede", upstreamDown: "Målserver nede (Zoraxys oppetidsovervågning)", upstreamsDown: "Målservere nede: {n}",
+      ed_device: "Zoraxy-enhed", ed_device_helper: "Med flere Zoraxy-instanser den, der vises (tom: den første)",
     },
     sv: {
       active: "Aktiv", inactive: "Inaktiv",
@@ -299,6 +323,8 @@ class ZoraxyCard extends HTMLElement {
       unavailable: "Ej tillgänglig", cancel: "Avbryt",
       confirmPort80Off: "Sluta lyssna på port 80? HTTP-förfrågningar och ACME HTTP-utmaningar når inte längre Zoraxy.",
       confirmRuleOff: "Inaktivera proxyregeln för {domain}? Tjänsten kan inte längre nås via Zoraxy.",
+      down: "Nere", upstreamDown: "Målserver nere (Zoraxys drifttidsövervakning)", upstreamsDown: "Målservrar nere: {n}",
+      ed_device: "Zoraxy-enhet", ed_device_helper: "Med flera Zoraxy-instanser den som visas (tom: den första)",
     },
     bg: {
       active: "Активен", inactive: "Неактивен",
@@ -319,6 +345,8 @@ class ZoraxyCard extends HTMLElement {
       unavailable: "Недостъпно", cancel: "Отказ",
       confirmPort80Off: "Да се спре ли слушането на порт 80? HTTP заявките и ACME HTTP проверките вече няма да достигат до Zoraxy.",
       confirmRuleOff: "Да се деактивира ли прокси правилото за {domain}? Услугата вече няма да е достъпна чрез Zoraxy.",
+      down: "Недостъпен", upstreamDown: "Целевият сървър е недостъпен (мониторинг на Zoraxy)", upstreamsDown: "Недостъпни целеви сървъри: {n}",
+      ed_device: "Устройство Zoraxy", ed_device_helper: "При няколко инстанции на Zoraxy – тази за показване (празно: първата)",
     },
     ru: {
       active: "Активен", inactive: "Неактивен",
@@ -339,6 +367,8 @@ class ZoraxyCard extends HTMLElement {
       unavailable: "Недоступно", cancel: "Отмена",
       confirmPort80Off: "Прекратить прослушивание порта 80? HTTP-запросы и проверки ACME HTTP больше не будут доходить до Zoraxy.",
       confirmRuleOff: "Отключить правило прокси для {domain}? Сервис больше не будет доступен через Zoraxy.",
+      down: "Недоступен", upstreamDown: "Целевой сервер недоступен (мониторинг доступности Zoraxy)", upstreamsDown: "Недоступные целевые серверы: {n}",
+      ed_device: "Устройство Zoraxy", ed_device_helper: "При нескольких экземплярах Zoraxy — какой показывать (пусто: первый)",
     },
     uk: {
       active: "Активний", inactive: "Неактивний",
@@ -359,6 +389,8 @@ class ZoraxyCard extends HTMLElement {
       unavailable: "Недоступно", cancel: "Скасувати",
       confirmPort80Off: "Припинити прослуховування порту 80? HTTP-запити та перевірки ACME HTTP більше не надходитимуть до Zoraxy.",
       confirmRuleOff: "Вимкнути правило проксі для {domain}? Сервіс більше не буде доступний через Zoraxy.",
+      down: "Недоступний", upstreamDown: "Цільовий сервер недоступний (моніторинг доступності Zoraxy)", upstreamsDown: "Недоступні цільові сервери: {n}",
+      ed_device: "Пристрій Zoraxy", ed_device_helper: "За кількох екземплярів Zoraxy — який показувати (порожньо: перший)",
     },
     hu: {
       active: "Aktív", inactive: "Inaktív",
@@ -379,6 +411,8 @@ class ZoraxyCard extends HTMLElement {
       unavailable: "Nem elérhető", cancel: "Mégse",
       confirmPort80Off: "Leállítja a figyelést a 80-as porton? A HTTP-kérések és az ACME HTTP-kihívások többé nem jutnak el a Zoraxyhoz.",
       confirmRuleOff: "Letiltja a(z) {domain} proxyszabályát? A szolgáltatás többé nem lesz elérhető a Zoraxyn keresztül.",
+      down: "Nem elérhető", upstreamDown: "A célszerver nem elérhető (Zoraxy rendelkezésre-állás figyelő)", upstreamsDown: "Nem elérhető célszerverek: {n}",
+      ed_device: "Zoraxy eszköz", ed_device_helper: "Több Zoraxy példány esetén a megjelenítendő (üres: az első)",
     },
     sk: {
       active: "Aktívny", inactive: "Neaktívny",
@@ -399,6 +433,8 @@ class ZoraxyCard extends HTMLElement {
       unavailable: "Nedostupné", cancel: "Zrušiť",
       confirmPort80Off: "Prestať počúvať na porte 80? Požiadavky HTTP a overenia ACME HTTP sa už nedostanú k Zoraxy.",
       confirmRuleOff: "Zakázať pravidlo proxy pre {domain}? Služba už nebude dostupná cez Zoraxy.",
+      down: "Nedostupný", upstreamDown: "Cieľový server je nedostupný (monitor dostupnosti Zoraxy)", upstreamsDown: "Nedostupné cieľové servery: {n}",
+      ed_device: "Zariadenie Zoraxy", ed_device_helper: "Pri viacerých inštanciách Zoraxy tá, ktorá sa zobrazí (prázdne: prvá)",
     },
     cs: {
       active: "Aktivní", inactive: "Neaktivní",
@@ -419,6 +455,8 @@ class ZoraxyCard extends HTMLElement {
       unavailable: "Nedostupné", cancel: "Zrušit",
       confirmPort80Off: "Přestat naslouchat na portu 80? Požadavky HTTP a ověření ACME HTTP se už k Zoraxy nedostanou.",
       confirmRuleOff: "Zakázat pravidlo proxy pro {domain}? Služba už nebude dostupná přes Zoraxy.",
+      down: "Nedostupný", upstreamDown: "Cílový server je nedostupný (monitor dostupnosti Zoraxy)", upstreamsDown: "Nedostupné cílové servery: {n}",
+      ed_device: "Zařízení Zoraxy", ed_device_helper: "Při více instancích Zoraxy ta, která se zobrazí (prázdné: první)",
     },
     sl: {
       active: "Aktiven", inactive: "Neaktiven",
@@ -439,6 +477,8 @@ class ZoraxyCard extends HTMLElement {
       unavailable: "Ni na voljo", cancel: "Prekliči",
       confirmPort80Off: "Prenehati poslušati na vratih 80? Zahteve HTTP in preverjanja ACME HTTP ne bodo več dosegla Zoraxyja.",
       confirmRuleOff: "Onemogočiti pravilo proxy za {domain}? Storitev prek Zoraxyja ne bo več dosegljiva.",
+      down: "Nedosegljiv", upstreamDown: "Ciljni strežnik je nedosegljiv (nadzor razpoložljivosti Zoraxy)", upstreamsDown: "Nedosegljivi ciljni strežniki: {n}",
+      ed_device: "Naprava Zoraxy", ed_device_helper: "Pri več primerkih Zoraxy tisti, ki se prikaže (prazno: prvi)",
     },
     lv: {
       active: "Aktīvs", inactive: "Neaktīvs",
@@ -459,6 +499,8 @@ class ZoraxyCard extends HTMLElement {
       unavailable: "Nav pieejams", cancel: "Atcelt",
       confirmPort80Off: "Pārtraukt klausīšanos portā 80? HTTP pieprasījumi un ACME HTTP pārbaudes vairs nesasniegs Zoraxy.",
       confirmRuleOff: "Atspējot starpniekservera kārtulu domēnam {domain}? Pakalpojums vairs nebūs pieejams caur Zoraxy.",
+      down: "Nepieejams", upstreamDown: "Mērķa serveris nav pieejams (Zoraxy pieejamības uzraudzība)", upstreamsDown: "Nepieejami mērķa serveri: {n}",
+      ed_device: "Zoraxy ierīce", ed_device_helper: "Ja ir vairākas Zoraxy instances, rādāmā (tukšs: pirmā)",
     },
     el: {
       active: "Ενεργό", inactive: "Ανενεργό",
@@ -479,6 +521,8 @@ class ZoraxyCard extends HTMLElement {
       unavailable: "Μη διαθέσιμο", cancel: "Ακύρωση",
       confirmPort80Off: "Διακοπή ακρόασης στη θύρα 80; Τα αιτήματα HTTP και οι έλεγχοι ACME HTTP δεν θα φτάνουν πλέον στο Zoraxy.",
       confirmRuleOff: "Απενεργοποίηση του κανόνα proxy για το {domain}; Η υπηρεσία δεν θα είναι πλέον προσβάσιμη μέσω του Zoraxy.",
+      down: "Εκτός", upstreamDown: "Ο διακομιστής προορισμού είναι εκτός λειτουργίας (παρακολούθηση διαθεσιμότητας Zoraxy)", upstreamsDown: "Διακομιστές προορισμού εκτός: {n}",
+      ed_device: "Συσκευή Zoraxy", ed_device_helper: "Με πολλές εγκαταστάσεις Zoraxy, αυτή που εμφανίζεται (κενό: η πρώτη)",
     },
   };
 
@@ -671,7 +715,7 @@ class ZoraxyCard extends HTMLElement {
 
   setConfig(config) {
     if (!config || typeof config !== "object") throw new Error("Invalid configuration");
-    for (const key of ["zoraxy_url", "entity_prefix", "language"]) {
+    for (const key of ["zoraxy_url", "entity_prefix", "language", "device"]) {
       if (config[key] != null && typeof config[key] !== "string") throw new Error(`${key} must be a string`);
     }
     this._config = config;
@@ -689,9 +733,12 @@ class ZoraxyCard extends HTMLElement {
     this._render();
   }
 
-  // Entities of this card, found from the prefix. The list is cached on hass.entities (the entity registry),
-  // which only changes when entities are added or removed, not on every state change.
+  // Entities of this card: those of its Zoraxy device in the entity registry, else those found from the prefix.
+  // The list is cached on hass.entities (the entity registry), which only changes when entities are added or
+  // removed, not on every state change.
   _entityIds() {
+    const reg = this._registry();
+    if (reg) return reg.ids;
     const registry = this._hass?.entities;
     const prefix = this._prefix();
     if (registry && this._idsFor === registry && this._idsPrefix === prefix) return this._ids;
@@ -705,13 +752,81 @@ class ZoraxyCard extends HTMLElement {
     return this._ids;
   }
 
+  // The object ids (after the prefix) of the device's entities up to 1.4.x, by entity domain and translation key:
+  // the fallback when the entity registry is not available.
+  static LEGACY = {
+    "sensor.proxy_rules": "regles_proxy",
+    "sensor.active_rules": "regles_actives",
+    "sensor.tls_certificates": "certificats_tls",
+    "sensor.inbound_port": "port_entrant",
+    "sensor.certificate": "cert_",
+    "binary_sensor.proxy_running": "proxy_actif",
+    "binary_sensor.https_redirect": "redirection_https",
+    "binary_sensor.port_80": "ecoute_port_80",
+    "binary_sensor.development_mode": "mode_developpement",
+    "binary_sensor.certificate_expiring": "cert_expirant_",
+    "binary_sensor.upstream_problem": "upstream_",
+    "switch.https_redirect": "redirection_https",
+    "switch.port_80": "ecoute_port_80",
+    "switch.development_mode": "mode_developpement",
+    "button.renew": "renouveler_",
+  };
+
+  // The Zoraxy entities of the card's device, found in the entity registry by platform, device and translation
+  // key, whatever their entity ids: { ids, one: {"sensor.proxy_rules": id…}, many: {"button.renew": [ids]…} }.
+  // The device is the `device` option, else the one of the entity named after the prefix (the first install
+  // keeps its 1.4.x ids), else the first Zoraxy device. null without the registry or any Zoraxy entity in it:
+  // the ids are then built from the prefix.
+  _registry() {
+    const entities = this._hass?.entities;
+    const device = this._config?.device || "";
+    const prefix = this._prefix();
+    if (this._regFor === entities && this._regDevice === device && this._regPrefix === prefix) return this._reg;
+    this._regFor = entities;
+    this._regDevice = device;
+    this._regPrefix = prefix;
+    const all = Object.values(entities || {})
+      .filter((e) => e?.platform === "zoraxy" && e.entity_id && e.device_id)
+      .sort((a, b) => (a.entity_id < b.entity_id ? -1 : 1));
+    const named = all.find((e) => e.entity_id === `sensor.${prefix}_regles_proxy`) ?? all.find((e) => e.entity_id.includes(`.${prefix}_`));
+    const dev = device || named?.device_id || all.map((e) => e.device_id).sort()[0];
+    const mine = all.filter((e) => e.device_id === dev);
+    if (!mine.length) return (this._reg = null);
+    const one = {};
+    const many = {};
+    for (const e of mine) {
+      const key = `${e.entity_id.split(".")[0]}.${e.translation_key}`;
+      one[key] ??= e.entity_id;
+      (many[key] ??= []).push(e.entity_id);
+    }
+    return (this._reg = { ids: mine.map((e) => e.entity_id), one, many });
+  }
+
+  // The entity id of one of the device's entities ("sensor.proxy_rules"), by translation key or from the prefix.
+  _eid(key) {
+    return this._registry()?.one[key] ?? `${key.split(".")[0]}.${this._prefix()}_${ZoraxyCard.LEGACY[key]}`;
+  }
+
+  // The per-domain entities of a kind ("button.renew"): registry first, else those whose id starts as in 1.4.x.
+  _many(key) {
+    const reg = this._registry();
+    if (reg) return reg.many[key] || [];
+    const start = `${key.split(".")[0]}.${this._prefix()}_${ZoraxyCard.LEGACY[key]}`;
+    return this._entityIds().filter((id) => id.startsWith(start));
+  }
+
+  // The entity of a kind whose `domain` attribute is this domain (certificate, rule).
+  _byDomain(key, domain) {
+    return this._many(key).find((id) => this._attr(id, "domain") === domain);
+  }
+
   // Header and metrics, one line per section header, and the controls when that section is open (7 by default).
   getCardSize() {
     const open = this._sectionOpen;
     const rows = (n) => Math.ceil(n / 2);
-    const rules = this._hass ? this._attr(`sensor.${this._prefix()}_regles_proxy`, "rules") || [] : [];
-    const redirects = this._hass ? this._attr(`sensor.${this._prefix()}_regles_proxy`, "redirects") || [] : [];
-    const certs = this._hass ? this._entityIds().filter((id) => id.startsWith(`sensor.${this._prefix()}_cert_`)).length : 0;
+    const rules = this._hass ? this._attr(this._eid("sensor.proxy_rules"), "rules") || [] : [];
+    const redirects = this._hass ? this._attr(this._eid("sensor.proxy_rules"), "redirects") || [] : [];
+    const certs = this._hass ? this._certSensors().length : 0;
     return 2 + 4 + (open.controls ? 1 : 0) + (open.certs ? rows(certs) : 0) + (open.rules ? rows(rules.length) : 0) + (open.redirects ? rows(redirects.length) : 0);
   }
   getGridOptions() { return { columns: 12, min_columns: 6 }; }
@@ -851,11 +966,15 @@ class ZoraxyCard extends HTMLElement {
     return rules.map((r) => {
       const target = zoraxyEsc(r.target);
       const domain = zoraxyEsc(r.domain);
+      // Zoraxy's uptime monitor found an upstream of the rule down at its last check.
+      const down = this._isOn(this._byDomain("binary_sensor.upstream_problem", r.domain))
+        ? `<span class="chip crit up-badge" title="${zoraxyEsc(this._t("upstreamDown"))}"><span class="dot"></span><span class="ct">${zoraxyEsc(this._t("down"))}</span></span>`
+        : "";
       // A wildcard rule (*.example.org) is not a valid URL: plain label, no link.
       const left = String(r.domain ?? "").includes("*")
         ? `<span class="row-label" title="${domain}">${domain}</span>`
         : `<span class="row-label domain-link" title="${domain}" role="link" tabindex="0" data-href="https://${domain}">${domain}</span>`;
-      const right = `<span class="row-sub" title="${target}">${target}</span>
+      const right = `${down}<span class="row-sub" title="${target}">${target}</span>
         <button class="icon-btn rule-btn ${r.enabled ? "ok" : "crit"}"
           data-rule-domain="${domain}"
           data-rule-enabled="${r.enabled ? "true" : "false"}"
@@ -867,12 +986,21 @@ class ZoraxyCard extends HTMLElement {
     }).join("");
   }
 
-  // Certificate expiry sensors, with the days left (null when unknown).
-  _certSensors(prefix) {
-    const certPrefix = `sensor.${prefix}_cert_`;
-    return this._entityIds()
-      .filter((id) => id.startsWith(certPrefix) && this._hass.states[id])
-      .map((id) => ({ id, suffix: id.slice(certPrefix.length), days: this._daysUntil(this._state(id)) }));
+  // Certificate expiry sensors, with their domain, days left (null when unknown), expiring binary sensor and renew
+  // button. Found by their `domain` attribute in the registry; from the prefix, by the 1.4.x id suffix.
+  _certSensors() {
+    const legacy = !this._registry();
+    const prefix = `sensor.${this._prefix()}_cert_`;
+    return this._many("sensor.certificate")
+      .filter((id) => this._hass.states[id])
+      .map((id) => {
+        const suffix = id.slice(prefix.length);
+        const domain = this._attr(id, "domain") || (legacy ? suffix.replace(/_/g, ".") : id);
+        const [expiring, button] = legacy
+          ? [`binary_sensor.${this._prefix()}_cert_expirant_${suffix}`, `button.${this._prefix()}_renouveler_${suffix}`]
+          : [this._byDomain("binary_sensor.certificate_expiring", domain), this._byDomain("button.renew", domain)];
+        return { id, domain, expiring, button, days: this._daysUntil(this._state(id)) };
+      });
   }
 
   // Chip class for a certificate countdown: red under 7 days, orange under 30.
@@ -885,17 +1013,15 @@ class ZoraxyCard extends HTMLElement {
     return days < 0 ? this._t("expired") : this._t("daysLeft").replace("{n}", days);
   }
 
-  _buildCerts(prefix) {
-    const sensors = this._certSensors(prefix);
+  _buildCerts() {
+    const sensors = this._certSensors();
     if (!sensors.length) return `<p class="empty">${this._t("noCerts")}</p>`;
-    return sensors.map(({ id: sensorId, suffix, days }) => {
-      const isExpiring = this._isOn(`binary_sensor.${prefix}_cert_expirant_${suffix}`);
-      const domain    = this._attr(sensorId, "domain") || suffix.replace(/_/g, ".");
-      const btnId     = `button.${prefix}_renouveler_${suffix}`;
+    return sensors.map(({ domain, expiring, button: btnId, days }) => {
+      const isExpiring = this._isOn(expiring);
       // A button entity is "unknown" until first pressed, which does not block it; unavailable (or missing) does.
       const off = this._state(btnId) === "unavailable" ? " disabled" : "";
       const right = `${this._chip(this._daysLabel(days), this._daysCls(days))}
-        <button class="icon-btn renew-btn" data-entity="${zoraxyEsc(btnId)}" title="${this._t("renew")}"${off}>
+        <button class="icon-btn renew-btn" data-entity="${zoraxyEsc(btnId ?? "")}" title="${this._t("renew")}"${off}>
           ${this._mdi(ZoraxyCard.ICONS.refresh)}
         </button>`;
       return this._row(!isExpiring, domain, right);
@@ -960,16 +1086,13 @@ class ZoraxyCard extends HTMLElement {
   _draw() {
     this._snapshot();
 
-    const p   = this._prefix();
-    const sp  = `sensor.${p}`;
-    const bp  = `binary_sensor.${p}`;
-
-    const rulesCount    = this._value(`${sp}_regles_proxy`);
-    const activeCount   = this._value(`${sp}_regles_actives`);
-    const certCount     = this._value(`${sp}_certificats_tls`);
-    const port          = this._value(`${sp}_port_entrant`);
-    const rules         = this._attr(`${sp}_regles_proxy`, "rules") || [];
-    const redirects     = this._attr(`${sp}_regles_proxy`, "redirects") || [];
+    const rulesId       = this._eid("sensor.proxy_rules");
+    const rulesCount    = this._value(rulesId);
+    const activeCount   = this._value(this._eid("sensor.active_rules"));
+    const certCount     = this._value(this._eid("sensor.tls_certificates"));
+    const port          = this._value(this._eid("sensor.inbound_port"));
+    const rules         = this._attr(rulesId, "rules") || [];
+    const redirects     = this._attr(rulesId, "redirects") || [];
     // Rules sensor unavailable or unknown: its lists are not known, not empty.
     const listed        = rulesCount !== "–";
     const zoraxyUrl     = zoraxySafeUrl(this._config.zoraxy_url);
@@ -999,7 +1122,7 @@ class ZoraxyCard extends HTMLElement {
             ${this._nameLink()}
             <div class="sub">${zoraxyEsc(sub)}</div>
           </div>
-          <span id="status">${this._statusChip(this._state(`${bp}_proxy_actif`))}</span>
+          <span id="status">${this._statusChip(this._state(this._eid("binary_sensor.proxy_running")))}</span>
         </div>
 
         <div class="content">
@@ -1014,7 +1137,7 @@ class ZoraxyCard extends HTMLElement {
             ${ZoraxyCard.CONTROLS.map(ctrl).join("")}
           </div>`)}
 
-          ${this._section("certs",     `${this._t("certsSection")} (${certCount})`,       ZoraxyCard.ICONS.cert,     this._buildCerts(p))}
+          ${this._section("certs",     `${this._t("certsSection")} (${certCount})`,       ZoraxyCard.ICONS.cert,     this._buildCerts())}
           ${this._section("rules",     `${this._t("proxyRules")} (${listed ? rules.length : "–"})`,   ZoraxyCard.ICONS.router,   this._buildRules(rules, listed))}
           ${this._section("redirects", `${this._t("redirections")} (${listed ? redirects.length : "–"})`, ZoraxyCard.ICONS.redirect, this._buildRedirects(redirects, listed))}
         </div>
@@ -1077,19 +1200,19 @@ class ZoraxyCard extends HTMLElement {
 
   // ── Actions and their confirmation ────────────────────────────────────────
 
-  // The three control tiles: the binary sensor shown and the switch toggled share the entity suffix.
+  // The three control tiles: the binary sensor shown and the switch toggled share the translation key.
   // `confirm`: turning it off asks first (port 80 off also stops the ACME HTTP challenges).
   static CONTROLS = [
-    { id: "ctrl-https", suffix: "redirection_https", icon: "lock", label: "httpsRedirect" },
-    { id: "ctrl-port80", suffix: "ecoute_port_80", icon: "web", label: "port80", confirm: "confirmPort80Off" },
-    { id: "ctrl-devmode", suffix: "mode_developpement", icon: "code", label: "devMode" },
+    { id: "ctrl-https", key: "https_redirect", icon: "lock", label: "httpsRedirect" },
+    { id: "ctrl-port80", key: "port_80", icon: "web", label: "port80", confirm: "confirmPort80Off" },
+    { id: "ctrl-devmode", key: "development_mode", icon: "code", label: "devMode" },
   ];
 
   // "on" / "off" when both the binary sensor and the switch of a control are known, null otherwise.
   _ctrlState(id) {
-    const { suffix } = ZoraxyCard.CONTROLS.find((c) => c.id === id);
-    const shown = this._state(`binary_sensor.${this._prefix()}_${suffix}`);
-    const sw = this._state(`switch.${this._prefix()}_${suffix}`);
+    const { key } = ZoraxyCard.CONTROLS.find((c) => c.id === id);
+    const shown = this._state(this._eid(`binary_sensor.${key}`));
+    const sw = this._state(this._eid(`switch.${key}`));
     return ["on", "off"].includes(shown) && ["on", "off"].includes(sw) ? shown : null;
   }
 
@@ -1100,8 +1223,8 @@ class ZoraxyCard extends HTMLElement {
 
   _onCtrl(id) {
     if (this._justConfirmed()) return;
-    const { suffix, confirm } = ZoraxyCard.CONTROLS.find((c) => c.id === id);
-    const entity = `switch.${this._prefix()}_${suffix}`;
+    const { key, confirm } = ZoraxyCard.CONTROLS.find((c) => c.id === id);
+    const entity = this._eid(`switch.${key}`);
     // Unavailable or unknown: nothing to toggle (the tile is disabled, keyboard included).
     if (!this._ctrlState(id)) return;
     const on = !this._isOn(entity);
@@ -1292,33 +1415,39 @@ class ZoraxyMiniCard extends ZoraxyCard {
   }
 
   _miniChips() {
-    const p = this._prefix();
-    const sp = `sensor.${p}`;
-    const bp = `binary_sensor.${p}`;
     const chips = [];
-    const total = this._value(`${sp}_regles_proxy`);
-    const active = this._value(`${sp}_regles_actives`);
-    chips.push(this._miniChip(`${sp}_regles_proxy`, "router", this._t("ruleCount").replace("{a}", active).replace("{n}", total), "ok"));
+    const rulesId = this._eid("sensor.proxy_rules");
+    const certsId = this._eid("sensor.tls_certificates");
+    const portId = this._eid("sensor.inbound_port");
+    const httpsId = this._eid("binary_sensor.https_redirect");
+    const devId = this._eid("binary_sensor.development_mode");
+    const total = this._value(rulesId);
+    const active = this._value(this._eid("sensor.active_rules"));
+    chips.push(this._miniChip(rulesId, "router", this._t("ruleCount").replace("{a}", active).replace("{n}", total), "ok"));
+    // Rules whose upstream the uptime monitor found down: one chip with their count, opening the first one.
+    const down = this._many("binary_sensor.upstream_problem").filter((id) => this._isOn(id));
+    if (down.length) {
+      chips.push(this._miniChip(down[0], "server", this._t("upstreamsDown").replace("{n}", down.length), "crit", true));
+    }
     // Certificates expiring within 30 days get a chip each, the closest first; otherwise one chip with their count.
-    const expiring = this._certSensors(p)
-      .filter(({ suffix, days }) => (days !== null && days < 30) || this._isOn(`${bp}_cert_expirant_${suffix}`))
+    const expiring = this._certSensors()
+      .filter(({ expiring, days }) => (days !== null && days < 30) || this._isOn(expiring))
       .sort((a, b) => (a.days ?? Infinity) - (b.days ?? Infinity));
-    for (const { id, suffix, days } of expiring) {
-      const domain = this._attr(id, "domain") || suffix.replace(/_/g, ".");
+    for (const { id, domain, days } of expiring) {
       const cls = days !== null && days < 7 ? "crit" : "warn";
       chips.push(this._miniChip(id, "cert", `${domain} · ${this._daysLabel(days)}`, cls, true));
     }
     if (!expiring.length) {
-      chips.push(this._miniChip(`${sp}_certificats_tls`, "cert", this._t("certCount").replace("{n}", this._value(`${sp}_certificats_tls`)), "ok"));
+      chips.push(this._miniChip(certsId, "cert", this._t("certCount").replace("{n}", this._value(certsId)), "ok"));
     }
-    chips.push(this._miniChip(`${sp}_port_entrant`, "web", `${this._t("port")} ${this._value(`${sp}_port_entrant`)}`, "idle"));
+    chips.push(this._miniChip(portId, "web", `${this._t("port")} ${this._value(portId)}`, "idle"));
     // Controls only show when they need a look: HTTPS redirect off, development mode (no cache) on.
     // Exactly "off": unavailable or unknown is not "HTTPS redirect off".
-    if (this._state(`${bp}_redirection_https`) === "off") {
-      chips.push(this._miniChip(`${bp}_redirection_https`, "lock", `${this._t("httpsRedirect")} ${this._t("off")}`, "warn", true));
+    if (this._state(httpsId) === "off") {
+      chips.push(this._miniChip(httpsId, "lock", `${this._t("httpsRedirect")} ${this._t("off")}`, "warn", true));
     }
-    if (this._isOn(`${bp}_mode_developpement`)) {
-      chips.push(this._miniChip(`${bp}_mode_developpement`, "code", `${this._t("devMode")} ${this._t("on")}`, "warn", true));
+    if (this._isOn(devId)) {
+      chips.push(this._miniChip(devId, "code", `${this._t("devMode")} ${this._t("on")}`, "warn", true));
     }
     return chips.join("");
   }
@@ -1342,7 +1471,7 @@ class ZoraxyMiniCard extends ZoraxyCard {
           <div class="body">
             <div class="head">
               ${this._nameLink()}
-              <span id="status">${this._statusChip(this._state(`binary_sensor.${this._prefix()}_proxy_actif`))}</span>
+              <span id="status">${this._statusChip(this._state(this._eid("binary_sensor.proxy_running")))}</span>
             </div>
             <div class="rs">${this._miniChips()}</div>
           </div>
@@ -1380,6 +1509,8 @@ class ZoraxyMiniCard extends ZoraxyCard {
 // ── Editors ───────────────────────────────────────────────────────────────────
 class ZoraxyCardEditor extends HTMLElement {
   static SCHEMA = [
+    // Which Zoraxy, with several instances; left empty, the one of the entity prefix (or the first one).
+    { name: "device", selector: { device: { integration: "zoraxy" } } },
     { name: "zoraxy_url", selector: { text: { type: "url" } } },
     { name: "entity_prefix", selector: { text: {} } },
   ];
@@ -1456,7 +1587,7 @@ class ZoraxyCardEditor extends HTMLElement {
     Object.keys(defaults).forEach((key) => {
       if (value[key] === defaults[key]) delete value[key];
     });
-    ["zoraxy_url", "entity_prefix", "language"].forEach((key) => { if (!value[key]) delete value[key]; });
+    ["device", "zoraxy_url", "entity_prefix", "language"].forEach((key) => { if (!value[key]) delete value[key]; });
     this._config = value;
     this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: value }, bubbles: true, composed: true }));
   }

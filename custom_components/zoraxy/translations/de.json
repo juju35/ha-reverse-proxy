@@ -95,6 +95,9 @@
       },
       "certificate_expiring": {
         "name": "Zertifikat {domain} läuft ab"
+      },
+      "upstream_problem": {
+        "name": "Zielserver {domain}"
       }
     },
     "switch": {

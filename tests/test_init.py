@@ -7,9 +7,9 @@ from unittest.mock import patch
 import aiohttp
 import pytest
 from homeassistant.config_entries import ConfigEntryState
-from homeassistant.core import HomeAssistant
+from homeassistant.core import Context, HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
-from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError, Unauthorized
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
@@ -47,7 +47,22 @@ HOST_RULES = [
 DATA = {"host": HOST, "username": "admin", "password": "secret", "scan_interval": 30, "verify_ssl": True}
 
 
-def mock_zoraxy(aioclient_mock, *, status=PROXY_STATUS, rules=HOST_RULES, certs=None):
+UPTIME = {
+    "app.example.org": [
+        {"Timestamp": 1700000000, "ID": "app.example.org", "URL": "http://10.0.0.2:80", "Online": False},
+        {
+            "Timestamp": 1700000300,
+            "ID": "app.example.org",
+            "URL": "http://10.0.0.2:80",
+            "Online": True,
+            "StatusCode": 200,
+            "Latency": 12,
+        },
+    ]
+}
+
+
+def mock_zoraxy(aioclient_mock, *, status=PROXY_STATUS, rules=HOST_RULES, certs=None, uptime=UPTIME):
     """Register a working Zoraxy on aioclient_mock."""
     aioclient_mock.get(f"{HOST}/login.html", text=LOGIN_PAGE)
     aioclient_mock.post(f"{HOST}/api/auth/login", text="OK")
@@ -66,6 +81,10 @@ def mock_zoraxy(aioclient_mock, *, status=PROXY_STATUS, rules=HOST_RULES, certs=
         aioclient_mock.get(f"{HOST}/api/cert/list", json=["a.example.org"] if certs is None else certs)
     aioclient_mock.get(f"{HOST}/api/redirect/list", json=[])
     aioclient_mock.get(f"{HOST}/api/access/list", json=[])
+    if isinstance(uptime, int):
+        aioclient_mock.get(f"{HOST}/api/utm/list", status=uptime, text="500 - Internal Server Error")
+    else:
+        aioclient_mock.get(f"{HOST}/api/utm/list", json=uptime)
     aioclient_mock.get(f"{HOST}/api/acme/autoRenew/email", json="me@example.org")
     aioclient_mock.get(f"{HOST}/api/acme/autoRenew/ca", json="Let's Encrypt")
 
@@ -309,6 +328,30 @@ async def test_toggle_proxy_rule_zoraxy_error(hass, aioclient_mock, entry):
         await hass.services.async_call(
             DOMAIN, "toggle_proxy_rule", {"domain": "app.example.org", "enable": True}, blocking=True
         )
+
+
+async def test_toggle_proxy_rule_is_admin_only(hass, aioclient_mock, entry, hass_read_only_user, hass_admin_user):
+    """A non-admin user cannot enable or disable a proxy rule; an administrator can."""
+    mock_zoraxy(aioclient_mock)
+    aioclient_mock.post(f"{HOST}/api/proxy/toggle", text="OK")
+    await _setup(hass, entry)
+    with pytest.raises(Unauthorized):
+        await hass.services.async_call(
+            DOMAIN,
+            "toggle_proxy_rule",
+            {"domain": "app.example.org", "enable": False},
+            blocking=True,
+            context=Context(user_id=hass_read_only_user.id),
+        )
+    assert not _calls(aioclient_mock, "/api/proxy/toggle")
+    await hass.services.async_call(
+        DOMAIN,
+        "toggle_proxy_rule",
+        {"domain": "app.example.org", "enable": False},
+        blocking=True,
+        context=Context(user_id=hass_admin_user.id),
+    )
+    assert len(_calls(aioclient_mock, "/api/proxy/toggle")) == 1
 
 
 async def test_toggle_proxy_rule_nothing_loaded(hass, aioclient_mock, entry):
@@ -917,3 +960,106 @@ async def test_diagnostics_redact_credentials(hass, aioclient_mock, entry):
     assert rule["AuthenticationProvider"] == {"token": REDACTED, "ClientSecret": REDACTED}
     for secret in ("secret", "bob", "abc123", "t0k", "s3cr3t", HOST):
         assert secret not in str(diag)
+
+
+# ── Upstream health (uptime monitor) ──────────────────────────────────────────
+
+UPSTREAM = f"binary_sensor.{P}_upstream_app_example_org"
+
+
+async def test_upstream_health_from_last_uptime_check(hass, aioclient_mock, entry):
+    """One problem binary sensor per rule, from the latest uptime monitor record (older ones ignored)."""
+    mock_zoraxy(aioclient_mock)
+    await _setup(hass, entry)
+    state = hass.states.get(UPSTREAM)
+    assert state.state == "off"
+    assert state.attributes["device_class"] == "problem"
+    assert state.attributes["domain"] == "app.example.org"
+    upstream = state.attributes["upstreams"][0]
+    assert upstream["url"] == "http://10.0.0.2:80"
+    assert (upstream["online"], upstream["status_code"], upstream["latency_ms"]) == (True, 200, 12)
+    assert upstream["checked"].startswith("2023-11-14T22:")
+    assert "upstreams" in state.state_info["unrecorded_attributes"]
+
+    # Read at most once a minute.
+    coordinator = entry.runtime_data
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert len(_calls(aioclient_mock, "/api/utm/list", method="get")) == 1
+
+    aioclient_mock.clear_requests()
+    down = {"app.example.org": [{"ID": "app.example.org", "Online": False, "StatusCode": 502}]}
+    mock_zoraxy(aioclient_mock, uptime=down)
+    coordinator._uptime_checked -= 61
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get(UPSTREAM).state == "on"
+
+
+async def test_upstream_health_with_several_upstreams(hass, aioclient_mock, entry):
+    """A load-balanced rule is a problem when any of its upstreams is down; virtual directories are left out."""
+    uptime = {
+        "app.example.org (upstream:0)": [{"Online": True}],
+        "app.example.org (upstream:1)": [{"Online": False}],
+        "app.example.org/files": [{"Online": True}],
+        "other.example.org": [{"Online": True}],
+    }
+    mock_zoraxy(aioclient_mock, uptime=uptime)
+    await _setup(hass, entry)
+    state = hass.states.get(UPSTREAM)
+    assert state.state == "on"
+    assert [u["online"] for u in state.attributes["upstreams"]] == [True, False]
+
+
+async def test_upstream_health_unknown_without_check(hass, aioclient_mock, entry):
+    """No record (monitoring off, monitor still starting): unknown, never "no problem"; a failure keeps the last."""
+    mock_zoraxy(aioclient_mock, uptime=500)
+    await _setup(hass, entry)
+    assert hass.states.get(UPSTREAM).state == "unknown"
+
+    aioclient_mock.clear_requests()
+    mock_zoraxy(aioclient_mock)
+    await entry.runtime_data.async_refresh()  # retried at the next poll after a failure
+    await hass.async_block_till_done()
+    assert hass.states.get(UPSTREAM).state == "off"
+
+    aioclient_mock.clear_requests()
+    mock_zoraxy(aioclient_mock, uptime=500)
+    entry.runtime_data._uptime_checked -= 61
+    await entry.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get(UPSTREAM).state == "off"
+
+
+async def test_rule_entities_follow_the_rules(hass, aioclient_mock, entry):
+    """A new rule gets its upstream sensor at the next update; a removed one loses it (not on a failed list)."""
+    mock_zoraxy(aioclient_mock)
+    await _setup(hass, entry)
+    new_rule = {"RootOrMatchingDomain": "new.example.org", "ActiveOrigins": []}
+    aioclient_mock.clear_requests()
+    mock_zoraxy(aioclient_mock, rules=[*HOST_RULES, new_rule])
+    await entry.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get(f"binary_sensor.{P}_upstream_new_example_org").state == "unknown"
+
+    registry = er.async_get(hass)
+    aioclient_mock.clear_requests()
+    mock_zoraxy(aioclient_mock, rules=HOST_RULES)
+    await entry.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    assert registry.async_get(f"binary_sensor.{P}_upstream_new_example_org") is None
+    assert hass.states.get(UPSTREAM) is not None
+
+
+async def test_startup_cleanup_matches_the_suffix_after_the_entry_id(hass, aioclient_mock, entry):
+    """A rule named renew.example.org is not taken for the renew button of a certificate no longer listed."""
+    rules = [{"RootOrMatchingDomain": "renew.example.org", "ActiveOrigins": []}]
+    registry = er.async_get(hass)
+    kept = registry.async_get_or_create(
+        "binary_sensor", DOMAIN, f"{entry.entry_id}_upstream_problem_renew_example_org", config_entry=entry
+    )
+    gone = registry.async_get_or_create("button", DOMAIN, f"{entry.entry_id}_renew_old_example_org", config_entry=entry)
+    mock_zoraxy(aioclient_mock, rules=rules)
+    await _setup(hass, entry)
+    assert registry.async_get(kept.entity_id) is not None
+    assert registry.async_get(gone.entity_id) is None

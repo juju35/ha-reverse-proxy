@@ -782,7 +782,7 @@ test('the renew button of an unavailable certificate button entity is disabled',
     [`button.${PREFIX}_renouveler_a_example`]: { state: 'unknown', attributes: {} },
     [`button.${PREFIX}_renouveler_b_example`]: { state: 'unavailable', attributes: {} },
   };
-  const html = makeCard(states)._buildCerts(PREFIX);
+  const html = makeCard(states)._buildCerts();
   assert.match(html, /data-entity="button\.zoraxy_reverse_proxy_zoraxy_renouveler_a_example" title="Renew">/);
   assert.match(html, /data-entity="button\.zoraxy_reverse_proxy_zoraxy_renouveler_b_example" title="Renew" disabled>/);
 });
@@ -905,4 +905,106 @@ test('a redraw gives the focus back to the same control', () => {
   assert.equal(tile.focused, true);
   // Nothing focused before: nothing to restore.
   assert.equal(card._focusKey(), null);
+});
+
+// ── Entities from the registry, several instances, upstream health ───────────
+
+// Two Zoraxy devices whose entities were renamed: only the registry (platform, device, translation key) finds them.
+function registryCard(config = {}, Cls = ZoraxyCard) {
+  const entities = {};
+  const states = {};
+  const add = (id, device, key, state, attributes = {}) => {
+    entities[id] = { entity_id: id, platform: 'zoraxy', device_id: device, translation_key: key };
+    states[id] = { entity_id: id, state, attributes };
+  };
+  for (const [dev, name, rules, port] of [['dev1', 'proxy_one', '3', '443'], ['dev2', 'proxy_two', '7', '8443']]) {
+    add(`sensor.${name}_rules`, dev, 'proxy_rules', rules, {
+      rules: [{ domain: `app.${name}.org`, target: '10.0.0.2:80', enabled: true }, { domain: `ok.${name}.org`, target: '10.0.0.3:80', enabled: true }],
+      redirects: [],
+    });
+    add(`sensor.${name}_active`, dev, 'active_rules', rules);
+    add(`sensor.${name}_certs`, dev, 'tls_certificates', '1');
+    add(`sensor.${name}_port`, dev, 'inbound_port', port);
+    add(`binary_sensor.${name}_running`, dev, 'proxy_running', 'on');
+    add(`binary_sensor.${name}_https`, dev, 'https_redirect', 'on');
+    add(`switch.${name}_https`, dev, 'https_redirect', 'on');
+    add(`binary_sensor.${name}_port80`, dev, 'port_80', 'on');
+    add(`switch.${name}_port80`, dev, 'port_80', 'on');
+    add(`binary_sensor.${name}_dev`, dev, 'development_mode', 'off');
+    add(`switch.${name}_dev`, dev, 'development_mode', 'off');
+    add(`sensor.${name}_cert_a`, dev, 'certificate', isoInDays(3), { domain: `a.${name}.org` });
+    add(`binary_sensor.${name}_cert_a_expiring`, dev, 'certificate_expiring', 'on', { domain: `a.${name}.org` });
+    add(`button.${name}_renew_a`, dev, 'renew', 'unknown', { domain: `a.${name}.org` });
+    add(`binary_sensor.${name}_up_app`, dev, 'upstream_problem', 'on', { domain: `app.${name}.org` });
+    add(`binary_sensor.${name}_up_ok`, dev, 'upstream_problem', 'off', { domain: `ok.${name}.org` });
+  }
+  // Another integration's entity on the page is ignored.
+  entities['sensor.other'] = { entity_id: 'sensor.other', platform: 'other', device_id: 'dev3', translation_key: 'proxy_rules' };
+  const card = new Cls();
+  card._config = config;
+  card._hass = { states, entities, locale: { language: 'en' } };
+  card.calls = [];
+  card._hass.callService = (domain, service, data) => {
+    card.calls.push(`${domain}.${service} ${data.entity_id}`);
+    return Promise.resolve();
+  };
+  return card;
+}
+
+test('entities are found in the registry by device and translation key, whatever their ids', () => {
+  const card = registryCard();
+  assert.equal(card._eid('sensor.proxy_rules'), 'sensor.proxy_one_rules');
+  assert.equal(card._eid('switch.port_80'), 'switch.proxy_one_port80');
+  assert.ok(card._entityIds().every((id) => id.includes('proxy_one')));
+  card._render();
+  const html = card.shadowRoot.innerHTML;
+  assert.match(html, /<div class="mv">443<\/div>/);
+  assert.match(html, /Proxy rules \(2\)/);
+  // The certificate row finds its renew button and expiring sensor by their domain attribute.
+  assert.match(html, /a\.proxy_one\.org/);
+  assert.match(html, /data-entity="button\.proxy_one_renew_a"/);
+  card._onCtrl('ctrl-devmode');
+  assert.deepEqual(card.calls, ['homeassistant.turn_on switch.proxy_one_dev']);
+});
+
+test('the device option picks another Zoraxy instance', () => {
+  const card = registryCard({ device: 'dev2' });
+  assert.equal(card._eid('sensor.inbound_port'), 'sensor.proxy_two_port');
+  card._render();
+  assert.match(card.shadowRoot.innerHTML, /<div class="mv">8443<\/div>/);
+  assert.doesNotMatch(card.shadowRoot.innerHTML, /proxy_one/);
+  // The default picks the device of the entity named after the prefix (the first install keeps its 1.4.x ids).
+  const named = registryCard();
+  named._hass.entities[`sensor.${PREFIX}_regles_proxy`] = { entity_id: `sensor.${PREFIX}_regles_proxy`, platform: 'zoraxy', device_id: 'dev2', translation_key: 'x' };
+  assert.equal(named._eid('sensor.inbound_port'), 'sensor.proxy_two_port');
+  assert.throws(() => new ZoraxyCard().setConfig({ device: 3 }), /device/);
+});
+
+test('without the registry (or without any Zoraxy entity in it) the ids come from the prefix', () => {
+  const card = makeCard();
+  assert.equal(card._eid('sensor.proxy_rules'), `sensor.${PREFIX}_regles_proxy`);
+  assert.equal(card._eid('binary_sensor.port_80'), `binary_sensor.${PREFIX}_ecoute_port_80`);
+  card._hass.entities = { 'sensor.x': { entity_id: 'sensor.x', platform: 'other', device_id: 'd' } };
+  assert.equal(card._eid('switch.development_mode'), `switch.${PREFIX}_mode_developpement`);
+});
+
+test('a rule whose upstream is down gets a badge; the mini card counts them', () => {
+  const card = registryCard();
+  const rows = card._buildRules(card._attr('sensor.proxy_one_rules', 'rules')).split('<div class="row">');
+  assert.match(rows.find((r) => r.includes('app.proxy_one.org')), /up-badge[^>]*title="Upstream down \(Zoraxy uptime monitor\)"[\s\S]*>Down</);
+  assert.doesNotMatch(rows.find((r) => r.includes('ok.proxy_one.org')), /up-badge/);
+  const mini = registryCard({}, ZoraxyMiniCard)._miniChips();
+  assert.match(mini, /data-entity="binary_sensor\.proxy_one_up_app"[^>]*>[\s\S]*Upstreams down: 1/);
+  // Found from the prefix too.
+  const legacy = makeCard({
+    [`sensor.${PREFIX}_regles_proxy`]: { state: '1', attributes: { rules: [{ domain: 'x.org', target: 't', enabled: true }] } },
+    [`binary_sensor.${PREFIX}_upstream_x_org`]: { state: 'on', attributes: { domain: 'x.org' } },
+  });
+  assert.match(legacy._buildRules(legacy._attr(`sensor.${PREFIX}_regles_proxy`, 'rules')), /up-badge/);
+});
+
+test('the editors offer the Zoraxy device picker', () => {
+  const field = ZoraxyCardEditor.SCHEMA.find((f) => f.name === 'device');
+  assert.equal(field.selector.device.integration, 'zoraxy');
+  assert.ok(ZoraxyMiniCardEditor.SCHEMA.some((f) => f.name === 'device'));
 });

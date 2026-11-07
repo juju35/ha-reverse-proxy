@@ -95,6 +95,9 @@
       },
       "certificate_expiring": {
         "name": "Certifikat {domain} går snart ut"
+      },
+      "upstream_problem": {
+        "name": "Målserver {domain}"
       }
     },
     "switch": {

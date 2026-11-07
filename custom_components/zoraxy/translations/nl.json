@@ -95,6 +95,9 @@
       },
       "certificate_expiring": {
         "name": "Certificaat {domain} verloopt binnenkort"
+      },
+      "upstream_problem": {
+        "name": "Doelserver {domain}"
       }
     },
     "switch": {

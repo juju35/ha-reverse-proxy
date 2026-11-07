@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.13.0 - 2026-11-07
+### What's new
+- Upstream health: each proxy rule gets a problem binary sensor from Zoraxy's uptime monitor, on when an upstream of the rule was found offline at its last check.
+- Cards: a proxy rule whose upstream is down shows a *Down* badge, and the mini card shows how many rules have an upstream down.
+- Cards: the entities are found in the entity registry by their Zoraxy device and kind, so renamed entity ids keep working; with several Zoraxy instances, each card picks its instance with the new **Device** option.
+
+### Security
+- The `zoraxy.toggle_proxy_rule` action is now reserved to administrators.
+
 ## 1.12.0 - 2026-11-07
 ### What's new
 - Diagnostics: **Download diagnostics** gives the entry settings and the last data read from Zoraxy, with the address, credentials, tokens, secrets, cookies and email addresses redacted.

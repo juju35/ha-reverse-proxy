@@ -95,6 +95,9 @@
       },
       "certificate_expiring": {
         "name": "Certyfikat {domain} wkrótce wygaśnie"
+      },
+      "upstream_problem": {
+        "name": "Serwer docelowy {domain}"
       }
     },
     "switch": {

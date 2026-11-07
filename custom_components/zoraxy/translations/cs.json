@@ -95,6 +95,9 @@
       },
       "certificate_expiring": {
         "name": "Certifikát {domain} brzy vyprší"
+      },
+      "upstream_problem": {
+        "name": "Cílový server {domain}"
       }
     },
     "switch": {
