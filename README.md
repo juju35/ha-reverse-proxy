@@ -79,7 +79,7 @@ The refresh interval and the TLS verification can be changed later with **Config
 
 ### Card
 
-Edit a dashboard, click **Add card** and search for **Zoraxy Card**. Set the Zoraxy URL (opened when clicking the card title) and, with several Zoraxy instances, the device. Or in YAML:
+Edit a dashboard, click **Add card** and search for **Zoraxy Card**. Set the Zoraxy URL (opened when clicking the header icon) and, with several Zoraxy instances, the device. Or in YAML:
 
 ```yaml
 type: custom:zoraxy-card
@@ -97,7 +97,7 @@ The card finds its entities in the entity registry, by their Zoraxy device and t
 
 ### Mini card
 
-`custom:zoraxy-mini-card` shows the full card's essentials on two lines, for a compact dashboard: the logo, title and status pill, then a chip per key figure:
+`custom:zoraxy-mini-card` shows the full card's essentials on two lines, for a compact dashboard: the header icon, title and status pill, then a chip per key figure:
 
 - active / total proxy rules
 - the number of rules whose upstream is down, in red, only when there are some

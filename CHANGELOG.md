@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.14.0 - 2026-11-08
+### What's new
+- Cards: the header shows the round server icon of the project page, tinted with the proxy status (green running, red stopped, grey unavailable), with the Zoraxy mark as a badge, as on the other ha-* cards.
+- Cards: a click on that header icon opens the Zoraxy web interface (`zoraxy_url`); the title is plain text.
+
 ## 1.13.1 - 2026-11-08
 ### Fixes
 - Cards: a proxy rule's button now changes the rule of the card's own Zoraxy instance (new optional `config_entry_id` field of `zoraxy.toggle_proxy_rule`), shows a failure in a toast, and is disabled for users who are not administrators.

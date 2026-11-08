@@ -1059,3 +1059,23 @@ test('the editors offer the Zoraxy device picker', () => {
   assert.equal(field.selector.device.integration, 'zoraxy');
   assert.ok(ZoraxyMiniCardEditor.SCHEMA.some((f) => f.name === 'device'));
 });
+
+test('the header icon links to the Zoraxy web interface, tinted with the status; the title is plain text', () => {
+  const card = registryCard();
+  card._config = { ...card._config, zoraxy_url: 'http://zoraxy.local:8000' };
+  card._render();
+  let html = card.shadowRoot.innerHTML;
+  assert.match(html, /<a class="brand-link" href="http:\/\/zoraxy\.local:8000" target="_blank" rel="noopener noreferrer" title="Open the Zoraxy web interface"/);
+  assert.match(html, /<span class="logo ok" aria-hidden="true"><svg viewBox="0 0 24 24">/);
+  assert.match(html, /<span class="badge"><svg viewBox="0 0 512 512"/);
+  assert.match(html, /<span class="name">Zoraxy<\/span>/);
+  assert.doesNotMatch(html, /<a class="name"/);
+  // Without a URL: the icon alone, no link; the proxy stopped turns it red.
+  card._config = { ...card._config, zoraxy_url: '' };
+  const running = card._hass.states['binary_sensor.proxy_one_running'];
+  card._hass = { ...card._hass, states: { ...card._hass.states, 'binary_sensor.proxy_one_running': { ...running, state: 'off' } } };
+  card._render();
+  html = card.shadowRoot.innerHTML;
+  assert.doesNotMatch(html, /<a class="brand-link"/);
+  assert.match(html, /<span class="logo crit"/);
+});
