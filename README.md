@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/custom_components/reverse_proxy/brand/logo@2x.png" alt="Reverse Proxy" height="96">
+</p>
+
 # ha-reverse-proxy
 
 [![Marketplace](https://img.shields.io/badge/Marketplace-Custom-41BDF5.svg)](https://www.home-assistant.io/integrations/marketplace/)
