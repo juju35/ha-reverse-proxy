@@ -1,4 +1,4 @@
-const ZORAXY_CARD_VERSION = '1.13.0';
+const ZORAXY_CARD_VERSION = '1.13.1';
 
 // Escapes a value interpolated into innerHTML, as text or inside a quoted attribute (as parcelEsc in ha-parcel).
 function zoraxyEsc(s) {
@@ -728,9 +728,26 @@ class ZoraxyCard extends HTMLElement {
     // Re-render only when a state the card shows changed (Home Assistant keeps the same state object while it
     // doesn't change), the language changed, or the hour changed (certificate countdowns).
     const states = this._entityIds().map((id) => hass.states[id]);
-    const key = `${this._lang()}|${Math.floor(Date.now() / 3600000)}`;
+    const key = this._key();
     if (this._states && key === this._renderKey && states.length === this._states.length && states.every((st, i) => st === this._states[i])) return;
     this._render();
+  }
+
+  // What else re-renders the card: the language, the hour (certificate countdowns) and the user's admin flag.
+  _key() {
+    return `${this._lang()}|${Math.floor(Date.now() / 3600000)}|${this._isAdmin()}`;
+  }
+
+  // Enabling or disabling a proxy rule is an admin-only action: other users see the rules' state, not the toggles.
+  // A frontend that does not say who the user is (older versions, tests) keeps them; the service still checks.
+  _isAdmin() {
+    return this._hass?.user?.is_admin !== false;
+  }
+
+  // The config entry of the card's Zoraxy device, so that a rule toggle reaches this instance (null: unknown).
+  _entryId() {
+    const device = this._hass?.devices?.[this._registry()?.device];
+    return device?.primary_config_entry || device?.config_entries?.[0] || null;
   }
 
   // Entities of this card: those of its Zoraxy device in the entity registry, else those found from the prefix.
@@ -799,7 +816,7 @@ class ZoraxyCard extends HTMLElement {
       one[key] ??= e.entity_id;
       (many[key] ??= []).push(e.entity_id);
     }
-    return (this._reg = { ids: mine.map((e) => e.entity_id), one, many });
+    return (this._reg = { ids: mine.map((e) => e.entity_id), one, many, device: dev });
   }
 
   // The entity id of one of the device's entities ("sensor.proxy_rules"), by translation key or from the prefix.
@@ -889,17 +906,22 @@ class ZoraxyCard extends HTMLElement {
     btn.innerHTML = this._ruleBtnContent(newEnabled);
 
     try {
-      await this._hass.callService("zoraxy", "toggle_proxy_rule", {
-        domain: domain,
-        enable: newEnabled,
-      });
+      const entryId = this._entryId();
+      // notifyOnError false: the card shows the error itself (one toast, with the translated message).
+      await this._hass.callService(
+        "zoraxy",
+        "toggle_proxy_rule",
+        { domain, enable: newEnabled, ...(entryId ? { config_entry_id: entryId } : {}) },
+        undefined,
+        false,
+      );
       // Full re-render once the Home Assistant coordinator has refreshed the data
       clearTimeout(this._refreshTimer);
       this._refreshTimer = setTimeout(() => {
         if (this._hass) this._render();
       }, 3000);
     } catch (e) {
-      console.error("Zoraxy toggleRule error:", e);
+      this.dispatchEvent(new CustomEvent("hass-notification", { detail: { message: e?.message ?? String(e) }, bubbles: true, composed: true }));
       // Roll back the optimistic update
       if (this._hass) this._render();
     } finally {
@@ -974,11 +996,13 @@ class ZoraxyCard extends HTMLElement {
       const left = String(r.domain ?? "").includes("*")
         ? `<span class="row-label" title="${domain}">${domain}</span>`
         : `<span class="row-label domain-link" title="${domain}" role="link" tabindex="0" data-href="https://${domain}">${domain}</span>`;
+      // Non-admins see the rule's state on a disabled button: the toggle service is admin-only.
+      const action = this._isAdmin() ? `title="${r.enabled ? this._t("disableRule") : this._t("enableRule")}"` : "disabled";
       const right = `${down}<span class="row-sub" title="${target}">${target}</span>
         <button class="icon-btn rule-btn ${r.enabled ? "ok" : "crit"}"
           data-rule-domain="${domain}"
           data-rule-enabled="${r.enabled ? "true" : "false"}"
-          title="${r.enabled ? this._t("disableRule") : this._t("enableRule")}">${this._ruleBtnContent(r.enabled)}</button>`;
+          ${action}>${this._ruleBtnContent(r.enabled)}</button>`;
       return `<div class="row">
         <div class="row-left">${left}</div>
         <div class="row-right">${right}</div>
@@ -1048,7 +1072,7 @@ class ZoraxyCard extends HTMLElement {
   // Remembers what this render shows, so that `set hass` skips the next ones until something changes.
   _snapshot() {
     this._states = this._entityIds().map((id) => this._hass.states[id]);
-    this._renderKey = `${this._lang()}|${Math.floor(Date.now() / 3600000)}`;
+    this._renderKey = this._key();
   }
 
   // Card title, a link to the Zoraxy web interface when `zoraxy_url` is an http(s) address.
@@ -1237,7 +1261,7 @@ class ZoraxyCard extends HTMLElement {
   }
 
   _onRule(btn) {
-    if (this._justConfirmed()) return;
+    if (this._justConfirmed() || !this._isAdmin()) return;
     const domain = btn.dataset.ruleDomain;
     if (btn.dataset.ruleEnabled !== "true") return this._toggleRule(domain, false, btn);
     this._openConfirm({

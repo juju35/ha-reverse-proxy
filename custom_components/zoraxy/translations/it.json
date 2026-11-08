@@ -129,6 +129,10 @@
         "enable": {
           "name": "Abilita",
           "description": "Impostare su true per abilitare la regola, false per disabilitarla. Omettere per invertire lo stato della regola."
+        },
+        "config_entry_id": {
+          "name": "Istanza Zoraxy",
+          "description": "L'istanza Zoraxy a cui appartiene la regola. Omettere per usare l'istanza che elenca il dominio."
         }
       }
     }

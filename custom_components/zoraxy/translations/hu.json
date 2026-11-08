@@ -129,6 +129,10 @@
         "enable": {
           "name": "Engedélyezés",
           "description": "true a szabály engedélyezéséhez, false a letiltásához. Ha nincs megadva, a szabály állapota átvált."
+        },
+        "config_entry_id": {
+          "name": "Zoraxy példány",
+          "description": "A Zoraxy példány, amelyhez a szabály tartozik. Ha nincs megadva, a tartományt listázó példány lesz használva."
         }
       }
     }

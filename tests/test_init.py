@@ -18,7 +18,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMockResponse
 
 from custom_components.zoraxy.api import ZoraxyClient
-from custom_components.zoraxy.const import DOMAIN
+from custom_components.zoraxy.const import DOMAIN, UPTIME_POLL_SECONDS, UPTIME_STALE_SECONDS
 
 HOST = "http://zoraxy.local:8000"
 P = "zoraxy_reverse_proxy_zoraxy"
@@ -62,31 +62,31 @@ UPTIME = {
 }
 
 
-def mock_zoraxy(aioclient_mock, *, status=PROXY_STATUS, rules=HOST_RULES, certs=None, uptime=UPTIME):
+def mock_zoraxy(aioclient_mock, *, status=PROXY_STATUS, rules=HOST_RULES, certs=None, uptime=UPTIME, host=HOST):
     """Register a working Zoraxy on aioclient_mock."""
-    aioclient_mock.get(f"{HOST}/login.html", text=LOGIN_PAGE)
-    aioclient_mock.post(f"{HOST}/api/auth/login", text="OK")
+    aioclient_mock.get(f"{host}/login.html", text=LOGIN_PAGE)
+    aioclient_mock.post(f"{host}/api/auth/login", text="OK")
     if isinstance(status, int):
-        aioclient_mock.get(f"{HOST}/api/proxy/status", status=status, text="boom")
+        aioclient_mock.get(f"{host}/api/proxy/status", status=status, text="boom")
     else:
-        aioclient_mock.get(f"{HOST}/api/proxy/status", json=status)
+        aioclient_mock.get(f"{host}/api/proxy/status", json=status)
 
     async def proxy_list(method, url, data):
         return AiohttpClientMockResponse(method, url, json=rules if "type=host" in data else [])
 
-    aioclient_mock.post(f"{HOST}/api/proxy/list", side_effect=proxy_list)
+    aioclient_mock.post(f"{host}/api/proxy/list", side_effect=proxy_list)
     if isinstance(certs, int):
-        aioclient_mock.get(f"{HOST}/api/cert/list", status=certs, text="boom")
+        aioclient_mock.get(f"{host}/api/cert/list", status=certs, text="boom")
     else:
-        aioclient_mock.get(f"{HOST}/api/cert/list", json=["a.example.org"] if certs is None else certs)
-    aioclient_mock.get(f"{HOST}/api/redirect/list", json=[])
-    aioclient_mock.get(f"{HOST}/api/access/list", json=[])
+        aioclient_mock.get(f"{host}/api/cert/list", json=["a.example.org"] if certs is None else certs)
+    aioclient_mock.get(f"{host}/api/redirect/list", json=[])
+    aioclient_mock.get(f"{host}/api/access/list", json=[])
     if isinstance(uptime, int):
-        aioclient_mock.get(f"{HOST}/api/utm/list", status=uptime, text="500 - Internal Server Error")
+        aioclient_mock.get(f"{host}/api/utm/list", status=uptime, text="500 - Internal Server Error")
     else:
-        aioclient_mock.get(f"{HOST}/api/utm/list", json=uptime)
-    aioclient_mock.get(f"{HOST}/api/acme/autoRenew/email", json="me@example.org")
-    aioclient_mock.get(f"{HOST}/api/acme/autoRenew/ca", json="Let's Encrypt")
+        aioclient_mock.get(f"{host}/api/utm/list", json=uptime)
+    aioclient_mock.get(f"{host}/api/acme/autoRenew/email", json="me@example.org")
+    aioclient_mock.get(f"{host}/api/acme/autoRenew/ca", json="Let's Encrypt")
 
 
 @pytest.fixture
@@ -360,6 +360,35 @@ async def test_toggle_proxy_rule_nothing_loaded(hass, aioclient_mock, entry):
     assert await hass.config_entries.async_unload(entry.entry_id)
     with pytest.raises(ServiceValidationError):
         await hass.services.async_call(DOMAIN, "toggle_proxy_rule", {"domain": "app.example.org"}, blocking=True)
+
+
+async def test_toggle_proxy_rule_targets_the_given_instance(hass, aioclient_mock, entry):
+    """With config_entry_id, only that instance is used: the card toggles the rule of its own device."""
+    other_host = "http://zoraxy2.local:8000"
+    other = MockConfigEntry(
+        domain=DOMAIN, data={**DATA, "host": other_host}, unique_id=other_host, version=1, minor_version=2
+    )
+    other.add_to_hass(hass)
+    for host in (HOST, other_host):
+        mock_zoraxy(aioclient_mock, host=host)
+        aioclient_mock.post(f"{host}/api/proxy/toggle", text="OK")
+    await _setup(hass, entry)  # sets both entries up
+    assert other.runtime_data is not entry.runtime_data
+
+    data = {"domain": "app.example.org", "enable": False}
+    await hass.services.async_call(
+        DOMAIN, "toggle_proxy_rule", {**data, "config_entry_id": other.entry_id}, blocking=True
+    )
+    toggles = [c for c in aioclient_mock.mock_calls if c[0].lower() == "post" and "/api/proxy/toggle" in str(c[1])]
+    assert [str(c[1]).split("/api")[0] for c in toggles] == [other_host]
+
+    await hass.services.async_call(
+        DOMAIN, "toggle_proxy_rule", {**data, "config_entry_id": entry.entry_id}, blocking=True
+    )
+    assert len(_calls(aioclient_mock, "/api/proxy/toggle")) == 1
+
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(DOMAIN, "toggle_proxy_rule", {**data, "config_entry_id": "nope"}, blocking=True)
 
 
 # ── Client ────────────────────────────────────────────────────────────────────
@@ -1027,6 +1056,34 @@ async def test_upstream_health_unknown_without_check(hass, aioclient_mock, entry
     mock_zoraxy(aioclient_mock, uptime=500)
     entry.runtime_data._uptime_checked -= 61
     await entry.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get(UPSTREAM).state == "off"
+
+
+async def test_upstream_health_unknown_when_uptime_log_keeps_failing(hass, aioclient_mock, entry):
+    """Failed reads keep the last checks for a few minutes only, then upstream health becomes unknown."""
+    mock_zoraxy(aioclient_mock)
+    await _setup(hass, entry)
+    assert hass.states.get(UPSTREAM).state == "off"
+    coordinator = entry.runtime_data
+
+    aioclient_mock.clear_requests()
+    mock_zoraxy(aioclient_mock, uptime=500)
+    coordinator._uptime_checked -= UPTIME_POLL_SECONDS + 1
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get(UPSTREAM).state == "off"
+
+    coordinator._uptime_checked -= UPTIME_STALE_SECONDS
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get(UPSTREAM).state == "unknown"
+    assert hass.states.get(f"sensor.{P}_regles_proxy").state != "unavailable"
+
+    # Read again: back to the latest check.
+    aioclient_mock.clear_requests()
+    mock_zoraxy(aioclient_mock)
+    await coordinator.async_refresh()
     await hass.async_block_till_done()
     assert hass.states.get(UPSTREAM).state == "off"
 

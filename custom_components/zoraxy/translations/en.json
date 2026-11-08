@@ -129,6 +129,10 @@
         "enable": {
           "name": "Enable",
           "description": "Set to true to enable the rule, false to disable it. Leave out to toggle the rule."
+        },
+        "config_entry_id": {
+          "name": "Zoraxy instance",
+          "description": "The Zoraxy instance the rule belongs to. Leave out to use the instance that lists the domain."
         }
       }
     }

@@ -129,6 +129,10 @@
         "enable": {
           "name": "Aktivieren",
           "description": "true aktiviert die Regel, false deaktiviert sie. Weggelassen wird die Regel umgeschaltet."
+        },
+        "config_entry_id": {
+          "name": "Zoraxy-Instanz",
+          "description": "Die Zoraxy-Instanz, zu der die Regel gehört. Weggelassen wird die Instanz verwendet, die die Domain auflistet."
         }
       }
     }

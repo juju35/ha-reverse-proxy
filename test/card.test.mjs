@@ -719,6 +719,57 @@ test('disabling a proxy rule asks first; enabling it acts at once', async () => 
   clearTimeout(card._refreshTimer);
 });
 
+test('a rule toggle targets the card\'s instance and shows a failure in a toast', async () => {
+  const card = registryCard();
+  card._hass.devices = { dev1: { id: 'dev1', primary_config_entry: 'entry1', config_entries: ['entry1'] } };
+  const sent = [];
+  card._hass.callService = (domain, service, data, _target, notify) => {
+    sent.push({ domain, service, data: { ...data }, notify });
+    return Promise.resolve();
+  };
+  const btn = { dataset: {}, disabled: false };
+  await card._toggleRule('app.proxy_one.org', false, btn);
+  clearTimeout(card._refreshTimer);
+  assert.deepEqual(sent[0].data, { domain: 'app.proxy_one.org', enable: true, config_entry_id: 'entry1' });
+  assert.equal(sent[0].notify, false, 'the card shows the error, not a second toast');
+
+  const toasts = [];
+  card.dispatchEvent = (ev) => toasts.push(ev);
+  card._render = () => {};
+  card._hass.callService = () => Promise.reject(new Error('Zoraxy: could not change the rule'));
+  const error = console.error;
+  console.error = () => assert.fail('no console.error');
+  try {
+    await card._toggleRule('app.proxy_one.org', false, btn);
+  } finally {
+    console.error = error;
+  }
+  assert.equal(toasts.length, 1);
+  assert.equal(toasts[0].type, 'hass-notification');
+  assert.equal(toasts[0].detail.message, 'Zoraxy: could not change the rule');
+  assert.equal(btn.disabled, false);
+});
+
+test('non-admin users see the rules\' state on disabled buttons and cannot toggle them', () => {
+  const card = registryCard();
+  card._sectionOpen.rules = true;
+  card._render();
+  assert.match(card.shadowRoot.innerHTML, /class="icon-btn rule-btn[^"]*"[^>]*title=/);
+  assert.doesNotMatch(card.shadowRoot.innerHTML, /rule-btn[^>]*\sdisabled/);
+
+  card._hass = { ...card._hass, user: { is_admin: false } };
+  card._render();
+  const html = card.shadowRoot.innerHTML;
+  assert.match(html, /rule-btn[^>]*\sdisabled>/);
+  assert.doesNotMatch(html, /title="(Disable|Enable)"/);
+  card._onRule({ dataset: { ruleDomain: 'app.proxy_one.org', ruleEnabled: 'false' }, disabled: true });
+  assert.deepEqual(card.calls, []);
+  assert.equal(card._confirm ?? null, null);
+  const key = card._key();
+  card._hass.user.is_admin = true;
+  assert.notEqual(card._key(), key, 'the admin flag re-renders');
+});
+
 test('the confirmation text is escaped (a rule domain comes from Zoraxy)', () => {
   const card = controlCard();
   card._confirm = { text: '<img src=x onerror=alert(1)>', ok: 'OK' };

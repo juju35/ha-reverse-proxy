@@ -129,6 +129,10 @@
         "enable": {
           "name": "Povolit",
           "description": "true pro povolení pravidla, false pro jeho zakázání. Když se vynechá, pravidlo se přepne."
+        },
+        "config_entry_id": {
+          "name": "Instance Zoraxy",
+          "description": "Instance Zoraxy, ke které pravidlo patří. Když se vynechá, použije se instance, která uvádí doménu."
         }
       }
     }
