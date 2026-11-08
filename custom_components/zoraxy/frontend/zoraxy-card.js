@@ -1,4 +1,4 @@
-const ZORAXY_CARD_VERSION = '1.13.1';
+const ZORAXY_CARD_VERSION = '1.14.0';
 
 // Escapes a value interpolated into innerHTML, as text or inside a quoted attribute (as parcelEsc in ha-parcel).
 function zoraxyEsc(s) {
@@ -29,15 +29,25 @@ class ZoraxyCard extends HTMLElement {
     arrowCollapse: "M19.5,3.09L15,7.59V4H13V11H20V9H16.41L20.91,4.5L19.5,3.09M4,13V15H7.59L3.09,19.5L4.5,20.91L9,16.41V20H11V13H4Z",
   };
 
-  static LOGO = `<svg class="logo" viewBox="0 0 100 100" role="img" aria-label="Zoraxy">
-    <rect width="100" height="100" rx="16" fill="#0f172a"/>
-    <circle cx="50" cy="50" r="18" fill="#bfdbfe"/>
-    <path d="M50 20 L44 32 L56 32 Z" fill="#bfdbfe"/>
-    <path d="M50 80 L44 68 L56 68 Z" fill="#bfdbfe"/>
-    <path d="M25 35 Q15 45 15 50 Q15 55 25 65" stroke="#bfdbfe" stroke-width="5" fill="none" stroke-linecap="round"/>
-    <path d="M75 35 Q85 45 85 50 Q85 55 75 65" stroke="#bfdbfe" stroke-width="5" fill="none" stroke-linecap="round"/>
+  // mdi:server-network, the project's icon on the showcase site.
+  static SERVER_NETWORK = "M13,19H14A1,1 0 0,1 15,20H22V22H15A1,1 0 0,1 14,23H10A1,1 0 0,1 9,22H2V20H9A1,1 0 0,1 10,19H11V17H4A1,1 0 0,1 3,16V12A1,1 0 0,1 4,11H20A1,1 0 0,1 21,12V16A1,1 0 0,1 20,17H13V19M4,3H20A1,1 0 0,1 21,4V8A1,1 0 0,1 20,9H4A1,1 0 0,1 3,8V4A1,1 0 0,1 4,3M9,7H10V5H9V7M9,15H10V13H9V15M5,5V7H7V5H5M5,13V15H7V13H5Z";
+
+  // The Zoraxy mark (the project's logo: two dark arcs, a blue disc and its two arrows), as a badge on the header icon.
+  static ZORAXY_MARK = `<svg viewBox="0 0 512 512" aria-hidden="true">
+    <path fill="#213040" d="M427.1 65.6 369 130.3c34.4 30.9 56 75.8 56 125.7s-21.6 94.8-56 125.7l58.1 64.7C479.2 399.5 512 331.6 512 256s-32.8-143.5-84.9-190.4M84.9 446.4l58.1-64.7c-34.4-30.9-56-75.8-56-125.7s21.6-94.8 56-125.7L84.9 65.6C32.8 112.5 0 180.4 0 256s32.8 143.5 84.9 190.4"/>
+    <path fill="#a9d1f3" d="M310.7 32.8 256 98.5l-54.7-65.7zm0 380.7L256 479.2l-54.7-65.7z"/>
+    <circle cx="256" cy="256" r="81.2" fill="#a9d1f3"/>
   </svg>`;
 
+  // Header icon: the round server-network icon in the proxy's status colour (green running, red stopped, grey
+  // unavailable), the Zoraxy mark as a badge; a link to the Zoraxy web interface when `zoraxy_url` is set.
+  _headerIcon(statusCls) {
+    const url = zoraxySafeUrl(this._config.zoraxy_url);
+    const icon = `<span class="logo ${statusCls}" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="${ZoraxyCard.SERVER_NETWORK}"/></svg><span class="badge">${ZoraxyCard.ZORAXY_MARK}</span></span>`;
+    return url
+      ? `<a class="brand-link" href="${zoraxyEsc(url)}" target="_blank" rel="noopener noreferrer" title="${this._t("openZoraxy")}" aria-label="${this._t("openZoraxy")}">${icon}</a>`
+      : icon;
+  }
 
   static I18N = {
     fr: {
@@ -50,7 +60,8 @@ class ZoraxyCard extends HTMLElement {
       on: "On", off: "Off",
       enableRule: "Activer", disableRule: "Désactiver",
       ed_zoraxy_url: "URL de Zoraxy", ed_entity_prefix: "Préfixe des entités",
-      ed_zoraxy_url_helper: "Ouverte au clic sur le titre de la carte",
+      ed_zoraxy_url_helper: "Ouverte au clic sur l'icône d'en-tête",
+      openZoraxy: "Ouvrir l'interface web de Zoraxy",
       ed_entity_prefix_helper: "Partie commune des entités, par exemple zoraxy_reverse_proxy_zoraxy",
       zoomIn: "Afficher la carte complète", zoomOut: "Revenir à la vue compacte",
       ruleCount: "{a}/{n} règles", certCount: "{n} certs",
@@ -72,7 +83,8 @@ class ZoraxyCard extends HTMLElement {
       on: "On", off: "Off",
       enableRule: "Enable", disableRule: "Disable",
       ed_zoraxy_url: "Zoraxy URL", ed_entity_prefix: "Entity prefix",
-      ed_zoraxy_url_helper: "Opened when clicking the card title",
+      ed_zoraxy_url_helper: "Opened when clicking the header icon",
+      openZoraxy: "Open the Zoraxy web interface",
       ed_entity_prefix_helper: "Common part of the entity IDs, for example zoraxy_reverse_proxy_zoraxy",
       zoomIn: "Show the full card", zoomOut: "Back to the compact view",
       ruleCount: "{a}/{n} rules", certCount: "{n} certs",
@@ -94,7 +106,8 @@ class ZoraxyCard extends HTMLElement {
       on: "An", off: "Aus",
       enableRule: "Aktivieren", disableRule: "Deaktivieren",
       ed_zoraxy_url: "Zoraxy-URL", ed_entity_prefix: "Entitätspräfix",
-      ed_zoraxy_url_helper: "Wird beim Klick auf den Kartentitel geöffnet",
+      ed_zoraxy_url_helper: "Wird beim Klick auf das Kopfzeilensymbol geöffnet",
+      openZoraxy: "Zoraxy-Weboberfläche öffnen",
       ed_entity_prefix_helper: "Gemeinsamer Teil der Entitäts-IDs, zum Beispiel zoraxy_reverse_proxy_zoraxy",
       zoomIn: "Vollständige Karte anzeigen", zoomOut: "Zurück zur kompakten Ansicht",
       ruleCount: "{a}/{n} Regeln", certCount: "{n} Zert.",
@@ -116,7 +129,8 @@ class ZoraxyCard extends HTMLElement {
       on: "On", off: "Off",
       enableRule: "Activar", disableRule: "Desactivar",
       ed_zoraxy_url: "URL de Zoraxy", ed_entity_prefix: "Prefijo de las entidades",
-      ed_zoraxy_url_helper: "Se abre al hacer clic en el título de la tarjeta",
+      ed_zoraxy_url_helper: "Se abre al hacer clic en el icono de la cabecera",
+      openZoraxy: "Abrir la interfaz web de Zoraxy",
       ed_entity_prefix_helper: "Parte común de los ID de entidad, por ejemplo zoraxy_reverse_proxy_zoraxy",
       zoomIn: "Mostrar la tarjeta completa", zoomOut: "Volver a la vista compacta",
       ruleCount: "{a}/{n} reglas", certCount: "{n} cert.",
@@ -138,7 +152,8 @@ class ZoraxyCard extends HTMLElement {
       on: "Укљ.", off: "Искљ.",
       enableRule: "Омогући", disableRule: "Онемогући",
       ed_zoraxy_url: "URL адреса за Zoraxy", ed_entity_prefix: "Префикс ентитета",
-      ed_zoraxy_url_helper: "Отвара се кликом на наслов картице",
+      ed_zoraxy_url_helper: "Отвара се кликом на икону заглавља",
+      openZoraxy: "Отвори веб интерфејс Zoraxy-ја",
       ed_entity_prefix_helper: "Заједнички део идентификатора ентитета, на пример zoraxy_reverse_proxy_zoraxy",
       zoomIn: "Прикажи целу картицу", zoomOut: "Назад на компактни приказ",
       ruleCount: "Правила: {a}/{n}", certCount: "Серт.: {n}",
@@ -160,7 +175,8 @@ class ZoraxyCard extends HTMLElement {
       on: "Uklj.", off: "Isklj.",
       enableRule: "Omogući", disableRule: "Onemogući",
       ed_zoraxy_url: "URL adresa za Zoraxy", ed_entity_prefix: "Prefiks entiteta",
-      ed_zoraxy_url_helper: "Otvara se klikom na naslov kartice",
+      ed_zoraxy_url_helper: "Otvara se klikom na ikonu zaglavlja",
+      openZoraxy: "Otvori veb interfejs Zoraxy-ja",
       ed_entity_prefix_helper: "Zajednički deo identifikatora entiteta, na primer zoraxy_reverse_proxy_zoraxy",
       zoomIn: "Prikaži celu karticu", zoomOut: "Nazad na kompaktni prikaz",
       ruleCount: "Pravila: {a}/{n}", certCount: "Sert.: {n}",
@@ -182,7 +198,8 @@ class ZoraxyCard extends HTMLElement {
       on: "On", off: "Off",
       enableRule: "Abilita", disableRule: "Disabilita",
       ed_zoraxy_url: "URL di Zoraxy", ed_entity_prefix: "Prefisso delle entità",
-      ed_zoraxy_url_helper: "Aperto facendo clic sul titolo della scheda",
+      ed_zoraxy_url_helper: "Aperto facendo clic sull'icona dell'intestazione",
+      openZoraxy: "Apri l'interfaccia web di Zoraxy",
       ed_entity_prefix_helper: "Parte comune degli ID entità, ad esempio zoraxy_reverse_proxy_zoraxy",
       zoomIn: "Mostra la scheda completa", zoomOut: "Torna alla vista compatta",
       ruleCount: "Regole: {a}/{n}", certCount: "Cert.: {n}",
@@ -204,7 +221,8 @@ class ZoraxyCard extends HTMLElement {
       on: "Aan", off: "Uit",
       enableRule: "Inschakelen", disableRule: "Uitschakelen",
       ed_zoraxy_url: "Zoraxy-URL", ed_entity_prefix: "Entiteitsprefix",
-      ed_zoraxy_url_helper: "Wordt geopend bij een klik op de kaarttitel",
+      ed_zoraxy_url_helper: "Wordt geopend bij een klik op het koppictogram",
+      openZoraxy: "Webinterface van Zoraxy openen",
       ed_entity_prefix_helper: "Gemeenschappelijk deel van de entiteits-ID's, bijvoorbeeld zoraxy_reverse_proxy_zoraxy",
       zoomIn: "Volledige kaart tonen", zoomOut: "Terug naar de compacte weergave",
       ruleCount: "Regels: {a}/{n}", certCount: "Cert.: {n}",
@@ -226,7 +244,8 @@ class ZoraxyCard extends HTMLElement {
       on: "On", off: "Off",
       enableRule: "Ativar", disableRule: "Desativar",
       ed_zoraxy_url: "URL do Zoraxy", ed_entity_prefix: "Prefixo das entidades",
-      ed_zoraxy_url_helper: "Aberto ao clicar no título do cartão",
+      ed_zoraxy_url_helper: "Aberto ao clicar no ícone do cabeçalho",
+      openZoraxy: "Abrir a interface web do Zoraxy",
       ed_entity_prefix_helper: "Parte comum dos IDs de entidade, por exemplo zoraxy_reverse_proxy_zoraxy",
       zoomIn: "Mostrar o cartão completo", zoomOut: "Voltar à vista compacta",
       ruleCount: "Regras: {a}/{n}", certCount: "Cert.: {n}",
@@ -248,7 +267,8 @@ class ZoraxyCard extends HTMLElement {
       on: "Wł.", off: "Wył.",
       enableRule: "Włącz", disableRule: "Wyłącz",
       ed_zoraxy_url: "Adres URL Zoraxy", ed_entity_prefix: "Prefiks encji",
-      ed_zoraxy_url_helper: "Otwierany po kliknięciu tytułu karty",
+      ed_zoraxy_url_helper: "Otwierany po kliknięciu ikony nagłówka",
+      openZoraxy: "Otwórz interfejs webowy Zoraxy",
       ed_entity_prefix_helper: "Wspólna część identyfikatorów encji, na przykład zoraxy_reverse_proxy_zoraxy",
       zoomIn: "Pokaż pełną kartę", zoomOut: "Wróć do widoku kompaktowego",
       ruleCount: "Reguły: {a}/{n}", certCount: "Cert.: {n}",
@@ -270,7 +290,8 @@ class ZoraxyCard extends HTMLElement {
       on: "Pornit", off: "Oprit",
       enableRule: "Activează", disableRule: "Dezactivează",
       ed_zoraxy_url: "URL Zoraxy", ed_entity_prefix: "Prefixul entităților",
-      ed_zoraxy_url_helper: "Se deschide la clic pe titlul cardului",
+      ed_zoraxy_url_helper: "Se deschide la clic pe pictograma antetului",
+      openZoraxy: "Deschide interfața web Zoraxy",
       ed_entity_prefix_helper: "Partea comună a ID-urilor entităților, de exemplu zoraxy_reverse_proxy_zoraxy",
       zoomIn: "Afișează cardul complet", zoomOut: "Înapoi la vizualizarea compactă",
       ruleCount: "Reguli: {a}/{n}", certCount: "Cert.: {n}",
@@ -292,7 +313,8 @@ class ZoraxyCard extends HTMLElement {
       on: "Til", off: "Fra",
       enableRule: "Aktivér", disableRule: "Deaktiver",
       ed_zoraxy_url: "Zoraxy-URL", ed_entity_prefix: "Entitetspræfiks",
-      ed_zoraxy_url_helper: "Åbnes ved klik på kortets titel",
+      ed_zoraxy_url_helper: "Åbnes ved klik på ikonet i overskriften",
+      openZoraxy: "Åbn Zoraxys webgrænseflade",
       ed_entity_prefix_helper: "Fælles del af entitets-id'erne, for eksempel zoraxy_reverse_proxy_zoraxy",
       zoomIn: "Vis hele kortet", zoomOut: "Tilbage til kompakt visning",
       ruleCount: "Regler: {a}/{n}", certCount: "Cert.: {n}",
@@ -314,7 +336,8 @@ class ZoraxyCard extends HTMLElement {
       on: "På", off: "Av",
       enableRule: "Aktivera", disableRule: "Inaktivera",
       ed_zoraxy_url: "Zoraxy-URL", ed_entity_prefix: "Entitetsprefix",
-      ed_zoraxy_url_helper: "Öppnas vid klick på kortets rubrik",
+      ed_zoraxy_url_helper: "Öppnas vid klick på rubrikikonen",
+      openZoraxy: "Öppna Zoraxys webbgränssnitt",
       ed_entity_prefix_helper: "Gemensam del av entitets-ID:na, till exempel zoraxy_reverse_proxy_zoraxy",
       zoomIn: "Visa hela kortet", zoomOut: "Tillbaka till kompakt vy",
       ruleCount: "Regler: {a}/{n}", certCount: "Cert.: {n}",
@@ -336,7 +359,8 @@ class ZoraxyCard extends HTMLElement {
       on: "Вкл.", off: "Изкл.",
       enableRule: "Активирай", disableRule: "Деактивирай",
       ed_zoraxy_url: "URL адрес на Zoraxy", ed_entity_prefix: "Префикс на обектите",
-      ed_zoraxy_url_helper: "Отваря се при клик върху заглавието на картата",
+      ed_zoraxy_url_helper: "Отваря се при клик върху иконата в заглавието",
+      openZoraxy: "Отвори уеб интерфейса на Zoraxy",
       ed_entity_prefix_helper: "Общата част от ID на обектите, например zoraxy_reverse_proxy_zoraxy",
       zoomIn: "Покажи цялата карта", zoomOut: "Обратно към компактния изглед",
       ruleCount: "Правила: {a}/{n}", certCount: "Серт.: {n}",
@@ -358,7 +382,8 @@ class ZoraxyCard extends HTMLElement {
       on: "Вкл.", off: "Выкл.",
       enableRule: "Включить", disableRule: "Отключить",
       ed_zoraxy_url: "URL-адрес Zoraxy", ed_entity_prefix: "Префикс объектов",
-      ed_zoraxy_url_helper: "Открывается при нажатии на заголовок карточки",
+      ed_zoraxy_url_helper: "Открывается при нажатии на значок в заголовке",
+      openZoraxy: "Открыть веб-интерфейс Zoraxy",
       ed_entity_prefix_helper: "Общая часть идентификаторов объектов, например zoraxy_reverse_proxy_zoraxy",
       zoomIn: "Показать полную карточку", zoomOut: "Вернуться к компактному виду",
       ruleCount: "Правила: {a}/{n}", certCount: "Серт.: {n}",
@@ -380,7 +405,8 @@ class ZoraxyCard extends HTMLElement {
       on: "Увімк.", off: "Вимк.",
       enableRule: "Увімкнути", disableRule: "Вимкнути",
       ed_zoraxy_url: "URL-адреса Zoraxy", ed_entity_prefix: "Префікс сутностей",
-      ed_zoraxy_url_helper: "Відкривається при натисканні на заголовок картки",
+      ed_zoraxy_url_helper: "Відкривається при натисканні на значок у заголовку",
+      openZoraxy: "Відкрити вебінтерфейс Zoraxy",
       ed_entity_prefix_helper: "Спільна частина ідентифікаторів сутностей, наприклад zoraxy_reverse_proxy_zoraxy",
       zoomIn: "Показати повну картку", zoomOut: "Повернутися до компактного вигляду",
       ruleCount: "Правила: {a}/{n}", certCount: "Серт.: {n}",
@@ -402,7 +428,8 @@ class ZoraxyCard extends HTMLElement {
       on: "Be", off: "Ki",
       enableRule: "Engedélyezés", disableRule: "Letiltás",
       ed_zoraxy_url: "Zoraxy URL", ed_entity_prefix: "Entitás-előtag",
-      ed_zoraxy_url_helper: "A kártya címére kattintva nyílik meg",
+      ed_zoraxy_url_helper: "A fejléc ikonjára kattintva nyílik meg",
+      openZoraxy: "A Zoraxy webes felületének megnyitása",
       ed_entity_prefix_helper: "Az entitásazonosítók közös része, például zoraxy_reverse_proxy_zoraxy",
       zoomIn: "Teljes kártya megjelenítése", zoomOut: "Vissza a kompakt nézethez",
       ruleCount: "Szabályok: {a}/{n}", certCount: "Tan.: {n}",
@@ -424,7 +451,8 @@ class ZoraxyCard extends HTMLElement {
       on: "Zap.", off: "Vyp.",
       enableRule: "Povoliť", disableRule: "Zakázať",
       ed_zoraxy_url: "URL adresa Zoraxy", ed_entity_prefix: "Predpona entít",
-      ed_zoraxy_url_helper: "Otvorí sa po kliknutí na názov karty",
+      ed_zoraxy_url_helper: "Otvorí sa po kliknutí na ikonu hlavičky",
+      openZoraxy: "Otvoriť webové rozhranie Zoraxy",
       ed_entity_prefix_helper: "Spoločná časť ID entít, napríklad zoraxy_reverse_proxy_zoraxy",
       zoomIn: "Zobraziť celú kartu", zoomOut: "Späť na kompaktné zobrazenie",
       ruleCount: "Pravidlá: {a}/{n}", certCount: "Cert.: {n}",
@@ -446,7 +474,8 @@ class ZoraxyCard extends HTMLElement {
       on: "Zap.", off: "Vyp.",
       enableRule: "Povolit", disableRule: "Zakázat",
       ed_zoraxy_url: "URL adresa Zoraxy", ed_entity_prefix: "Předpona entit",
-      ed_zoraxy_url_helper: "Otevře se po kliknutí na název karty",
+      ed_zoraxy_url_helper: "Otevře se po kliknutí na ikonu záhlaví",
+      openZoraxy: "Otevřít webové rozhraní Zoraxy",
       ed_entity_prefix_helper: "Společná část ID entit, například zoraxy_reverse_proxy_zoraxy",
       zoomIn: "Zobrazit celou kartu", zoomOut: "Zpět na kompaktní zobrazení",
       ruleCount: "Pravidla: {a}/{n}", certCount: "Cert.: {n}",
@@ -468,7 +497,8 @@ class ZoraxyCard extends HTMLElement {
       on: "Vklop", off: "Izklop",
       enableRule: "Omogoči", disableRule: "Onemogoči",
       ed_zoraxy_url: "URL Zoraxy", ed_entity_prefix: "Predpona entitet",
-      ed_zoraxy_url_helper: "Odpre se ob kliku na naslov kartice",
+      ed_zoraxy_url_helper: "Odpre se s klikom na ikono v glavi",
+      openZoraxy: "Odpri spletni vmesnik Zoraxy",
       ed_entity_prefix_helper: "Skupni del ID-jev entitet, na primer zoraxy_reverse_proxy_zoraxy",
       zoomIn: "Prikaži celotno kartico", zoomOut: "Nazaj na strnjeni pogled",
       ruleCount: "Pravila: {a}/{n}", certCount: "Potr.: {n}",
@@ -490,7 +520,8 @@ class ZoraxyCard extends HTMLElement {
       on: "Iesl.", off: "Izsl.",
       enableRule: "Iespējot", disableRule: "Atspējot",
       ed_zoraxy_url: "Zoraxy URL", ed_entity_prefix: "Entītiju prefikss",
-      ed_zoraxy_url_helper: "Tiek atvērts, noklikšķinot uz kartītes virsraksta",
+      ed_zoraxy_url_helper: "Atveras, noklikšķinot uz galvenes ikonas",
+      openZoraxy: "Atvērt Zoraxy tīmekļa saskarni",
       ed_entity_prefix_helper: "Entītiju ID kopīgā daļa, piemēram, zoraxy_reverse_proxy_zoraxy",
       zoomIn: "Rādīt pilno kartīti", zoomOut: "Atpakaļ uz kompakto skatu",
       ruleCount: "Kārtulas: {a}/{n}", certCount: "Sert.: {n}",
@@ -512,7 +543,8 @@ class ZoraxyCard extends HTMLElement {
       on: "Ενεργ.", off: "Απενεργ.",
       enableRule: "Ενεργοποίηση", disableRule: "Απενεργοποίηση",
       ed_zoraxy_url: "URL του Zoraxy", ed_entity_prefix: "Πρόθεμα οντοτήτων",
-      ed_zoraxy_url_helper: "Ανοίγει με κλικ στον τίτλο της κάρτας",
+      ed_zoraxy_url_helper: "Ανοίγει με κλικ στο εικονίδιο της κεφαλίδας",
+      openZoraxy: "Άνοιγμα της διεπαφής ιστού του Zoraxy",
       ed_entity_prefix_helper: "Κοινό τμήμα των αναγνωριστικών οντοτήτων, για παράδειγμα zoraxy_reverse_proxy_zoraxy",
       zoomIn: "Εμφάνιση πλήρους κάρτας", zoomOut: "Επιστροφή στη συμπαγή προβολή",
       ruleCount: "Κανόνες: {a}/{n}", certCount: "Πιστ.: {n}",
@@ -553,7 +585,15 @@ class ZoraxyCard extends HTMLElement {
             box-sizing: border-box; max-width: 100%; min-width: 0; }
     .chip .ct { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
     .header { display: flex; align-items: center; gap: 10px; padding: 12px 12px 8px; }
-    .logo { width: 40px; height: 40px; flex: none; }
+    .logo { width: 40px; height: 40px; flex: none; border-radius: 50%; display: grid; place-items: center; position: relative;
+            color: var(--c, var(--zx-ok)); background: color-mix(in srgb, var(--c, var(--zx-ok)) 16%, transparent); }
+    .logo svg { width: 24px; height: 24px; fill: currentColor; }
+    .logo .badge { position: absolute; right: -4px; bottom: -4px; width: 18px; height: 18px; border-radius: 5px; padding: 2px; box-sizing: border-box;
+                   display: grid; place-items: center; background: #fff;
+                   box-shadow: 0 0 0 1px var(--divider-color, rgba(0,0,0,.12)), 0 0 0 3px var(--card-background-color, #fff); }
+    .logo .badge svg { width: 100%; height: 100%; }
+    .brand-link { display: flex; flex: none; border-radius: 50%; }
+    .brand-link:focus-visible { outline: 2px solid var(--zx-accent); outline-offset: 2px; }
     /* Narrow header: the title block takes what the status pill leaves (from a zero basis) and keeps about four
        letters (5ch of the 16 px title); the pill keeps its whole text and only gives way (ellipsis) when even
        that minimum title does not fit; the icon buttons never shrink. */
@@ -561,7 +601,6 @@ class ZoraxyCard extends HTMLElement {
     #status { display: flex; flex: 0 1 auto; min-width: 0; }
     .name { font-size: 16px; font-weight: 500; line-height: 1.25; color: var(--primary-text-color); text-decoration: none;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
-    a.name:hover { text-decoration: underline; }
     .sub { font-size: 12px; color: var(--secondary-text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .content { padding: 0 12px 12px; display: flex; flex-direction: column; gap: 12px; }
     .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: 6px; }
@@ -642,6 +681,8 @@ class ZoraxyCard extends HTMLElement {
     }
     @container (max-width: 200px) {
       .header .logo { width: 28px; height: 28px; }
+      .header .logo svg { width: 18px; height: 18px; }
+      .header .logo .badge { width: 14px; height: 14px; right: -3px; bottom: -3px; }
       #status .ct { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
       #status .chip { padding: 1px 8px; }
       .controls { grid-template-columns: minmax(0, 1fr); }
@@ -661,7 +702,7 @@ class ZoraxyCard extends HTMLElement {
       .row-sub { min-width: 0; }
     }
     @container (max-width: 150px) {
-      .header .logo { display: none; }
+      .header .logo, .header .brand-link { display: none; }
       /* Phone width at 4 columns: the label and its state take the whole tile. */
       .ctrl { grid-template-columns: minmax(0, 1fr); }
       .ctrl .icon { display: none; }
@@ -939,8 +980,13 @@ class ZoraxyCard extends HTMLElement {
 
   // The proxy's status: on, off, or unavailable / unknown (grey, never shown as "Inactive"). The text is also the
   // pill's title and label, for the narrow card where only the dot shows.
+  _statusCls(state) {
+    return state === "on" ? "ok" : state === "off" ? "crit" : "idle";
+  }
+
   _statusChip(state) {
-    const [label, cls] = state === "on" ? [this._t("active"), "ok"] : state === "off" ? [this._t("inactive"), "crit"] : [this._t("unavailable"), "idle"];
+    const cls = this._statusCls(state);
+    const label = state === "on" ? this._t("active") : state === "off" ? this._t("inactive") : this._t("unavailable");
     const text = zoraxyEsc(label);
     return `<span class="chip ${cls}" title="${text}"><span class="dot"></span><span class="ct">${text}</span></span>`;
   }
@@ -1075,10 +1121,9 @@ class ZoraxyCard extends HTMLElement {
     this._renderKey = this._key();
   }
 
-  // Card title, a link to the Zoraxy web interface when `zoraxy_url` is an http(s) address.
+  // Card title (the header icon carries the link to the Zoraxy web interface).
   _nameLink() {
-    const url = zoraxySafeUrl(this._config.zoraxy_url);
-    return `<a class="name" ${url ? `href="${zoraxyEsc(url)}" target="_blank" rel="noopener noreferrer"` : ""}>Zoraxy</a>`;
+    return `<span class="name">Zoraxy</span>`;
   }
 
   _render() {
@@ -1141,7 +1186,7 @@ class ZoraxyCard extends HTMLElement {
       <style>${this.constructor.CSS}</style>
       <ha-card lang="${this._lang()}">
         <div class="header">
-          ${ZoraxyCard.LOGO}
+          ${this._headerIcon(this._statusCls(this._state(this._eid("binary_sensor.proxy_running"))))}
           <div class="titles">
             ${this._nameLink()}
             <div class="sub">${zoraxyEsc(sub)}</div>
@@ -1362,7 +1407,7 @@ class ZoraxyMiniCard extends ZoraxyCard {
     .mini { display: flex; align-items: center; gap: 10px; }
     /* Full-size logo (40 px, as on the full card), top-aligned: 12 px from the card's top edge (the two lines are
        a little taller than the logo). */
-    .mini .logo { align-self: flex-start; }
+    .mini .logo, .mini .brand-link { align-self: flex-start; }
     .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
     .head { display: flex; align-items: center; gap: 8px; min-width: 0; }
     /* The title gives way but keeps about four letters; the link stays the size of its text. */
@@ -1393,9 +1438,11 @@ class ZoraxyMiniCard extends ZoraxyCard {
       .mini { gap: 8px; }
       .head { gap: 6px; }
       .mini .logo { width: 28px; height: 28px; }
+      .mini .logo svg { width: 18px; height: 18px; }
+      .mini .logo .badge { width: 14px; height: 14px; right: -3px; bottom: -3px; }
     }
     @container (max-width: 150px) {
-      .mini .logo { display: none; }
+      .mini .logo, .mini .brand-link { display: none; }
     }
   `;
 
@@ -1491,7 +1538,7 @@ class ZoraxyMiniCard extends ZoraxyCard {
       <style>${this.constructor.CSS}</style>
       <ha-card lang="${this._lang()}">
         <div class="mini">
-          ${ZoraxyCard.LOGO}
+          ${this._headerIcon(this._statusCls(this._state(this._eid("binary_sensor.proxy_running"))))}
           <div class="body">
             <div class="head">
               ${this._nameLink()}
