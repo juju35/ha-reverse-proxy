@@ -1,0 +1,194 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Reverse proxy - Configuration",
+        "menu_options": {
+          "zoraxy": "Zoraxy",
+          "traefik": "Traefik"
+        }
+      },
+      "zoraxy": {
+        "title": "Zoraxy - Configuration",
+        "data": {
+          "host": "Zoraxy address (URL with port)",
+          "username": "Username",
+          "password": "Password",
+          "scan_interval": "Refresh interval (seconds)",
+          "verify_ssl": "Verify the TLS certificate"
+        },
+        "data_description": {
+          "verify_ssl": "Turn off only for an HTTPS address with a self-signed certificate."
+        }
+      },
+      "traefik": {
+        "title": "Traefik - Configuration",
+        "data": {
+          "host": "Traefik address (URL with port)",
+          "username": "Username",
+          "password": "Password",
+          "scan_interval": "Refresh interval (seconds)",
+          "verify_ssl": "Verify the TLS certificate"
+        },
+        "data_description": {
+          "verify_ssl": "Turn off only for an HTTPS address with a self-signed certificate.",
+          "username": "Only when the Traefik API or dashboard is behind a basicAuth middleware; leave empty otherwise."
+        }
+      },
+      "reauth_confirm": {
+        "title": "{proxy} - New password",
+        "description": "{proxy} refused the password of {username} on {host}.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        }
+      },
+      "reconfigure": {
+        "title": "{proxy} - Reconfigure",
+        "description": "Change the address or the credentials of this {proxy}. The login is checked before saving.",
+        "data": {
+          "host": "{proxy} address (URL with port)",
+          "username": "Username",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to {proxy}",
+      "invalid_auth": "Invalid credentials",
+      "unknown": "Unknown error"
+    },
+    "abort": {
+      "already_configured": "{proxy} is already configured",
+      "reauth_successful": "Password updated",
+      "reconfigure_successful": "Configuration updated"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "{proxy} - Options",
+        "data": {
+          "scan_interval": "Refresh interval (seconds)",
+          "verify_ssl": "Verify the TLS certificate"
+        },
+        "data_description": {
+          "verify_ssl": "Turn off only for an HTTPS address with a self-signed certificate."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "proxy_rules": {
+        "name": "Proxy rules"
+      },
+      "active_rules": {
+        "name": "Active rules"
+      },
+      "tls_certificates": {
+        "name": "TLS certificates"
+      },
+      "access_rules": {
+        "name": "Access rules"
+      },
+      "inbound_port": {
+        "name": "Inbound port"
+      },
+      "certificate": {
+        "name": "{domain} certificate"
+      },
+      "middlewares": {
+        "name": "Middlewares"
+      },
+      "version": {
+        "name": "Version"
+      }
+    },
+    "binary_sensor": {
+      "proxy_running": {
+        "name": "Proxy running"
+      },
+      "tls_enabled": {
+        "name": "TLS enabled"
+      },
+      "https_redirect": {
+        "name": "HTTPS redirect"
+      },
+      "port_80": {
+        "name": "Port 80 listener"
+      },
+      "development_mode": {
+        "name": "Development mode"
+      },
+      "certificate_expiring": {
+        "name": "{domain} certificate expiring"
+      },
+      "upstream_problem": {
+        "name": "{domain} upstream"
+      }
+    },
+    "switch": {
+      "https_redirect": {
+        "name": "HTTPS redirect"
+      },
+      "port_80": {
+        "name": "Port 80 listener"
+      },
+      "development_mode": {
+        "name": "Development mode"
+      }
+    },
+    "button": {
+      "renew": {
+        "name": "Renew {domain}"
+      }
+    }
+  },
+  "services": {
+    "toggle_proxy_rule": {
+      "name": "Toggle proxy rule",
+      "description": "Enable or disable a proxy rule.",
+      "fields": {
+        "domain": {
+          "name": "Domain",
+          "description": "The domain of the proxy rule (e.g. \"example.com\")."
+        },
+        "enable": {
+          "name": "Enable",
+          "description": "Set to true to enable the rule, false to disable it. Leave out to toggle the rule."
+        },
+        "config_entry_id": {
+          "name": "Instance",
+          "description": "The instance the rule belongs to. Leave out to use the instance that lists the domain."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_instance": {
+      "message": "No instance is loaded"
+    },
+    "rule_not_found": {
+      "message": "Proxy rule {domain} not found"
+    },
+    "rule_change_failed": {
+      "message": "{proxy}: could not change the rule {domain}: {error}"
+    },
+    "acme_email_unavailable": {
+      "message": "{proxy}: ACME email not available"
+    },
+    "wildcard_renewal": {
+      "message": "{proxy}: {domain} is a wildcard certificate, which needs a DNS challenge: renew it in {proxy}"
+    },
+    "renewal_failed": {
+      "message": "{proxy}: renewal of {domain} failed: {error}"
+    },
+    "command_failed": {
+      "message": "{proxy}: {error}"
+    },
+    "not_supported": {
+      "message": "{proxy}: this action is not available, its API is read-only"
+    }
+  }
+}

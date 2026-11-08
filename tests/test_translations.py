@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-TRANSLATIONS = Path(__file__).parent.parent / "custom_components" / "zoraxy" / "translations"
+TRANSLATIONS = Path(__file__).parent.parent / "custom_components" / "reverse_proxy" / "translations"
 PLACEHOLDER = re.compile(r"\{(\w+)\}")
 
 
@@ -49,7 +49,9 @@ _SERBIAN = "аaбbвvгgдdђđеeжžзzиiјjкkлlљljмmнnњnjоoпpрrсs�
 _TO_LATIN = dict(re.findall(r"([а-џ])([^а-џ]+)", _SERBIAN))
 _TO_LATIN |= {c.upper(): lat.capitalize() for c, lat in _TO_LATIN.items()}
 # Left in Latin script in both files: the product name, acronyms, placeholders and literal values.
-_KEPT_LATIN = re.compile(r"Zoraxy|HTTPS|URL|TLS|ACME|DNS|\{\w+\}|\btrue\b|\bfalse\b|\"example\.com\"")
+_KEPT_LATIN = re.compile(
+    r"Zoraxy|Traefik|basicAuth|API|HTTPS|URL|TLS|ACME|DNS|\{\w+\}|\btrue\b|\bfalse\b|\"example\.com\""
+)
 
 
 def test_serbian_scripts_match() -> None:

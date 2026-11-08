@@ -1,0 +1,194 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Reverse proxy - Konfiguracja",
+        "menu_options": {
+          "zoraxy": "Zoraxy",
+          "traefik": "Traefik"
+        }
+      },
+      "zoraxy": {
+        "title": "Zoraxy - Konfiguracja",
+        "data": {
+          "host": "Adres Zoraxy (URL z portem)",
+          "username": "Nazwa użytkownika",
+          "password": "Hasło",
+          "scan_interval": "Interwał odświeżania (sekundy)",
+          "verify_ssl": "Weryfikuj certyfikat TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Wyłącz tylko dla adresu HTTPS z certyfikatem samopodpisanym."
+        }
+      },
+      "traefik": {
+        "title": "Traefik - Konfiguracja",
+        "data": {
+          "host": "Adres Traefik (URL z portem)",
+          "username": "Nazwa użytkownika",
+          "password": "Hasło",
+          "scan_interval": "Interwał odświeżania (sekundy)",
+          "verify_ssl": "Weryfikuj certyfikat TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Wyłącz tylko dla adresu HTTPS z certyfikatem samopodpisanym.",
+          "username": "Tylko gdy API lub panel Traefik są za middleware basicAuth; w przeciwnym razie pozostaw puste."
+        }
+      },
+      "reauth_confirm": {
+        "title": "{proxy} - Nowe hasło",
+        "description": "{proxy} odrzucił hasło użytkownika {username} na {host}.",
+        "data": {
+          "username": "Nazwa użytkownika",
+          "password": "Hasło"
+        }
+      },
+      "reconfigure": {
+        "title": "{proxy} - Ponowna konfiguracja",
+        "description": "Zmień adres lub dane logowania tego {proxy}. Logowanie jest sprawdzane przed zapisaniem.",
+        "data": {
+          "host": "Adres {proxy} (URL z portem)",
+          "username": "Nazwa użytkownika",
+          "password": "Hasło"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Nie można połączyć się z {proxy}",
+      "invalid_auth": "Nieprawidłowe dane uwierzytelniające",
+      "unknown": "Nieznany błąd"
+    },
+    "abort": {
+      "already_configured": "{proxy} jest już skonfigurowany",
+      "reauth_successful": "Hasło zaktualizowane",
+      "reconfigure_successful": "Konfiguracja zaktualizowana"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "{proxy} - Opcje",
+        "data": {
+          "scan_interval": "Interwał odświeżania (sekundy)",
+          "verify_ssl": "Weryfikuj certyfikat TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Wyłącz tylko dla adresu HTTPS z certyfikatem samopodpisanym."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "proxy_rules": {
+        "name": "Reguły proxy"
+      },
+      "active_rules": {
+        "name": "Aktywne reguły"
+      },
+      "tls_certificates": {
+        "name": "Certyfikaty TLS"
+      },
+      "access_rules": {
+        "name": "Reguły dostępu"
+      },
+      "inbound_port": {
+        "name": "Port przychodzący"
+      },
+      "certificate": {
+        "name": "Certyfikat {domain}"
+      },
+      "middlewares": {
+        "name": "Middleware"
+      },
+      "version": {
+        "name": "Wersja"
+      }
+    },
+    "binary_sensor": {
+      "proxy_running": {
+        "name": "Proxy działa"
+      },
+      "tls_enabled": {
+        "name": "TLS włączony"
+      },
+      "https_redirect": {
+        "name": "Przekierowanie HTTPS"
+      },
+      "port_80": {
+        "name": "Nasłuch na porcie 80"
+      },
+      "development_mode": {
+        "name": "Tryb deweloperski"
+      },
+      "certificate_expiring": {
+        "name": "Certyfikat {domain} wkrótce wygaśnie"
+      },
+      "upstream_problem": {
+        "name": "Serwer docelowy {domain}"
+      }
+    },
+    "switch": {
+      "https_redirect": {
+        "name": "Przekierowanie HTTPS"
+      },
+      "port_80": {
+        "name": "Nasłuch na porcie 80"
+      },
+      "development_mode": {
+        "name": "Tryb deweloperski"
+      }
+    },
+    "button": {
+      "renew": {
+        "name": "Odnów {domain}"
+      }
+    }
+  },
+  "services": {
+    "toggle_proxy_rule": {
+      "name": "Przełącz regułę proxy",
+      "description": "Włącza lub wyłącza regułę proxy.",
+      "fields": {
+        "domain": {
+          "name": "Domena",
+          "description": "Domena reguły proxy (np. \"example.com\")."
+        },
+        "enable": {
+          "name": "Włącz",
+          "description": "Ustaw true, aby włączyć regułę, false, aby ją wyłączyć. Pomiń, aby przełączyć regułę."
+        },
+        "config_entry_id": {
+          "name": "Instancja",
+          "description": "Instancja, do której należy reguła. Pomiń, aby użyć instancji, która wymienia domenę."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_instance": {
+      "message": "Nie załadowano żadnej instancji"
+    },
+    "rule_not_found": {
+      "message": "Nie znaleziono reguły proxy {domain}"
+    },
+    "rule_change_failed": {
+      "message": "{proxy}: nie można zmienić reguły {domain}: {error}"
+    },
+    "acme_email_unavailable": {
+      "message": "{proxy}: adres e-mail ACME niedostępny"
+    },
+    "wildcard_renewal": {
+      "message": "{proxy}: {domain} to certyfikat wildcard, który wymaga weryfikacji DNS: odnów go w {proxy}"
+    },
+    "renewal_failed": {
+      "message": "{proxy}: odnowienie {domain} nie powiodło się: {error}"
+    },
+    "command_failed": {
+      "message": "{proxy}: {error}"
+    },
+    "not_supported": {
+      "message": "{proxy}: ta akcja jest niedostępna, jego API jest tylko do odczytu"
+    }
+  }
+}

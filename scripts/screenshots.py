@@ -1,4 +1,4 @@
-"""Render the Zoraxy card and mini card with mock entities and save the README screenshots.
+"""Render the reverse proxy card and mini card (Zoraxy and Traefik) with mock entities and save the README screenshots.
 
 Usage: python scripts/screenshots.py  (needs `pip install playwright pillow` and `playwright install chromium`)
 The clock is frozen so certificate countdowns stay the same. A file is rewritten only when its decoded pixels
@@ -13,11 +13,12 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
-CARD_JS = (ROOT / "custom_components/zoraxy/frontend/zoraxy-card.js").read_text()
+CARD_JS = (ROOT / "custom_components/reverse_proxy/frontend/reverse-proxy-card.js").read_text()
 NOW = "2026-10-20T08:30:00+02:00"
 WIDTH = 460  # full card, and the mini card zoomed in
 MINI_WIDTH = 380
 P = "zoraxy_reverse_proxy_zoraxy"
+T = "traefik_reverse_proxy"
 
 THEMES = {
     "light": {
@@ -72,9 +73,13 @@ def state(entity_id, value, **attributes):
     return entity_id, {"entity_id": entity_id, "state": value, "attributes": attributes}
 
 
+ZORAXY_FEATURES = ["access_rules", "certificates", "controls", "redirects", "toggle_rules"]
+TRAEFIK_FEATURES = ["middlewares", "redirects", "version"]
+
+# A Zoraxy instance: the 1.x entity ids (French suffixes), every feature.
 STATES = dict(
     [
-        state(f"binary_sensor.{P}_proxy_actif", "on"),
+        state(f"binary_sensor.{P}_proxy_actif", "on", proxy_type="zoraxy", features=ZORAXY_FEATURES),
         state(f"binary_sensor.{P}_redirection_https", "on"),
         state(f"binary_sensor.{P}_ecoute_port_80", "on"),
         state(f"binary_sensor.{P}_mode_developpement", "off"),
@@ -95,15 +100,95 @@ STATES = dict(
     ]
 )
 
+# A Traefik instance: Home Assistant's default entity ids, read-only API (no controls, no certificates), the
+# health check of the NAS service found a server down.
+TRAEFIK_RULES = [
+    {"domain": "ha.example.org", "target": "http://192.168.1.10:8123", "enabled": True, "tls": True},
+    {"domain": "nas.example.org", "target": "http://192.168.1.20:9999", "enabled": True, "tls": True},
+    {"domain": "photos.example.org", "target": "http://192.168.1.20:2342", "enabled": False, "tls": True},
+]
+TRAEFIK_REDIRECTS = [{"RedirectURL": "redirect-to-https", "TargetURL": "https://…", "StatusCode": 301}]
+TRAEFIK_STATES = dict(
+    [
+        state(f"binary_sensor.{T}_proxy_running", "on", proxy_type="traefik", features=TRAEFIK_FEATURES),
+        state(f"binary_sensor.{T}_tls_enabled", "on"),
+        state(f"sensor.{T}_proxy_rules", str(len(TRAEFIK_RULES)), rules=TRAEFIK_RULES, redirects=TRAEFIK_REDIRECTS),
+        state(f"sensor.{T}_active_rules", "2"),
+        state(f"sensor.{T}_middlewares", "4"),
+        state(f"sensor.{T}_inbound_port", "443"),
+        state(f"sensor.{T}_version", "3.3.6"),
+        state(f"binary_sensor.{T}_ha_example_org_upstream", "off", domain="ha.example.org"),
+        state(f"binary_sensor.{T}_nas_example_org_upstream", "on", domain="nas.example.org"),
+        state(f"binary_sensor.{T}_photos_example_org_upstream", "unknown", domain="photos.example.org"),
+    ]
+)
+
+
+def registry(states, platform="reverse_proxy", device="dev-1"):
+    """The entity registry the card reads: every state under one device of the integration."""
+    entities = {}
+    for entity_id in states:
+        object_id = entity_id.split(".", 1)[1]
+        key = object_id.removeprefix(f"{T}_") if object_id.startswith(T) else object_id
+        # Translation keys of the Traefik ids (device name + translated name); the Zoraxy ids use the prefix fallback.
+        translation_key = {
+            "proxy_running": "proxy_running",
+            "tls_enabled": "tls_enabled",
+            "proxy_rules": "proxy_rules",
+            "active_rules": "active_rules",
+            "middlewares": "middlewares",
+            "inbound_port": "inbound_port",
+            "version": "version",
+        }.get(key, "upstream_problem" if key.endswith("_upstream") else key)
+        entities[entity_id] = {
+            "entity_id": entity_id,
+            "platform": platform,
+            "device_id": device,
+            "translation_key": translation_key,
+        }
+    return entities
+
+
 SHOTS = [
     # Each light/dark pair shows exactly the same state: only the theme changes.
     {"file": "card", "theme": "light", "open": ["certs", "rules"]},
     {"file": "card-dark", "theme": "dark", "open": ["certs", "rules"]},
     # The mini card, and the same card zoomed in (its detail button clicked).
-    {"file": "mini", "theme": "light", "tag": "zoraxy-mini-card", "width": MINI_WIDTH},
-    {"file": "mini-dark", "theme": "dark", "tag": "zoraxy-mini-card", "width": MINI_WIDTH},
-    {"file": "mini-zoom", "theme": "light", "tag": "zoraxy-mini-card", "zoom": True},
-    {"file": "mini-zoom-dark", "theme": "dark", "tag": "zoraxy-mini-card", "zoom": True},
+    {"file": "mini", "theme": "light", "tag": "reverse-proxy-mini-card", "width": MINI_WIDTH},
+    {"file": "mini-dark", "theme": "dark", "tag": "reverse-proxy-mini-card", "width": MINI_WIDTH},
+    {"file": "mini-zoom", "theme": "light", "tag": "reverse-proxy-mini-card", "zoom": True},
+    {"file": "mini-zoom-dark", "theme": "dark", "tag": "reverse-proxy-mini-card", "zoom": True},
+    # The same cards for a Traefik instance (found through the entity registry).
+    {
+        "file": "card-traefik",
+        "theme": "light",
+        "open": ["rules"],
+        "states": TRAEFIK_STATES,
+        "url": "https://traefik.example.org",
+    },
+    {
+        "file": "card-traefik-dark",
+        "theme": "dark",
+        "open": ["rules"],
+        "states": TRAEFIK_STATES,
+        "url": "https://traefik.example.org",
+    },
+    {
+        "file": "mini-traefik",
+        "theme": "light",
+        "tag": "reverse-proxy-mini-card",
+        "width": MINI_WIDTH,
+        "states": TRAEFIK_STATES,
+        "url": "https://traefik.example.org",
+    },
+    {
+        "file": "mini-traefik-dark",
+        "theme": "dark",
+        "tag": "reverse-proxy-mini-card",
+        "width": MINI_WIDTH,
+        "states": TRAEFIK_STATES,
+        "url": "https://traefik.example.org",
+    },
 ]
 
 
@@ -155,10 +240,10 @@ def main():
             page.add_script_tag(content=HA_CARD)
             page.add_script_tag(content=CARD_JS)
             page.evaluate(
-                """({states, dark, open, tag, zoom}) => {
+                """({states, entities, dark, open, tag, zoom, url}) => {
                   const el = document.createElement(tag);
-                  el.setConfig({type: `custom:${tag}`, zoraxy_url: "https://proxy.example.org"});
-                  el.hass = {states, language: "en", locale: {language: "en"}, themes: {darkMode: dark}, callService: () => Promise.resolve()};
+                  el.setConfig({type: `custom:${tag}`, proxy_url: url});
+                  el.hass = {states, entities, language: "en", locale: {language: "en"}, themes: {darkMode: dark}, callService: () => Promise.resolve()};
                   document.getElementById("root").appendChild(el);
                   // A mouse click (detail: 1), so that no focus ring shows on the new button.
                   const click = (node) => node.dispatchEvent(new MouseEvent("click", {bubbles: true, composed: true, detail: 1}));
@@ -166,11 +251,14 @@ def main():
                   for (const id of open) click(el.shadowRoot.querySelector(`.sec-header[data-id="${id}"]`));
                 }""",
                 {
-                    "states": STATES,
+                    "states": shot.get("states", STATES),
+                    # The Zoraxy shots use the prefix fallback (no registry), as a 1.x dashboard did.
+                    "entities": registry(shot["states"]) if "states" in shot else None,
                     "dark": shot["theme"] == "dark",
                     "open": shot.get("open", []),
-                    "tag": shot.get("tag", "zoraxy-card"),
+                    "tag": shot.get("tag", "reverse-proxy-card"),
                     "zoom": shot.get("zoom", False),
+                    "url": shot.get("url", "https://proxy.example.org"),
                 },
             )
             page.wait_for_timeout(300)

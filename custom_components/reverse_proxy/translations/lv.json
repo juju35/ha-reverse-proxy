@@ -1,0 +1,194 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Reversais starpniekserveris - Konfigurācija",
+        "menu_options": {
+          "zoraxy": "Zoraxy",
+          "traefik": "Traefik"
+        }
+      },
+      "zoraxy": {
+        "title": "Zoraxy - Konfigurācija",
+        "data": {
+          "host": "Zoraxy adrese (URL ar portu)",
+          "username": "Lietotājvārds",
+          "password": "Parole",
+          "scan_interval": "Atsvaidzināšanas intervāls (sekundes)",
+          "verify_ssl": "Pārbaudīt TLS sertifikātu"
+        },
+        "data_description": {
+          "verify_ssl": "Izslēdziet tikai HTTPS adresei ar pašparakstītu sertifikātu."
+        }
+      },
+      "traefik": {
+        "title": "Traefik - Konfigurācija",
+        "data": {
+          "host": "Traefik adrese (URL ar portu)",
+          "username": "Lietotājvārds",
+          "password": "Parole",
+          "scan_interval": "Atsvaidzināšanas intervāls (sekundes)",
+          "verify_ssl": "Pārbaudīt TLS sertifikātu"
+        },
+        "data_description": {
+          "verify_ssl": "Izslēdziet tikai HTTPS adresei ar pašparakstītu sertifikātu.",
+          "username": "Tikai tad, ja Traefik API vai informācijas panelis ir aiz basicAuth starpprogrammatūras; citādi atstājiet tukšu."
+        }
+      },
+      "reauth_confirm": {
+        "title": "{proxy} - Jauna parole",
+        "description": "{proxy} noraidīja lietotāja {username} paroli resursdatorā {host}.",
+        "data": {
+          "username": "Lietotājvārds",
+          "password": "Parole"
+        }
+      },
+      "reconfigure": {
+        "title": "{proxy} - Pārkonfigurēt",
+        "description": "Mainiet šī {proxy} adresi vai pieteikšanās datus. Pieteikšanās tiek pārbaudīta pirms saglabāšanas.",
+        "data": {
+          "host": "{proxy} adrese (URL ar portu)",
+          "username": "Lietotājvārds",
+          "password": "Parole"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Nevar izveidot savienojumu ar {proxy}",
+      "invalid_auth": "Nederīgi akreditācijas dati",
+      "unknown": "Nezināma kļūda"
+    },
+    "abort": {
+      "already_configured": "{proxy} jau ir konfigurēts",
+      "reauth_successful": "Parole atjaunināta",
+      "reconfigure_successful": "Konfigurācija atjaunināta"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "{proxy} - Opcijas",
+        "data": {
+          "scan_interval": "Atsvaidzināšanas intervāls (sekundes)",
+          "verify_ssl": "Pārbaudīt TLS sertifikātu"
+        },
+        "data_description": {
+          "verify_ssl": "Izslēdziet tikai HTTPS adresei ar pašparakstītu sertifikātu."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "proxy_rules": {
+        "name": "Starpniekservera kārtulas"
+      },
+      "active_rules": {
+        "name": "Aktīvās kārtulas"
+      },
+      "tls_certificates": {
+        "name": "TLS sertifikāti"
+      },
+      "access_rules": {
+        "name": "Piekļuves kārtulas"
+      },
+      "inbound_port": {
+        "name": "Ienākošais ports"
+      },
+      "certificate": {
+        "name": "Sertifikāts {domain}"
+      },
+      "middlewares": {
+        "name": "Starpprogrammatūras"
+      },
+      "version": {
+        "name": "Versija"
+      }
+    },
+    "binary_sensor": {
+      "proxy_running": {
+        "name": "Starpniekserveris darbojas"
+      },
+      "tls_enabled": {
+        "name": "TLS iespējots"
+      },
+      "https_redirect": {
+        "name": "HTTPS pāradresācija"
+      },
+      "port_80": {
+        "name": "Klausīšanās portā 80"
+      },
+      "development_mode": {
+        "name": "Izstrādes režīms"
+      },
+      "certificate_expiring": {
+        "name": "Sertifikāts {domain} drīz beigsies"
+      },
+      "upstream_problem": {
+        "name": "Mērķa serveris {domain}"
+      }
+    },
+    "switch": {
+      "https_redirect": {
+        "name": "HTTPS pāradresācija"
+      },
+      "port_80": {
+        "name": "Klausīšanās portā 80"
+      },
+      "development_mode": {
+        "name": "Izstrādes režīms"
+      }
+    },
+    "button": {
+      "renew": {
+        "name": "Atjaunot {domain}"
+      }
+    }
+  },
+  "services": {
+    "toggle_proxy_rule": {
+      "name": "Pārslēgt starpniekservera kārtulu",
+      "description": "Iespējo vai atspējo starpniekservera kārtulu.",
+      "fields": {
+        "domain": {
+          "name": "Domēns",
+          "description": "Starpniekservera kārtulas domēns (piem., \"example.com\")."
+        },
+        "enable": {
+          "name": "Iespējot",
+          "description": "true, lai iespējotu kārtulu, false, lai to atspējotu. Ja nav norādīts, kārtula tiek pārslēgta."
+        },
+        "config_entry_id": {
+          "name": "Instance",
+          "description": "Instance, kurai pieder kārtula. Ja nav norādīts, tiek izmantota instance, kurā ir šis domēns."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_instance": {
+      "message": "Nav ielādēta neviena instance"
+    },
+    "rule_not_found": {
+      "message": "Starpniekservera kārtula {domain} nav atrasta"
+    },
+    "rule_change_failed": {
+      "message": "{proxy}: neizdevās mainīt kārtulu {domain}: {error}"
+    },
+    "acme_email_unavailable": {
+      "message": "{proxy}: ACME e-pasts nav pieejams"
+    },
+    "wildcard_renewal": {
+      "message": "{proxy}: {domain} ir aizstājējzīmes (wildcard) sertifikāts, kam nepieciešama DNS pārbaude: atjaunojiet to programmā {proxy}"
+    },
+    "renewal_failed": {
+      "message": "{proxy}: {domain} atjaunošana neizdevās: {error}"
+    },
+    "command_failed": {
+      "message": "{proxy}: {error}"
+    },
+    "not_supported": {
+      "message": "{proxy}: šī darbība nav pieejama, tā API ir tikai lasāms"
+    }
+  }
+}

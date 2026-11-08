@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea for the Zoraxy integration
+about: Suggest an idea for the Reverse Proxy integration (Zoraxy, Traefik)
 title: "[Feature] "
 labels: enhancement
 assignees: ""

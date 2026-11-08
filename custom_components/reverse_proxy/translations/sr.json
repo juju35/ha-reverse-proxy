@@ -1,0 +1,194 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Обрнути прокси - Конфигурација",
+        "menu_options": {
+          "zoraxy": "Zoraxy",
+          "traefik": "Traefik"
+        }
+      },
+      "zoraxy": {
+        "title": "Zoraxy - Конфигурација",
+        "data": {
+          "host": "Zoraxy адреса (URL са портом)",
+          "username": "Корисничко име",
+          "password": "Лозинка",
+          "scan_interval": "Интервал освежавања (секунде)",
+          "verify_ssl": "Провери TLS сертификат"
+        },
+        "data_description": {
+          "verify_ssl": "Искључи само за HTTPS адресу са самопотписаним сертификатом."
+        }
+      },
+      "traefik": {
+        "title": "Traefik - Конфигурација",
+        "data": {
+          "host": "Traefik адреса (URL са портом)",
+          "username": "Корисничко име",
+          "password": "Лозинка",
+          "scan_interval": "Интервал освежавања (секунде)",
+          "verify_ssl": "Провери TLS сертификат"
+        },
+        "data_description": {
+          "verify_ssl": "Искључи само за HTTPS адресу са самопотписаним сертификатом.",
+          "username": "Само ако су Traefik API или контролна табла иза basicAuth међуслоја; у супротном оставите празно."
+        }
+      },
+      "reauth_confirm": {
+        "title": "{proxy} - Нова лозинка",
+        "description": "{proxy} је одбио лозинку корисника {username} на {host}.",
+        "data": {
+          "username": "Корисничко име",
+          "password": "Лозинка"
+        }
+      },
+      "reconfigure": {
+        "title": "{proxy} - Поновно конфигурисање",
+        "description": "Промените адресу или податке за пријаву овог {proxy}. Пријава се проверава пре чувања.",
+        "data": {
+          "host": "{proxy} адреса (URL са портом)",
+          "username": "Корисничко име",
+          "password": "Лозинка"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Није могуће повезати се са сервером {proxy}",
+      "invalid_auth": "Неважећи подаци за пријаву",
+      "unknown": "Непозната грешка"
+    },
+    "abort": {
+      "already_configured": "{proxy} је већ конфигурисан",
+      "reauth_successful": "Лозинка је ажурирана",
+      "reconfigure_successful": "Конфигурација је ажурирана"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "{proxy} - Опције",
+        "data": {
+          "scan_interval": "Интервал освежавања (секунде)",
+          "verify_ssl": "Провери TLS сертификат"
+        },
+        "data_description": {
+          "verify_ssl": "Искључи само за HTTPS адресу са самопотписаним сертификатом."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "proxy_rules": {
+        "name": "Прокси правила"
+      },
+      "active_rules": {
+        "name": "Активна правила"
+      },
+      "tls_certificates": {
+        "name": "TLS сертификати"
+      },
+      "access_rules": {
+        "name": "Правила приступа"
+      },
+      "inbound_port": {
+        "name": "Улазни порт"
+      },
+      "certificate": {
+        "name": "Сертификат {domain}"
+      },
+      "middlewares": {
+        "name": "Међуслојеви"
+      },
+      "version": {
+        "name": "Верзија"
+      }
+    },
+    "binary_sensor": {
+      "proxy_running": {
+        "name": "Прокси ради"
+      },
+      "tls_enabled": {
+        "name": "TLS омогућен"
+      },
+      "https_redirect": {
+        "name": "HTTPS преусмеравање"
+      },
+      "port_80": {
+        "name": "Ослушкивање на порту 80"
+      },
+      "development_mode": {
+        "name": "Развојни режим"
+      },
+      "certificate_expiring": {
+        "name": "Сертификат {domain} истиче"
+      },
+      "upstream_problem": {
+        "name": "Циљни сервер {domain}"
+      }
+    },
+    "switch": {
+      "https_redirect": {
+        "name": "HTTPS преусмеравање"
+      },
+      "port_80": {
+        "name": "Ослушкивање на порту 80"
+      },
+      "development_mode": {
+        "name": "Развојни режим"
+      }
+    },
+    "button": {
+      "renew": {
+        "name": "Обнови {domain}"
+      }
+    }
+  },
+  "services": {
+    "toggle_proxy_rule": {
+      "name": "Укључи/искључи прокси правило",
+      "description": "Омогућава или онемогућава прокси правило.",
+      "fields": {
+        "domain": {
+          "name": "Домен",
+          "description": "Домен прокси правила (нпр. \"example.com\")."
+        },
+        "enable": {
+          "name": "Омогући",
+          "description": "Постави на true да омогућиш правило, на false да га онемогућиш. Изостави за пребацивање стања правила."
+        },
+        "config_entry_id": {
+          "name": "Инстанца",
+          "description": "Инстанца којој правило припада. Изостави за инстанцу која наводи домен."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_instance": {
+      "message": "Ниједна инстанца није учитана"
+    },
+    "rule_not_found": {
+      "message": "Прокси правило {domain} није пронађено"
+    },
+    "rule_change_failed": {
+      "message": "{proxy}: није могуће променити правило {domain}: {error}"
+    },
+    "acme_email_unavailable": {
+      "message": "{proxy}: ACME имејл није доступан"
+    },
+    "wildcard_renewal": {
+      "message": "{proxy}: {domain} је џокер сертификат, за који је потребан DNS изазов: обнови га у интерфејсу {proxy}"
+    },
+    "renewal_failed": {
+      "message": "{proxy}: обнављање сертификата {domain} није успело: {error}"
+    },
+    "command_failed": {
+      "message": "{proxy}: {error}"
+    },
+    "not_supported": {
+      "message": "{proxy}: ова радња није доступна, његов API је само за читање"
+    }
+  }
+}
