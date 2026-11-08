@@ -1,0 +1,194 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Reverse proxy - Configuratie",
+        "menu_options": {
+          "zoraxy": "Zoraxy",
+          "traefik": "Traefik"
+        }
+      },
+      "zoraxy": {
+        "title": "Zoraxy - Configuratie",
+        "data": {
+          "host": "Zoraxy-adres (URL met poort)",
+          "username": "Gebruikersnaam",
+          "password": "Wachtwoord",
+          "scan_interval": "Vernieuwingsinterval (seconden)",
+          "verify_ssl": "TLS-certificaat verifiëren"
+        },
+        "data_description": {
+          "verify_ssl": "Alleen uitschakelen voor een HTTPS-adres met een zelfondertekend certificaat."
+        }
+      },
+      "traefik": {
+        "title": "Traefik - Configuratie",
+        "data": {
+          "host": "Traefik-adres (URL met poort)",
+          "username": "Gebruikersnaam",
+          "password": "Wachtwoord",
+          "scan_interval": "Vernieuwingsinterval (seconden)",
+          "verify_ssl": "TLS-certificaat verifiëren"
+        },
+        "data_description": {
+          "verify_ssl": "Alleen uitschakelen voor een HTTPS-adres met een zelfondertekend certificaat.",
+          "username": "Alleen als de Traefik-API of het dashboard achter een basicAuth-middleware zit; anders leeg laten."
+        }
+      },
+      "reauth_confirm": {
+        "title": "{proxy} - Nieuw wachtwoord",
+        "description": "{proxy} heeft het wachtwoord van {username} op {host} geweigerd.",
+        "data": {
+          "username": "Gebruikersnaam",
+          "password": "Wachtwoord"
+        }
+      },
+      "reconfigure": {
+        "title": "{proxy} - Opnieuw configureren",
+        "description": "Wijzig het adres of de inloggegevens van deze {proxy}. De aanmelding wordt gecontroleerd voordat er wordt opgeslagen.",
+        "data": {
+          "host": "{proxy}-adres (URL met poort)",
+          "username": "Gebruikersnaam",
+          "password": "Wachtwoord"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Kan geen verbinding maken met {proxy}",
+      "invalid_auth": "Ongeldige inloggegevens",
+      "unknown": "Onbekende fout"
+    },
+    "abort": {
+      "already_configured": "{proxy} is al geconfigureerd",
+      "reauth_successful": "Wachtwoord bijgewerkt",
+      "reconfigure_successful": "Configuratie bijgewerkt"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "{proxy} - Opties",
+        "data": {
+          "scan_interval": "Vernieuwingsinterval (seconden)",
+          "verify_ssl": "TLS-certificaat verifiëren"
+        },
+        "data_description": {
+          "verify_ssl": "Alleen uitschakelen voor een HTTPS-adres met een zelfondertekend certificaat."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "proxy_rules": {
+        "name": "Proxyregels"
+      },
+      "active_rules": {
+        "name": "Actieve regels"
+      },
+      "tls_certificates": {
+        "name": "TLS-certificaten"
+      },
+      "access_rules": {
+        "name": "Toegangsregels"
+      },
+      "inbound_port": {
+        "name": "Inkomende poort"
+      },
+      "certificate": {
+        "name": "Certificaat {domain}"
+      },
+      "middlewares": {
+        "name": "Middlewares"
+      },
+      "version": {
+        "name": "Versie"
+      }
+    },
+    "binary_sensor": {
+      "proxy_running": {
+        "name": "Proxy actief"
+      },
+      "tls_enabled": {
+        "name": "TLS ingeschakeld"
+      },
+      "https_redirect": {
+        "name": "HTTPS-omleiding"
+      },
+      "port_80": {
+        "name": "Luisteren op poort 80"
+      },
+      "development_mode": {
+        "name": "Ontwikkelmodus"
+      },
+      "certificate_expiring": {
+        "name": "Certificaat {domain} verloopt binnenkort"
+      },
+      "upstream_problem": {
+        "name": "Doelserver {domain}"
+      }
+    },
+    "switch": {
+      "https_redirect": {
+        "name": "HTTPS-omleiding"
+      },
+      "port_80": {
+        "name": "Luisteren op poort 80"
+      },
+      "development_mode": {
+        "name": "Ontwikkelmodus"
+      }
+    },
+    "button": {
+      "renew": {
+        "name": "{domain} vernieuwen"
+      }
+    }
+  },
+  "services": {
+    "toggle_proxy_rule": {
+      "name": "Proxyregel omschakelen",
+      "description": "Een proxyregel in- of uitschakelen.",
+      "fields": {
+        "domain": {
+          "name": "Domein",
+          "description": "Het domein van de proxyregel (bijv. \"example.com\")."
+        },
+        "enable": {
+          "name": "Inschakelen",
+          "description": "Stel in op true om de regel in te schakelen, false om hem uit te schakelen. Weglaten om de regel om te schakelen."
+        },
+        "config_entry_id": {
+          "name": "Instantie",
+          "description": "De instantie waartoe de regel behoort. Weglaten om de instantie te gebruiken die het domein vermeldt."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_instance": {
+      "message": "Er is geen instantie geladen"
+    },
+    "rule_not_found": {
+      "message": "Proxyregel {domain} niet gevonden"
+    },
+    "rule_change_failed": {
+      "message": "{proxy}: kan de regel {domain} niet wijzigen: {error}"
+    },
+    "acme_email_unavailable": {
+      "message": "{proxy}: ACME-e-mailadres niet beschikbaar"
+    },
+    "wildcard_renewal": {
+      "message": "{proxy}: {domain} is een wildcardcertificaat, dat een DNS-challenge vereist: vernieuw het in {proxy}"
+    },
+    "renewal_failed": {
+      "message": "{proxy}: vernieuwen van {domain} mislukt: {error}"
+    },
+    "command_failed": {
+      "message": "{proxy}: {error}"
+    },
+    "not_supported": {
+      "message": "{proxy}: deze actie is niet beschikbaar, de API is alleen-lezen"
+    }
+  }
+}

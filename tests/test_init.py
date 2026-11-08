@@ -17,8 +17,8 @@ from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMockResponse
 
-from custom_components.zoraxy.api import ZoraxyClient
-from custom_components.zoraxy.const import DOMAIN, UPTIME_POLL_SECONDS, UPTIME_STALE_SECONDS
+from custom_components.reverse_proxy.api import ZoraxyClient
+from custom_components.reverse_proxy.const import DOMAIN, UPTIME_POLL_SECONDS, UPTIME_STALE_SECONDS
 
 HOST = "http://zoraxy.local:8000"
 P = "zoraxy_reverse_proxy_zoraxy"
@@ -44,7 +44,14 @@ HOST_RULES = [
         "ActiveOrigins": [{"OriginIpOrDomain": "10.0.0.2:80"}],
     }
 ]
-DATA = {"host": HOST, "username": "admin", "password": "secret", "scan_interval": 30, "verify_ssl": True}
+DATA = {
+    "host": HOST,
+    "username": "admin",
+    "password": "secret",
+    "scan_interval": 30,
+    "verify_ssl": True,
+    "proxy_type": "zoraxy",
+}
 
 
 UPTIME = {
@@ -91,7 +98,7 @@ def mock_zoraxy(aioclient_mock, *, status=PROXY_STATUS, rules=HOST_RULES, certs=
 
 @pytest.fixture
 def entry(hass: HomeAssistant) -> MockConfigEntry:
-    entry = MockConfigEntry(domain=DOMAIN, data=DATA, unique_id=HOST, version=1, minor_version=2)
+    entry = MockConfigEntry(domain=DOMAIN, data=DATA, unique_id=HOST, version=2, minor_version=1)
     entry.add_to_hass(hass)
     return entry
 
@@ -366,7 +373,7 @@ async def test_toggle_proxy_rule_targets_the_given_instance(hass, aioclient_mock
     """With config_entry_id, only that instance is used: the card toggles the rule of its own device."""
     other_host = "http://zoraxy2.local:8000"
     other = MockConfigEntry(
-        domain=DOMAIN, data={**DATA, "host": other_host}, unique_id=other_host, version=1, minor_version=2
+        domain=DOMAIN, data={**DATA, "host": other_host}, unique_id=other_host, version=2, minor_version=1
     )
     other.add_to_hass(hass)
     for host in (HOST, other_host):
@@ -433,18 +440,27 @@ async def test_concurrent_expiry_logs_in_once(hass, aioclient_mock):
 # ── Config flow, options, reauth, migration ───────────────────────────────────
 
 
+async def _start_zoraxy_flow(hass):
+    """The user step is a menu of proxy types; pick Zoraxy."""
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+    return await hass.config_entries.flow.async_configure(result["flow_id"], {"next_step_id": "zoraxy"})
+
+
 async def test_config_flow(hass, aioclient_mock):
     mock_zoraxy(aioclient_mock)
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+    assert result["type"] is FlowResultType.MENU
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"next_step_id": "zoraxy"})
     assert result["type"] is FlowResultType.FORM
-    with patch("custom_components.zoraxy.async_setup_entry", return_value=True):
+    assert result["step_id"] == "zoraxy"
+    with patch("custom_components.reverse_proxy.async_setup_entry", return_value=True):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {"host": f"{HOST}/", "username": "admin", "password": "secret"}
         )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["data"] == DATA
     assert result["result"].unique_id == HOST
-    assert result["result"].minor_version == 2
+    assert (result["result"].version, result["result"].minor_version) == (2, 1)
 
 
 @pytest.mark.parametrize(
@@ -457,7 +473,7 @@ async def test_config_flow(hass, aioclient_mock):
 )
 async def test_config_flow_cannot_connect(hass, aioclient_mock, login_page, error):
     aioclient_mock.get(f"{HOST}/login.html", **login_page)
-    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+    result = await _start_zoraxy_flow(hass)
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {"host": HOST, "username": "admin", "password": "secret"}
     )
@@ -468,7 +484,7 @@ async def test_config_flow_cannot_connect(hass, aioclient_mock, login_page, erro
 async def test_config_flow_invalid_auth(hass, aioclient_mock):
     aioclient_mock.get(f"{HOST}/login.html", text=LOGIN_PAGE)
     aioclient_mock.post(f"{HOST}/api/auth/login", text='{"error":"Invalid username or password"}')
-    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+    result = await _start_zoraxy_flow(hass)
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {"host": HOST, "username": "admin", "password": "bad"}
     )
@@ -477,7 +493,7 @@ async def test_config_flow_invalid_auth(hass, aioclient_mock):
 
 async def test_config_flow_duplicate(hass, aioclient_mock, entry):
     """The same host with another case or a trailing slash is the same Zoraxy."""
-    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+    result = await _start_zoraxy_flow(hass)
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {"host": "HTTP://Zoraxy.local:8000/", "username": "admin", "password": "secret"}
     )
@@ -499,7 +515,9 @@ async def test_options_flow(hass, aioclient_mock, entry):
 
 
 async def test_scan_interval_has_a_minimum(hass, aioclient_mock):
-    entry = MockConfigEntry(domain=DOMAIN, data={**DATA, "scan_interval": 0}, unique_id=HOST, minor_version=2)
+    entry = MockConfigEntry(
+        domain=DOMAIN, data={**DATA, "scan_interval": 0}, unique_id=HOST, version=2, minor_version=1
+    )
     entry.add_to_hass(hass)
     mock_zoraxy(aioclient_mock)
     await _setup(hass, entry)
@@ -520,12 +538,14 @@ async def test_reauth_flow(hass, aioclient_mock, entry):
 
 async def test_reauth_reloads_once(hass, aioclient_mock, entry):
     """A reauth reloads the entry once (the update listener), not twice."""
-    from custom_components import zoraxy
+    from custom_components import reverse_proxy
 
     mock_zoraxy(aioclient_mock)
     await _setup(hass, entry)
     result = await entry.start_reauth_flow(hass)
-    with patch("custom_components.zoraxy.async_setup_entry", wraps=zoraxy.async_setup_entry) as setup_entry:
+    with patch(
+        "custom_components.reverse_proxy.async_setup_entry", wraps=reverse_proxy.async_setup_entry
+    ) as setup_entry:
         result = await hass.config_entries.flow.async_configure(result["flow_id"], {"password": "new"})
         await hass.async_block_till_done()
     assert result["reason"] == "reauth_successful"
@@ -542,7 +562,7 @@ async def test_reauth_after_failed_setup_reloads(hass, aioclient_mock, entry):
     flow = next(f for f in hass.config_entries.flow.async_progress() if f["context"]["source"] == "reauth")
     aioclient_mock.clear_requests()
     mock_zoraxy(aioclient_mock)
-    with patch("custom_components.zoraxy.config_flow._validate", return_value=None):
+    with patch("custom_components.reverse_proxy.config_flow._validate", return_value=None):
         result = await hass.config_entries.flow.async_configure(flow["flow_id"], {"password": "new"})
     await hass.async_block_till_done()
     assert result["reason"] == "reauth_successful"
@@ -554,7 +574,7 @@ async def test_reauth_with_same_password_reloads(hass, aioclient_mock, entry):
     mock_zoraxy(aioclient_mock)
     await _setup(hass, entry)
     result = await entry.start_reauth_flow(hass)
-    with patch("custom_components.zoraxy.async_setup_entry", return_value=True) as setup_entry:
+    with patch("custom_components.reverse_proxy.async_setup_entry", return_value=True) as setup_entry:
         result = await hass.config_entries.flow.async_configure(result["flow_id"], {"password": "secret"})
         await hass.async_block_till_done()
     assert result["reason"] == "reauth_successful"
@@ -576,7 +596,7 @@ async def test_reconfigure_changes_host_and_credentials(hass, aioclient_mock, en
     assert result["step_id"] == "reconfigure"
     aioclient_mock.get(f"{new_host}/login.html", text=LOGIN_PAGE)
     aioclient_mock.post(f"{new_host}/api/auth/login", text="OK")
-    with patch("custom_components.zoraxy.async_setup_entry", return_value=True) as setup_entry:
+    with patch("custom_components.reverse_proxy.async_setup_entry", return_value=True) as setup_entry:
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {"host": f"{new_host}/", "username": "root", "password": "new"}
         )
@@ -657,17 +677,22 @@ async def test_migration_keeps_tls_unchecked(hass, aioclient_mock):
     entry = MockConfigEntry(domain=DOMAIN, data=old, unique_id=f"{HOST}/", version=1, minor_version=1)
     entry.add_to_hass(hass)
     mock_zoraxy(aioclient_mock)
-    with patch("custom_components.zoraxy.async_create_clientsession", wraps=async_create_clientsession) as create:
+    with patch(
+        "custom_components.reverse_proxy.async_create_clientsession", wraps=async_create_clientsession
+    ) as create:
         await _setup(hass, entry)
-    assert entry.minor_version == 2
+    assert (entry.version, entry.minor_version) == (2, 1)
     assert entry.data["verify_ssl"] is False
+    assert entry.data["proxy_type"] == "zoraxy"
     assert entry.unique_id == HOST
     assert create.call_args.kwargs["verify_ssl"] is False
 
 
 async def test_new_entries_verify_tls(hass, aioclient_mock, entry):
     mock_zoraxy(aioclient_mock)
-    with patch("custom_components.zoraxy.async_create_clientsession", wraps=async_create_clientsession) as create:
+    with patch(
+        "custom_components.reverse_proxy.async_create_clientsession", wraps=async_create_clientsession
+    ) as create:
         await _setup(hass, entry)
     assert create.call_args.kwargs["verify_ssl"] is True
 
@@ -676,11 +701,13 @@ async def test_card_served(hass, aioclient_mock, entry, hass_client):
     mock_zoraxy(aioclient_mock)
     await _setup(hass, entry)
     client = await hass_client()
-    resp = await client.get("/zoraxy/zoraxy-card.js")
+    resp = await client.get("/reverse_proxy/reverse-proxy-card.js")
     assert resp.status == 200
     text = await resp.text()
-    assert 'customElements.define("zoraxy-card"' in text
-    assert 'customElements.define("zoraxy-mini-card"' in text
+    assert 'customElements.define("reverse-proxy-card"' in text
+    assert 'customElements.define("reverse-proxy-mini-card"' in text
+    # The names of the cards up to 1.14.x still work.
+    assert '["zoraxy-card", ZoraxyCard]' in text
 
 
 @pytest.mark.parametrize("as_dict", [True, False])
@@ -696,7 +723,7 @@ async def test_card_resource_with_lovelace_data_variants(hass, aioclient_mock, e
     mock_zoraxy(aioclient_mock)
     await _setup(hass, entry)
     urls = [item["url"] for item in resources.async_items()]
-    assert len(urls) == 1 and urls[0].startswith("/zoraxy/zoraxy-card.js?v=")
+    assert len(urls) == 1 and urls[0].startswith("/reverse_proxy/reverse-proxy-card.js?v=")
     stub_frontend.assert_not_called()
 
 
@@ -966,7 +993,7 @@ async def test_large_list_attributes_not_recorded(hass, aioclient_mock, entry):
 async def test_diagnostics_redact_credentials(hass, aioclient_mock, entry):
     from homeassistant.components.diagnostics import REDACTED
 
-    from custom_components.zoraxy.diagnostics import async_get_config_entry_diagnostics
+    from custom_components.reverse_proxy.diagnostics import async_get_config_entry_diagnostics
 
     rules = [
         {
@@ -1120,3 +1147,73 @@ async def test_startup_cleanup_matches_the_suffix_after_the_entry_id(hass, aiocl
     await _setup(hass, entry)
     assert registry.async_get(kept.entity_id) is not None
     assert registry.async_get(gone.entity_id) is None
+
+
+# ── Entries of the former `zoraxy` integration (up to 1.14.x) ─────────────────
+
+
+def _legacy_zoraxy_entry(hass, host=HOST):
+    """A `zoraxy` entry as 1.14.x left it, with its device and two entities in the registries."""
+    old = MockConfigEntry(
+        domain="zoraxy",
+        data={"host": host, "username": "admin", "password": "secret", "scan_interval": 30, "verify_ssl": True},
+        unique_id=host,
+        version=1,
+        minor_version=2,
+    )
+    old.add_to_hass(hass)
+    device = dr.async_get(hass).async_get_or_create(
+        config_entry_id=old.entry_id, identifiers={("zoraxy", old.entry_id)}, name="Zoraxy Reverse Proxy"
+    )
+    registry = er.async_get(hass)
+    for platform, unique, suggested in (
+        ("sensor", f"{old.entry_id}_proxy_rules_count", f"{P}_regles_proxy"),
+        ("binary_sensor", f"{old.entry_id}_upstream_problem_app_example_org", f"{P}_upstream_app_example_org"),
+    ):
+        registry.async_get_or_create(
+            platform, "zoraxy", unique, config_entry=old, device_id=device.id, suggested_object_id=suggested
+        )
+    # The user had renamed one entity: the id must survive the take-over.
+    registry.async_update_entity(f"sensor.{P}_regles_proxy", new_entity_id="sensor.my_proxy_rules")
+    return old, device
+
+
+async def test_legacy_zoraxy_entry_is_taken_over(hass, aioclient_mock, entry):
+    """Once custom_components/zoraxy is gone, a new entry for the same host inherits its device and entities."""
+    old, device = _legacy_zoraxy_entry(hass)
+    mock_zoraxy(aioclient_mock)
+    await _setup(hass, entry)
+    assert entry.state is ConfigEntryState.LOADED
+    assert hass.config_entries.async_get_entry(old.entry_id) is None
+    # Same device, now the new entry's; same entity ids, with the unique ids rebuilt on the new entry.
+    device = dr.async_get(hass).async_get(device.id)
+    assert device.identifiers == {(DOMAIN, entry.entry_id)}
+    assert device.config_entries == {entry.entry_id}
+    registry = er.async_get(hass)
+    rules = registry.async_get("sensor.my_proxy_rules")
+    assert rules.platform == DOMAIN
+    assert rules.config_entry_id == entry.entry_id
+    assert rules.unique_id == f"{entry.entry_id}_proxy_rules_count"
+    assert rules.device_id == device.id
+    assert hass.states.get("sensor.my_proxy_rules").state == "1"
+    assert hass.states.get(f"binary_sensor.{P}_upstream_app_example_org").state == "off"
+    assert registry.async_get(f"sensor.{P}_regles_proxy") is None
+
+
+async def test_legacy_entry_of_another_host_is_left_alone(hass, aioclient_mock, entry):
+    old, _ = _legacy_zoraxy_entry(hass, host="http://other.local:8000")
+    mock_zoraxy(aioclient_mock)
+    await _setup(hass, entry)
+    assert hass.config_entries.async_get_entry(old.entry_id) is old
+    assert er.async_get(hass).async_get("sensor.my_proxy_rules").platform == "zoraxy"
+
+
+async def test_legacy_entry_kept_while_the_old_integration_is_installed(hass, aioclient_mock, entry, caplog):
+    """custom_components/zoraxy still present (its entities loaded): nothing is moved, the user is told."""
+    old, _ = _legacy_zoraxy_entry(hass)
+    mock_zoraxy(aioclient_mock)
+    with patch("custom_components.reverse_proxy.async_get_integration", return_value=object()):
+        await _setup(hass, entry)
+    assert hass.config_entries.async_get_entry(old.entry_id) is old
+    assert er.async_get(hass).async_get("sensor.my_proxy_rules").platform == "zoraxy"
+    assert "remove it so that its entry" in caplog.text

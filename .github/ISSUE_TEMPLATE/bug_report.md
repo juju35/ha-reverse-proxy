@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Report a bug with the Zoraxy integration
+about: Report a bug with the Reverse Proxy integration (Zoraxy, Traefik)
 title: "[Bug] "
 labels: bug
 assignees: ""
@@ -26,12 +26,12 @@ If applicable, add screenshots to help explain your problem.
 - Browser:
 - HACS version:
 - Card version:
-- Zoraxy version:
+- Reverse proxy (Zoraxy or Traefik) and its version:
 
 **Card configuration:**
 ```yaml
-type: custom:zoraxy-card
-zoraxy_url: http://zoraxy.local:8000
+type: custom:reverse-proxy-card
+proxy_url: http://zoraxy.local:8000
 ```
 
 **Additional context**

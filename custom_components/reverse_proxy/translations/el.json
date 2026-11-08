@@ -1,0 +1,194 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Αντίστροφος διακομιστής μεσολάβησης - Διαμόρφωση",
+        "menu_options": {
+          "zoraxy": "Zoraxy",
+          "traefik": "Traefik"
+        }
+      },
+      "zoraxy": {
+        "title": "Zoraxy - Διαμόρφωση",
+        "data": {
+          "host": "Διεύθυνση Zoraxy (URL με θύρα)",
+          "username": "Όνομα χρήστη",
+          "password": "Κωδικός πρόσβασης",
+          "scan_interval": "Διάστημα ανανέωσης (δευτερόλεπτα)",
+          "verify_ssl": "Επαλήθευση του πιστοποιητικού TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Απενεργοποιήστε το μόνο για διεύθυνση HTTPS με αυτοϋπογεγραμμένο πιστοποιητικό."
+        }
+      },
+      "traefik": {
+        "title": "Traefik - Διαμόρφωση",
+        "data": {
+          "host": "Διεύθυνση Traefik (URL με θύρα)",
+          "username": "Όνομα χρήστη",
+          "password": "Κωδικός πρόσβασης",
+          "scan_interval": "Διάστημα ανανέωσης (δευτερόλεπτα)",
+          "verify_ssl": "Επαλήθευση του πιστοποιητικού TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Απενεργοποιήστε το μόνο για διεύθυνση HTTPS με αυτοϋπογεγραμμένο πιστοποιητικό.",
+          "username": "Μόνο αν το API ή ο πίνακας του Traefik βρίσκεται πίσω από middleware basicAuth· αλλιώς αφήστε το κενό."
+        }
+      },
+      "reauth_confirm": {
+        "title": "{proxy} - Νέος κωδικός πρόσβασης",
+        "description": "Το {proxy} απέρριψε τον κωδικό πρόσβασης του {username} στο {host}.",
+        "data": {
+          "username": "Όνομα χρήστη",
+          "password": "Κωδικός πρόσβασης"
+        }
+      },
+      "reconfigure": {
+        "title": "{proxy} - Επαναδιαμόρφωση",
+        "description": "Αλλάξτε τη διεύθυνση ή τα διαπιστευτήρια αυτού του {proxy}. Η σύνδεση ελέγχεται πριν από την αποθήκευση.",
+        "data": {
+          "host": "Διεύθυνση {proxy} (URL με θύρα)",
+          "username": "Όνομα χρήστη",
+          "password": "Κωδικός πρόσβασης"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Δεν είναι δυνατή η σύνδεση στο {proxy}",
+      "invalid_auth": "Μη έγκυρα διαπιστευτήρια",
+      "unknown": "Άγνωστο σφάλμα"
+    },
+    "abort": {
+      "already_configured": "Το {proxy} έχει ήδη διαμορφωθεί",
+      "reauth_successful": "Ο κωδικός πρόσβασης ενημερώθηκε",
+      "reconfigure_successful": "Η διαμόρφωση ενημερώθηκε"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "{proxy} - Επιλογές",
+        "data": {
+          "scan_interval": "Διάστημα ανανέωσης (δευτερόλεπτα)",
+          "verify_ssl": "Επαλήθευση του πιστοποιητικού TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Απενεργοποιήστε το μόνο για διεύθυνση HTTPS με αυτοϋπογεγραμμένο πιστοποιητικό."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "proxy_rules": {
+        "name": "Κανόνες proxy"
+      },
+      "active_rules": {
+        "name": "Ενεργοί κανόνες"
+      },
+      "tls_certificates": {
+        "name": "Πιστοποιητικά TLS"
+      },
+      "access_rules": {
+        "name": "Κανόνες πρόσβασης"
+      },
+      "inbound_port": {
+        "name": "Θύρα εισερχομένων"
+      },
+      "certificate": {
+        "name": "Πιστοποιητικό {domain}"
+      },
+      "middlewares": {
+        "name": "Middleware"
+      },
+      "version": {
+        "name": "Έκδοση"
+      }
+    },
+    "binary_sensor": {
+      "proxy_running": {
+        "name": "Ο proxy εκτελείται"
+      },
+      "tls_enabled": {
+        "name": "TLS ενεργοποιημένο"
+      },
+      "https_redirect": {
+        "name": "Ανακατεύθυνση HTTPS"
+      },
+      "port_80": {
+        "name": "Ακρόαση στη θύρα 80"
+      },
+      "development_mode": {
+        "name": "Λειτουργία ανάπτυξης"
+      },
+      "certificate_expiring": {
+        "name": "Το πιστοποιητικό {domain} λήγει σύντομα"
+      },
+      "upstream_problem": {
+        "name": "Διακομιστής προορισμού {domain}"
+      }
+    },
+    "switch": {
+      "https_redirect": {
+        "name": "Ανακατεύθυνση HTTPS"
+      },
+      "port_80": {
+        "name": "Ακρόαση στη θύρα 80"
+      },
+      "development_mode": {
+        "name": "Λειτουργία ανάπτυξης"
+      }
+    },
+    "button": {
+      "renew": {
+        "name": "Ανανέωση {domain}"
+      }
+    }
+  },
+  "services": {
+    "toggle_proxy_rule": {
+      "name": "Εναλλαγή κανόνα proxy",
+      "description": "Ενεργοποιεί ή απενεργοποιεί έναν κανόνα proxy.",
+      "fields": {
+        "domain": {
+          "name": "Τομέας",
+          "description": "Ο τομέας του κανόνα proxy (π.χ. «example.com»)."
+        },
+        "enable": {
+          "name": "Ενεργοποίηση",
+          "description": "true για ενεργοποίηση του κανόνα, false για απενεργοποίηση. Αν παραλειφθεί, ο κανόνας εναλλάσσεται."
+        },
+        "config_entry_id": {
+          "name": "Παρουσία",
+          "description": "Η εγκατάσταση στην οποία ανήκει ο κανόνας. Αν παραλειφθεί, χρησιμοποιείται η εγκατάσταση που περιέχει τον τομέα."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_instance": {
+      "message": "Δεν έχει φορτωθεί καμία παρουσία"
+    },
+    "rule_not_found": {
+      "message": "Ο κανόνας proxy {domain} δεν βρέθηκε"
+    },
+    "rule_change_failed": {
+      "message": "{proxy}: δεν ήταν δυνατή η αλλαγή του κανόνα {domain}: {error}"
+    },
+    "acme_email_unavailable": {
+      "message": "{proxy}: το email ACME δεν είναι διαθέσιμο"
+    },
+    "wildcard_renewal": {
+      "message": "{proxy}: το {domain} είναι πιστοποιητικό wildcard, που απαιτεί έλεγχο DNS: ανανεώστε το στο {proxy}"
+    },
+    "renewal_failed": {
+      "message": "{proxy}: η ανανέωση του {domain} απέτυχε: {error}"
+    },
+    "command_failed": {
+      "message": "{proxy}: {error}"
+    },
+    "not_supported": {
+      "message": "{proxy}: αυτή η ενέργεια δεν είναι διαθέσιμη, το API του είναι μόνο για ανάγνωση"
+    }
+  }
+}

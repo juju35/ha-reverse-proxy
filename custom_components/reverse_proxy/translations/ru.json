@@ -1,0 +1,194 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Обратный прокси - Настройка",
+        "menu_options": {
+          "zoraxy": "Zoraxy",
+          "traefik": "Traefik"
+        }
+      },
+      "zoraxy": {
+        "title": "Zoraxy - Настройка",
+        "data": {
+          "host": "Адрес Zoraxy (URL с портом)",
+          "username": "Имя пользователя",
+          "password": "Пароль",
+          "scan_interval": "Интервал обновления (секунды)",
+          "verify_ssl": "Проверять сертификат TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Отключайте только для адреса HTTPS с самоподписанным сертификатом."
+        }
+      },
+      "traefik": {
+        "title": "Traefik - Настройка",
+        "data": {
+          "host": "Адрес Traefik (URL с портом)",
+          "username": "Имя пользователя",
+          "password": "Пароль",
+          "scan_interval": "Интервал обновления (секунды)",
+          "verify_ssl": "Проверять сертификат TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Отключайте только для адреса HTTPS с самоподписанным сертификатом.",
+          "username": "Только если API или панель Traefik находятся за middleware basicAuth; иначе оставьте пустым."
+        }
+      },
+      "reauth_confirm": {
+        "title": "{proxy} - Новый пароль",
+        "description": "{proxy} отклонил пароль пользователя {username} на {host}.",
+        "data": {
+          "username": "Имя пользователя",
+          "password": "Пароль"
+        }
+      },
+      "reconfigure": {
+        "title": "{proxy} - Перенастройка",
+        "description": "Измените адрес или учётные данные этого {proxy}. Вход проверяется перед сохранением.",
+        "data": {
+          "host": "Адрес {proxy} (URL с портом)",
+          "username": "Имя пользователя",
+          "password": "Пароль"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Не удаётся подключиться к {proxy}",
+      "invalid_auth": "Неверные учётные данные",
+      "unknown": "Неизвестная ошибка"
+    },
+    "abort": {
+      "already_configured": "{proxy} уже настроен",
+      "reauth_successful": "Пароль обновлён",
+      "reconfigure_successful": "Конфигурация обновлена"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "{proxy} - Параметры",
+        "data": {
+          "scan_interval": "Интервал обновления (секунды)",
+          "verify_ssl": "Проверять сертификат TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Отключайте только для адреса HTTPS с самоподписанным сертификатом."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "proxy_rules": {
+        "name": "Правила прокси"
+      },
+      "active_rules": {
+        "name": "Активные правила"
+      },
+      "tls_certificates": {
+        "name": "Сертификаты TLS"
+      },
+      "access_rules": {
+        "name": "Правила доступа"
+      },
+      "inbound_port": {
+        "name": "Входящий порт"
+      },
+      "certificate": {
+        "name": "Сертификат {domain}"
+      },
+      "middlewares": {
+        "name": "Middleware"
+      },
+      "version": {
+        "name": "Версия"
+      }
+    },
+    "binary_sensor": {
+      "proxy_running": {
+        "name": "Прокси работает"
+      },
+      "tls_enabled": {
+        "name": "TLS включён"
+      },
+      "https_redirect": {
+        "name": "Перенаправление HTTPS"
+      },
+      "port_80": {
+        "name": "Прослушивание порта 80"
+      },
+      "development_mode": {
+        "name": "Режим разработки"
+      },
+      "certificate_expiring": {
+        "name": "Сертификат {domain} скоро истекает"
+      },
+      "upstream_problem": {
+        "name": "Целевой сервер {domain}"
+      }
+    },
+    "switch": {
+      "https_redirect": {
+        "name": "Перенаправление HTTPS"
+      },
+      "port_80": {
+        "name": "Прослушивание порта 80"
+      },
+      "development_mode": {
+        "name": "Режим разработки"
+      }
+    },
+    "button": {
+      "renew": {
+        "name": "Обновить {domain}"
+      }
+    }
+  },
+  "services": {
+    "toggle_proxy_rule": {
+      "name": "Переключить правило прокси",
+      "description": "Включает или отключает правило прокси.",
+      "fields": {
+        "domain": {
+          "name": "Домен",
+          "description": "Домен правила прокси (например, «example.com»)."
+        },
+        "enable": {
+          "name": "Включить",
+          "description": "true — включить правило, false — отключить. Если не указано, правило переключается."
+        },
+        "config_entry_id": {
+          "name": "Экземпляр",
+          "description": "Экземпляр, которому принадлежит правило. Если не указано, используется экземпляр, в котором есть этот домен."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_instance": {
+      "message": "Не загружено ни одного экземпляра"
+    },
+    "rule_not_found": {
+      "message": "Правило прокси {domain} не найдено"
+    },
+    "rule_change_failed": {
+      "message": "{proxy}: не удалось изменить правило {domain}: {error}"
+    },
+    "acme_email_unavailable": {
+      "message": "{proxy}: адрес электронной почты ACME недоступен"
+    },
+    "wildcard_renewal": {
+      "message": "{proxy}: {domain} — wildcard-сертификат, для которого нужна проверка DNS: обновите его в {proxy}"
+    },
+    "renewal_failed": {
+      "message": "{proxy}: не удалось обновить {domain}: {error}"
+    },
+    "command_failed": {
+      "message": "{proxy}: {error}"
+    },
+    "not_supported": {
+      "message": "{proxy}: это действие недоступно, его API доступен только для чтения"
+    }
+  }
+}

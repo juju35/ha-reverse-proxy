@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import vm from 'node:vm';
 
 const source = readFileSync(
-  new URL('../custom_components/zoraxy/frontend/zoraxy-card.js', import.meta.url),
+  new URL('../custom_components/reverse_proxy/frontend/reverse-proxy-card.js', import.meta.url),
   'utf8',
 );
 const context = {
@@ -40,57 +40,57 @@ const context = {
 };
 vm.createContext(context);
 vm.runInContext(
-  `${source}\nthis.zx = { ZoraxyCard, ZoraxyMiniCard, ZoraxyCardEditor, ZoraxyMiniCardEditor, zoraxyEsc, zoraxySafeUrl, ZORAXY_CARD_VERSION };`,
+  `${source}\nthis.zx = { ReverseProxyCard, ReverseProxyMiniCard, ReverseProxyCardEditor, ReverseProxyMiniCardEditor, ZoraxyCard, ZoraxyMiniCard, rpEsc, rpSafeUrl, REVERSE_PROXY_CARD_VERSION };`,
   context,
 );
-const { ZoraxyCard, ZoraxyMiniCard, ZoraxyCardEditor, ZoraxyMiniCardEditor, zoraxyEsc, zoraxySafeUrl, ZORAXY_CARD_VERSION } = context.zx;
+const { ReverseProxyCard, ReverseProxyMiniCard, ReverseProxyCardEditor, ReverseProxyMiniCardEditor, ZoraxyCard, ZoraxyMiniCard, rpEsc, rpSafeUrl, REVERSE_PROXY_CARD_VERSION } = context.zx;
 
 const PREFIX = 'zoraxy_reverse_proxy_zoraxy';
 const isoInDays = (n) => new Date(Date.now() + n * 86400000 + 3600000).toISOString();
 
 // A card wired to a fake hass, enough for the HTML builders.
-function makeCard(states = {}, Cls = ZoraxyCard, config = {}) {
+function makeCard(states = {}, Cls = ReverseProxyCard, config = {}) {
   const card = new Cls();
   card._config = config;
   card._hass = { states, locale: { language: 'en' }, entities: undefined };
   return card;
 }
 
-test('zoraxyEsc escapes HTML and attribute characters', () => {
-  assert.equal(zoraxyEsc(`<img src=x onerror="a">&'`), '&lt;img src=x onerror=&quot;a&quot;&gt;&amp;&#39;');
-  assert.equal(zoraxyEsc(null), '');
-  assert.equal(zoraxyEsc(0), '0');
+test('rpEsc escapes HTML and attribute characters', () => {
+  assert.equal(rpEsc(`<img src=x onerror="a">&'`), '&lt;img src=x onerror=&quot;a&quot;&gt;&amp;&#39;');
+  assert.equal(rpEsc(null), '');
+  assert.equal(rpEsc(0), '0');
 });
 
-test('zoraxySafeUrl only keeps http(s) URLs', () => {
-  assert.equal(zoraxySafeUrl('https://zoraxy.local:8000'), 'https://zoraxy.local:8000');
-  assert.equal(zoraxySafeUrl('  http://a '), 'http://a');
-  assert.equal(zoraxySafeUrl('javascript:alert(1)'), '');
-  assert.equal(zoraxySafeUrl('data:text/html,x'), '');
-  assert.equal(zoraxySafeUrl(undefined), '');
+test('rpSafeUrl only keeps http(s) URLs', () => {
+  assert.equal(rpSafeUrl('https://zoraxy.local:8000'), 'https://zoraxy.local:8000');
+  assert.equal(rpSafeUrl('  http://a '), 'http://a');
+  assert.equal(rpSafeUrl('javascript:alert(1)'), '');
+  assert.equal(rpSafeUrl('data:text/html,x'), '');
+  assert.equal(rpSafeUrl(undefined), '');
 });
 
 test('card version is the manifest version', () => {
   const manifest = JSON.parse(
-    readFileSync(new URL('../custom_components/zoraxy/manifest.json', import.meta.url), 'utf8'),
+    readFileSync(new URL('../custom_components/reverse_proxy/manifest.json', import.meta.url), 'utf8'),
   );
-  assert.equal(ZORAXY_CARD_VERSION, manifest.version);
+  assert.equal(REVERSE_PROXY_CARD_VERSION, manifest.version);
 });
 
 test('I18N locales all carry the same keys', () => {
-  const langs = Object.keys(ZoraxyCard.I18N);
+  const langs = Object.keys(ReverseProxyCard.I18N);
   for (const lang of ['en', 'fr', 'de', 'es', 'sr', 'sr-Latn', 'it', 'nl', 'pt', 'pl', 'ro', 'da', 'sv', 'bg', 'ru', 'uk', 'hu', 'sk', 'cs', 'sl', 'lv', 'el']) assert.ok(langs.includes(lang), `missing ${lang}`);
-  const reference = Object.keys(ZoraxyCard.I18N.en).sort();
+  const reference = Object.keys(ReverseProxyCard.I18N.en).sort();
   for (const lang of langs) {
-    assert.deepEqual(Object.keys(ZoraxyCard.I18N[lang]).sort(), reference, `keys of ${lang}`);
+    assert.deepEqual(Object.keys(ReverseProxyCard.I18N[lang]).sort(), reference, `keys of ${lang}`);
   }
 });
 
 test('I18N parity: every language has exactly the English keys and placeholders, none empty', () => {
-  const en = ZoraxyCard.I18N.en;
+  const en = ReverseProxyCard.I18N.en;
   const placeholders = (s) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join();
   for (const lang of ['fr', 'de', 'es', 'sr', 'sr-Latn', 'it', 'nl', 'pt', 'pl', 'ro', 'da', 'sv', 'bg', 'ru', 'uk', 'hu', 'sk', 'cs', 'sl', 'lv', 'el']) {
-    const strings = ZoraxyCard.I18N[lang];
+    const strings = ReverseProxyCard.I18N[lang];
     assert.ok(strings, `missing ${lang}`);
     assert.deepEqual(Object.keys(strings).sort(), Object.keys(en).sort(), `${lang}: keys`);
     for (const key of Object.keys(en)) {
@@ -110,43 +110,43 @@ test('I18N Serbian: the Cyrillic and Latin cards say the same thing, letter for 
     map.set(c, lat[i]);
     map.set(c.toUpperCase(), lat[i][0].toUpperCase() + lat[i].slice(1));
   });
-  for (const [key, text] of Object.entries(ZoraxyCard.I18N.sr)) {
-    assert.equal([...text].map((c) => map.get(c) ?? c).join(''), ZoraxyCard.I18N['sr-Latn'][key], key);
+  for (const [key, text] of Object.entries(ReverseProxyCard.I18N.sr)) {
+    assert.equal([...text].map((c) => map.get(c) ?? c).join(''), ReverseProxyCard.I18N['sr-Latn'][key], key);
   }
 });
 
 test('I18N Serbian: no Latin letter in sr, no Cyrillic letter in sr-Latn (names and acronyms aside)', () => {
-  const kept = /Zoraxy|HTTPS|HTTP|ACME|URL|Home Assistant|zoraxy_reverse_proxy_zoraxy|\{\w+\}/g;
-  for (const [key, text] of Object.entries(ZoraxyCard.I18N.sr)) {
+  const kept = /Zoraxy|Traefik|HTTPS|HTTP|ACME|URL|Home Assistant|zoraxy_reverse_proxy_zoraxy|\{\w+\}/g;
+  for (const [key, text] of Object.entries(ReverseProxyCard.I18N.sr)) {
     assert.ok(!/[A-Za-z]/.test(text.replace(kept, '')), `sr.${key}: ${text}`);
   }
-  for (const [key, text] of Object.entries(ZoraxyCard.I18N['sr-Latn'])) {
+  for (const [key, text] of Object.entries(ReverseProxyCard.I18N['sr-Latn'])) {
     assert.ok(!/[Ѐ-ӿ]/.test(text), `sr-Latn.${key}: ${text}`);
   }
 });
 
 test('langOf: full locale, then the part before the dash, then English', () => {
-  assert.equal(ZoraxyCard.langOf('fr-FR'), 'fr');
-  assert.equal(ZoraxyCard.langOf('sr-Latn'), 'sr-Latn');
-  assert.equal(ZoraxyCard.langOf('sr'), 'sr');
-  assert.equal(ZoraxyCard.langOf('sr-Cyrl'), 'sr');
-  assert.equal(ZoraxyCard.langOf('ja'), 'en');
-  assert.equal(ZoraxyCard.langOf('it-IT'), 'it');
-  assert.equal(ZoraxyCard.langOf('nl-BE'), 'nl');
-  assert.equal(ZoraxyCard.langOf('pt'), 'pt');
+  assert.equal(ReverseProxyCard.langOf('fr-FR'), 'fr');
+  assert.equal(ReverseProxyCard.langOf('sr-Latn'), 'sr-Latn');
+  assert.equal(ReverseProxyCard.langOf('sr'), 'sr');
+  assert.equal(ReverseProxyCard.langOf('sr-Cyrl'), 'sr');
+  assert.equal(ReverseProxyCard.langOf('ja'), 'en');
+  assert.equal(ReverseProxyCard.langOf('it-IT'), 'it');
+  assert.equal(ReverseProxyCard.langOf('nl-BE'), 'nl');
+  assert.equal(ReverseProxyCard.langOf('pt'), 'pt');
   // Brazilian Portuguese falls back to European Portuguese, the only Portuguese the card has.
-  assert.equal(ZoraxyCard.langOf('pt-BR'), 'pt');
-  assert.equal(ZoraxyCard.langOf('pl-PL'), 'pl');
+  assert.equal(ReverseProxyCard.langOf('pt-BR'), 'pt');
+  assert.equal(ReverseProxyCard.langOf('pl-PL'), 'pl');
   for (const lang of ['ro', 'da', 'sv', 'bg', 'ru', 'uk', 'hu', 'sk', 'cs', 'sl', 'lv', 'el']) {
-    assert.equal(ZoraxyCard.langOf(lang), lang);
-    assert.equal(ZoraxyCard.langOf(`${lang}-${lang.toUpperCase()}`), lang);
+    assert.equal(ReverseProxyCard.langOf(lang), lang);
+    assert.equal(ReverseProxyCard.langOf(`${lang}-${lang.toUpperCase()}`), lang);
   }
-  assert.equal(ZoraxyCard.langOf('sv-FI'), 'sv');
-  assert.equal(ZoraxyCard.langOf(undefined), 'en');
+  assert.equal(ReverseProxyCard.langOf('sv-FI'), 'sv');
+  assert.equal(ReverseProxyCard.langOf(undefined), 'en');
   // Home Assistant in sr-Latn picks the Latin script, unless the card option says otherwise.
-  assert.equal(ZoraxyCard.langOfHass({ locale: { language: 'sr-Latn' }, language: 'sr-Latn' }), 'sr-Latn');
-  assert.equal(ZoraxyCard.langOfHass({ language: 'sr-Latn' }), 'sr-Latn');
-  assert.equal(ZoraxyCard.langOfHass({ locale: { language: 'sr-Latn' } }, { language: 'sr' }), 'sr');
+  assert.equal(ReverseProxyCard.langOfHass({ locale: { language: 'sr-Latn' }, language: 'sr-Latn' }), 'sr-Latn');
+  assert.equal(ReverseProxyCard.langOfHass({ language: 'sr-Latn' }), 'sr-Latn');
+  assert.equal(ReverseProxyCard.langOfHass({ locale: { language: 'sr-Latn' } }, { language: 'sr' }), 'sr');
   const card = makeCard();
   card._hass.locale.language = 'sr-Latn';
   assert.equal(card._t('certsSection'), 'Sertifikati');
@@ -161,13 +161,13 @@ test('every I18N key is read by the card or an editor', () => {
   for (const call of code.matchAll(/\b_?t\(([^()]*)\)/g)) {
     for (const lit of call[1].matchAll(/["']([A-Za-z0-9_]+)["']/g)) used.add(lit[1]);
   }
-  // The control tiles name their label and confirmation keys in ZoraxyCard.CONTROLS.
-  for (const c of ZoraxyCard.CONTROLS) for (const key of [c.label, c.confirm].filter(Boolean)) used.add(key);
+  // The control tiles name their label and confirmation keys in ReverseProxyCard.CONTROLS.
+  for (const c of ReverseProxyCard.CONTROLS) for (const key of [c.label, c.confirm].filter(Boolean)) used.add(key);
   // Editor labels are built as ed_<field> and ed_<field>_helper.
   const fields = new Set(
-    [ZoraxyCardEditor, ZoraxyMiniCardEditor].flatMap((E) => E.schema(() => '').map((f) => f.name)),
+    [ReverseProxyCardEditor, ReverseProxyMiniCardEditor].flatMap((E) => E.schema(() => '').map((f) => f.name)),
   );
-  const unused = Object.keys(ZoraxyCard.I18N.en).filter((key) => {
+  const unused = Object.keys(ReverseProxyCard.I18N.en).filter((key) => {
     const ed = key.match(/^ed_(.+?)(_helper)?$/);
     return ed ? !fields.has(ed[1]) : !used.has(key);
   });
@@ -177,18 +177,18 @@ test('every I18N key is read by the card or an editor', () => {
 test('_t falls back to English, then to the key', () => {
   const card = makeCard();
   card._hass.locale.language = 'ja';
-  assert.equal(card._t('rules'), ZoraxyCard.I18N.en.rules);
+  assert.equal(card._t('rules'), ReverseProxyCard.I18N.en.rules);
   assert.equal(card._t('no_such_key'), 'no_such_key');
   card._hass.locale.language = 'fr-CA';
-  assert.equal(card._t('rules'), ZoraxyCard.I18N.fr.rules);
+  assert.equal(card._t('rules'), ReverseProxyCard.I18N.fr.rules);
   card._hass.locale.language = 'de-AT';
-  assert.equal(card._t('rules'), ZoraxyCard.I18N.de.rules);
+  assert.equal(card._t('rules'), ReverseProxyCard.I18N.de.rules);
   card._hass.locale.language = 'es-419';
-  assert.equal(card._t('rules'), ZoraxyCard.I18N.es.rules);
+  assert.equal(card._t('rules'), ReverseProxyCard.I18N.es.rules);
 });
 
 test('setConfig validates the option types', () => {
-  const card = new ZoraxyCard();
+  const card = new ReverseProxyCard();
   assert.throws(() => card.setConfig(null), /Invalid configuration/);
   assert.throws(() => card.setConfig({ zoraxy_url: 42 }), /zoraxy_url/);
   assert.throws(() => card.setConfig({ entity_prefix: {} }), /entity_prefix/);
@@ -196,7 +196,7 @@ test('setConfig validates the option types', () => {
   assert.equal(card._prefix(), PREFIX);
   card.setConfig({ entity_prefix: 'zoraxy_b' });
   assert.equal(card._prefix(), 'zoraxy_b');
-  const mini = new ZoraxyMiniCard();
+  const mini = new ReverseProxyMiniCard();
   assert.throws(() => mini.setConfig({ zoom: 'yes' }), /zoom/);
 });
 
@@ -227,7 +227,7 @@ test('_buildRules escapes hostile values and says when there is nothing', () => 
   const html = card._buildRules([{ domain: '<img src=x>', target: '"><script>', enabled: true }]);
   assert.ok(!html.includes('<img'), 'domain must be escaped');
   assert.ok(!html.includes('<script'), 'target must be escaped');
-  assert.equal(card._buildRules([]), `<p class="empty">${ZoraxyCard.I18N.en.noRules}</p>`);
+  assert.equal(card._buildRules([]), `<p class="empty">${ReverseProxyCard.I18N.en.noRules}</p>`);
 });
 
 test('mini chips sort unknown-expiry certificates last', () => {
@@ -245,18 +245,18 @@ test('mini chips sort unknown-expiry certificates last', () => {
     [`sensor.${PREFIX}_cert_nodate_example`]: { state: 'unknown', attributes: { domain: 'nodate.example' } },
     [`binary_sensor.${PREFIX}_cert_expirant_nodate_example`]: { state: 'on', attributes: {} },
   };
-  const html = makeCard(states, ZoraxyMiniCard)._miniChips();
+  const html = makeCard(states, ReverseProxyMiniCard)._miniChips();
   const order = ['soon.example', 'later.example', 'nodate.example'].map((d) => html.indexOf(d));
   assert.ok(order.every((i) => i >= 0), 'every expiring certificate gets a chip');
   assert.deepEqual([...order].sort((a, b) => a - b), order, 'closest expiry first, unknown last');
 });
 
 test('the mini card editor adds zoom to the full editor schema', () => {
-  const base = ZoraxyCardEditor.SCHEMA.map((f) => f.name);
-  const mini = ZoraxyMiniCardEditor.SCHEMA.map((f) => f.name);
+  const base = ReverseProxyCardEditor.SCHEMA.map((f) => f.name);
+  const mini = ReverseProxyMiniCardEditor.SCHEMA.map((f) => f.name);
   // joined: the vm realm's arrays are not deepStrictEqual to this realm's.
   assert.equal(mini.join(), [...base, 'zoom'].join());
-  assert.equal(ZoraxyMiniCardEditor.DEFAULTS.zoom, true);
+  assert.equal(ReverseProxyMiniCardEditor.DEFAULTS.zoom, true);
 });
 
 test('mini chips show a dash, not the raw state, for unknown or unavailable values', () => {
@@ -266,7 +266,7 @@ test('mini chips show a dash, not the raw state, for unknown or unavailable valu
     [`sensor.${PREFIX}_certificats_tls`]: { state: '2', attributes: {} },
     [`sensor.${PREFIX}_port_entrant`]: { state: 'unknown', attributes: {} },
   };
-  const html = makeCard(states, ZoraxyMiniCard)._miniChips();
+  const html = makeCard(states, ReverseProxyMiniCard)._miniChips();
   assert.ok(!/unknown|unavailable/.test(html), html);
   assert.match(html, /Port –/);
   assert.match(html, /–\/– rules/);
@@ -274,24 +274,24 @@ test('mini chips show a dash, not the raw state, for unknown or unavailable valu
 });
 
 test('the card and the editors resolve the language the same way', () => {
-  assert.equal(ZoraxyCard.langOfHass({ locale: { language: 'de-AT' }, language: 'fr' }), 'de');
-  assert.equal(ZoraxyCard.langOfHass({ language: 'fr' }), 'fr');
-  assert.equal(ZoraxyCard.langOfHass(undefined), 'en');
+  assert.equal(ReverseProxyCard.langOfHass({ locale: { language: 'de-AT' }, language: 'fr' }), 'de');
+  assert.equal(ReverseProxyCard.langOfHass({ language: 'fr' }), 'fr');
+  assert.equal(ReverseProxyCard.langOfHass(undefined), 'en');
 });
 
 test('the language option wins over the Home Assistant language', () => {
-  const card = makeCard({}, ZoraxyCard, { language: 'es' });
+  const card = makeCard({}, ReverseProxyCard, { language: 'es' });
   card._hass.locale.language = 'fr';
   assert.equal(card._lang(), 'es');
   assert.equal(card._t('certsSection'), 'Certificados');
   card._config = { language: '' };
   assert.equal(card._lang(), 'fr');
-  assert.equal(ZoraxyCard.langOfHass({ language: 'fr' }, { language: 'de' }), 'de');
-  assert.throws(() => new ZoraxyCard().setConfig({ language: 3 }), /language must be a string/);
+  assert.equal(ReverseProxyCard.langOfHass({ language: 'fr' }, { language: 'de' }), 'de');
+  assert.throws(() => new ReverseProxyCard().setConfig({ language: 3 }), /language must be a string/);
 });
 
 test('the editors offer the language picker, labelled in the picked language', () => {
-  for (const Editor of [ZoraxyCardEditor, ZoraxyMiniCardEditor]) {
+  for (const Editor of [ReverseProxyCardEditor, ReverseProxyMiniCardEditor]) {
     const editor = new Editor();
     editor.appendChild = () => {};
     context.document.createElement = () => ({ addEventListener() {} });
@@ -314,20 +314,20 @@ test('the editors offer the language picker, labelled in the picked language', (
     );
     assert.equal(picker.find((o) => o.value === 'sr').label, 'Српски');
     assert.equal(picker.find((o) => o.value === 'sr-Latn').label, 'Srpski (latinica)');
-    assert.equal(picker[0].label, ZoraxyCard.I18N.de.lang_auto);
+    assert.equal(picker[0].label, ReverseProxyCard.I18N.de.lang_auto);
     assert.equal(editor._form.computeLabel({ name: 'language' }), 'Sprache');
     editor.setConfig({});
     assert.equal(editor._form.computeLabel({ name: 'language' }), 'Language');
     let sent;
     editor.dispatchEvent = (ev) => { sent = ev.detail.config; };
-    editor._valueChanged({ stopPropagation() {}, detail: { value: { zoraxy_url: 'http://z', language: '' } } });
-    assert.deepEqual({ ...sent }, { zoraxy_url: 'http://z' });
+    editor._valueChanged({ stopPropagation() {}, detail: { value: { proxy_url: 'http://z', language: '' } } });
+    assert.deepEqual({ ...sent }, { proxy_url: 'http://z' });
   }
 });
 
 test('French control labels are translated', () => {
-  assert.equal(ZoraxyCard.I18N.fr.httpsRedirect, 'Redirection HTTPS');
-  assert.equal(ZoraxyCard.I18N.fr.devMode, 'Mode dev');
+  assert.equal(ReverseProxyCard.I18N.fr.httpsRedirect, 'Redirection HTTPS');
+  assert.equal(ReverseProxyCard.I18N.fr.devMode, 'Mode dev');
 });
 
 // ── Colour contrast of the state-coloured text (WCAG 2.x) ─────────────────────
@@ -437,7 +437,7 @@ const TEXT_ON_STATE = [
 ];
 
 function textContrast(cssName, textSel, bgSel, theme, state) {
-  const css = cssName === 'card' ? ZoraxyCard.CSS : ZoraxyMiniCard.CSS;
+  const css = cssName === 'card' ? ReverseProxyCard.CSS : ReverseProxyMiniCard.CSS;
   const vars = cardVars(theme, state);
   const card = evalColor('var(--card-background-color)', vars);
   const bgDecl = decl(css, bgSel, 'background');
@@ -460,13 +460,13 @@ test('state-coloured text reaches 4.5:1 in the light and dark themes', () => {
 });
 
 test('the dot and the icons keep the plain state colour', () => {
-  assert.equal(decl(ZoraxyCard.CSS, '.dot', 'background'), 'var(--c, var(--zx-ok))');
-  assert.equal(decl(ZoraxyCard.CSS, '.ctrl .icon', 'color'), 'var(--c, var(--secondary-text-color))');
-  assert.equal(decl(ZoraxyMiniCard.CSS, '.r .icon', 'color'), 'var(--c)');
+  assert.equal(decl(ReverseProxyCard.CSS, '.dot', 'background'), 'var(--c, var(--zx-ok))');
+  assert.equal(decl(ReverseProxyCard.CSS, '.ctrl .icon', 'color'), 'var(--c, var(--secondary-text-color))');
+  assert.equal(decl(ReverseProxyMiniCard.CSS, '.r .icon', 'color'), 'var(--c)');
 });
 
 test('every transition is switched off under prefers-reduced-motion', () => {
-  for (const raw of [ZoraxyCard.CSS, ZoraxyMiniCard.CSS]) {
+  for (const raw of [ReverseProxyCard.CSS, ReverseProxyMiniCard.CSS]) {
     const css = raw.replace(/\/\*[\s\S]*?\*\//g, '');
     const block = css.match(/@media \(prefers-reduced-motion: reduce\)\s*\{([\s\S]*?\})\s*\}/);
     assert.ok(block, 'no prefers-reduced-motion media query');
@@ -517,7 +517,7 @@ function rules(css, selector, container = false) {
 }
 
 test('narrow header: the title keeps about four letters, the status pill gives way, the icon buttons never shrink', () => {
-  for (const css of [ZoraxyCard.CSS, ZoraxyMiniCard.CSS]) {
+  for (const css of [ReverseProxyCard.CSS, ReverseProxyMiniCard.CSS]) {
     assert.equal(rules(css, 'ha-card')['container-type'], 'inline-size');
     // The title block takes what the pill leaves (zero basis): the pill is cut only when space really lacks.
     const titles = rules(css, '.titles');
@@ -539,7 +539,7 @@ test('narrow header: the title keeps about four letters, the status pill gives w
     assert.equal(narrow['clip-path'], 'inset(50%)');
     assert.notEqual(narrow.display, 'none');
   }
-  const mini = ZoraxyMiniCard.CSS;
+  const mini = ReverseProxyMiniCard.CSS;
   const name = rules(mini, '.mini .name');
   assert.equal(name.flex, '1 1 0');
   assert.match(name['min-width'], /^[4-6](\.\d+)?ch$/);
@@ -548,7 +548,7 @@ test('narrow header: the title keeps about four letters, the status pill gives w
 });
 
 test('the mini card keeps the full card\'s 40 px logo; only a narrow card makes it smaller', () => {
-  const mini = ZoraxyMiniCard.CSS;
+  const mini = ReverseProxyMiniCard.CSS;
   assert.equal(rules(mini, '.logo').width, '40px');
   assert.equal(rules(mini, '.mini .logo').width, undefined, 'no mini-only logo size');
   assert.equal(rules(mini, '.mini .logo').height, undefined, 'no mini-only logo size');
@@ -569,11 +569,11 @@ test('the status pill carries its text as a title, and says unavailable rather t
 });
 
 test('control tile labels break at a soft hyphen, never in the middle of a word', () => {
-  assert.notEqual(rules(ZoraxyCard.CSS, '.cl')['overflow-wrap'], 'anywhere');
+  assert.notEqual(rules(ReverseProxyCard.CSS, '.cl')['overflow-wrap'], 'anywhere');
   // The label takes the free height: the On / Off lines of the three tiles line up.
-  assert.equal(rules(ZoraxyCard.CSS, '.cl').flex, '1 0 auto');
+  assert.equal(rules(ReverseProxyCard.CSS, '.cl').flex, '1 0 auto');
   // A 245 px card leaves about 60 px of text per tile: 11 letters at 11 px. Longer words need a break point.
-  for (const [lang, strings] of Object.entries(ZoraxyCard.I18N)) {
+  for (const [lang, strings] of Object.entries(ReverseProxyCard.I18N)) {
     for (const key of ['httpsRedirect', 'port80', 'devMode']) {
       for (const word of strings[key].split(/[\s-]/)) {
         const parts = word.split('­');
@@ -582,20 +582,20 @@ test('control tile labels break at a soft hyphen, never in the middle of a word'
     }
   }
   // The soft hyphen never shows in a single-line text (mini chip, tooltip).
-  assert.equal(ZoraxyCard.I18N.it.httpsRedirect.replace('­', ''), 'Reindirizzamento HTTPS');
+  assert.equal(ReverseProxyCard.I18N.it.httpsRedirect.replace('­', ''), 'Reindirizzamento HTTPS');
 });
 
 test('a rule row gives way on its target first, down to about four characters, before the domain', () => {
-  const right = rules(ZoraxyCard.CSS, '.row-right:has(> .row-sub)');
+  const right = rules(ReverseProxyCard.CSS, '.row-right:has(> .row-sub)');
   assert.equal(right.flex, '1 1 auto');
   assert.equal(right['min-width'], undefined, 'the row end keeps its automatic minimum (target 4ch + button)');
-  const sub = rules(ZoraxyCard.CSS, '.row-sub');
+  const sub = rules(ReverseProxyCard.CSS, '.row-sub');
   assert.equal(sub.width, '0');
   assert.equal(sub['flex-grow'], '1');
   assert.equal(sub['min-width'], '4ch');
   assert.equal(sub['max-width'], 'max-content');
   // The redirect code (→ 301) keeps its own width.
-  const code = rules(ZoraxyCard.CSS, '.row-sub.row-code');
+  const code = rules(ReverseProxyCard.CSS, '.row-sub.row-code');
   assert.equal(code.width, 'auto');
   assert.equal(code['flex-grow'], '0');
 });
@@ -622,7 +622,7 @@ test('turning port 80 off asks first; turning it on, and the other controls, act
   const card = controlCard();
   card._onCtrl('ctrl-port80');
   assert.deepEqual(card.calls, [], 'no call before the confirmation');
-  assert.equal(card._confirm.text, ZoraxyCard.I18N.en.confirmPort80Off);
+  assert.equal(card._confirm.text, ReverseProxyCard.I18N.en.confirmPort80Off.replace('{proxy}', 'Zoraxy'));
   assert.deepEqual({ ...card._confirm.from }, { id: 'ctrl-port80' });
   const { run } = card._confirm;
   card._closeConfirm();
@@ -683,7 +683,7 @@ test('cancelling the confirmation does nothing, and a double click on its button
   card._onCtrl('ctrl-port80');
   assert.equal(card._confirm, null);
   assert.deepEqual(card.calls, []);
-  card._confirmClosedAt = Date.now() - ZoraxyCard.CONFIRM_GUARD_MS - 1;
+  card._confirmClosedAt = Date.now() - ReverseProxyCard.CONFIRM_GUARD_MS - 1;
   card._onCtrl('ctrl-port80');
   assert.ok(card._confirm, 'a later click asks again');
 });
@@ -708,14 +708,14 @@ test('disabling a proxy rule asks first; enabling it acts at once', async () => 
   const { run } = card._confirm;
   card._closeConfirm();
   await run();
-  assert.deepEqual(card.calls, ['zoraxy.toggle_proxy_rule nas.example.org=false']);
+  assert.deepEqual(card.calls, ['reverse_proxy.toggle_proxy_rule nas.example.org=false']);
   clearTimeout(card._refreshTimer);
 
   card._confirmClosedAt = 0;
   card.calls = [];
   await card._onRule(btn('off.example.org', false));
   assert.equal(card._confirm, null);
-  assert.deepEqual(card.calls, ['zoraxy.toggle_proxy_rule off.example.org=true']);
+  assert.deepEqual(card.calls, ['reverse_proxy.toggle_proxy_rule off.example.org=true']);
   clearTimeout(card._refreshTimer);
 });
 
@@ -818,10 +818,10 @@ test('an unavailable rules sensor is not shown as "no rule"', () => {
 
 test('the mini card does not report "HTTPS redirect off" when the sensor is unavailable', () => {
   for (const state of ['unavailable', 'unknown']) {
-    const html = makeCard({ [`binary_sensor.${PREFIX}_redirection_https`]: { state, attributes: {} } }, ZoraxyMiniCard)._miniChips();
+    const html = makeCard({ [`binary_sensor.${PREFIX}_redirection_https`]: { state, attributes: {} } }, ReverseProxyMiniCard)._miniChips();
     assert.doesNotMatch(html, /HTTPS redirect/);
   }
-  const off = makeCard({ [`binary_sensor.${PREFIX}_redirection_https`]: { state: 'off', attributes: {} } }, ZoraxyMiniCard)._miniChips();
+  const off = makeCard({ [`binary_sensor.${PREFIX}_redirection_https`]: { state: 'off', attributes: {} } }, ReverseProxyMiniCard)._miniChips();
   assert.match(off, /HTTPS redirect Off/);
 });
 
@@ -839,7 +839,7 @@ test('the renew button of an unavailable certificate button entity is disabled',
 });
 
 test('both cards set their language on ha-card (hyphenation, screen readers)', () => {
-  for (const Cls of [ZoraxyCard, ZoraxyMiniCard]) {
+  for (const Cls of [ZoraxyCard, ReverseProxyMiniCard]) {
     const card = makeCard({}, Cls);
     card._hass.locale.language = 'sr-Latn';
     card._render();
@@ -852,7 +852,7 @@ test('the card keeps a natural width in an inline-block, without a minimum width
   // padding (~24 px) in an inline-block or a grid "auto" column. contain-intrinsic-inline-size or a min-width in
   // px would fix that but become a minimum: in a "1fr 1fr" grid (layout-card, grid or horizontal stack), wrapped
   // or not, the card then refuses to shrink and overflows (measured 316-500 px).
-  for (const css of [ZoraxyCard.CSS, ZoraxyMiniCard.CSS]) {
+  for (const css of [ReverseProxyCard.CSS, ReverseProxyMiniCard.CSS]) {
     const clean = css.replace(/\/\*[\s\S]*?\*\//g, '');
     assert.doesNotMatch(clean, /contain-intrinsic/);
     assert.equal(rules(css, 'ha-card')['container-type'], 'inline-size');
@@ -863,12 +863,12 @@ test('the card keeps a natural width in an inline-block, without a minimum width
     assert.equal(before.height, '0');
     assert.equal(before['grid-template-columns'], 'minmax(0, var(--zx-natural-width))');
   }
-  assert.equal(rules(ZoraxyCard.CSS, ':host')['--zx-natural-width'], '360px');
-  assert.equal(rules(ZoraxyMiniCard.CSS, ':host')['--zx-natural-width'], '300px');
+  assert.equal(rules(ReverseProxyCard.CSS, ':host')['--zx-natural-width'], '360px');
+  assert.equal(rules(ReverseProxyMiniCard.CSS, ':host')['--zx-natural-width'], '300px');
 });
 
 test('narrow card (4 columns on a phone): the controls stack label and state, a row keeps its domain', () => {
-  const css = ZoraxyCard.CSS;
+  const css = ReverseProxyCard.CSS;
   // ≤ 200 px: icon, then the label with its state under it; the state never squeezes the label.
   const ctrl = rules(css, '.ctrl', 200);
   assert.equal(ctrl.display, 'grid');
@@ -886,7 +886,7 @@ test('narrow card (4 columns on a phone): the controls stack label and state, a 
 });
 
 test('a rule or redirect row wraps up to 200 px, so its target keeps a visible width on a phone', () => {
-  const css = ZoraxyCard.CSS;
+  const css = ReverseProxyCard.CSS;
   // 151-200 px (the full card at 6 columns on a phone, the zoomed mini card at 160 px): without the wrap the
   // domain took the whole line and the target fell to 0 px. The domain gets its own line, the target and the
   // buttons go under it, exactly as at 150 px and below.
@@ -913,14 +913,14 @@ test('the mini card detail button keeps the focus through a state update, withou
     return b;
   };
   try {
-    const card = makeCard({}, ZoraxyMiniCard, {});
+    const card = makeCard({}, ReverseProxyMiniCard, {});
     const head = { appendChild() {} };
     card.shadowRoot.querySelector = (sel) => (sel === '.head, .header' ? head : null);
     card._addZoom();
     const [button] = made;
     assert.equal(button.className, 'zoom');
     assert.equal(button.dataset.action, 'zoom');
-    assert.ok(ZoraxyCard.FOCUS_ATTRS.includes('data-action'));
+    assert.ok(ReverseProxyCard.FOCUS_ATTRS.includes('data-action'));
     // A hass update redraws the card: the new detail button gets the focus back, without scrolling.
     const el = (attrs) => ({ classList: ['zoom'], getAttribute: (a) => attrs[a] ?? null, args: null, focus(arg) { this.args = arg; } });
     card.shadowRoot.activeElement = el({ 'data-action': 'zoom' });
@@ -961,11 +961,11 @@ test('a redraw gives the focus back to the same control', () => {
 // ── Entities from the registry, several instances, upstream health ───────────
 
 // Two Zoraxy devices whose entities were renamed: only the registry (platform, device, translation key) finds them.
-function registryCard(config = {}, Cls = ZoraxyCard) {
+function registryCard(config = {}, Cls = ReverseProxyCard) {
   const entities = {};
   const states = {};
   const add = (id, device, key, state, attributes = {}) => {
-    entities[id] = { entity_id: id, platform: 'zoraxy', device_id: device, translation_key: key };
+    entities[id] = { entity_id: id, platform: 'reverse_proxy', device_id: device, translation_key: key };
     states[id] = { entity_id: id, state, attributes };
   };
   for (const [dev, name, rules, port] of [['dev1', 'proxy_one', '3', '443'], ['dev2', 'proxy_two', '7', '8443']]) {
@@ -1026,9 +1026,9 @@ test('the device option picks another Zoraxy instance', () => {
   assert.doesNotMatch(card.shadowRoot.innerHTML, /proxy_one/);
   // The default picks the device of the entity named after the prefix (the first install keeps its 1.4.x ids).
   const named = registryCard();
-  named._hass.entities[`sensor.${PREFIX}_regles_proxy`] = { entity_id: `sensor.${PREFIX}_regles_proxy`, platform: 'zoraxy', device_id: 'dev2', translation_key: 'x' };
+  named._hass.entities[`sensor.${PREFIX}_regles_proxy`] = { entity_id: `sensor.${PREFIX}_regles_proxy`, platform: 'reverse_proxy', device_id: 'dev2', translation_key: 'x' };
   assert.equal(named._eid('sensor.inbound_port'), 'sensor.proxy_two_port');
-  assert.throws(() => new ZoraxyCard().setConfig({ device: 3 }), /device/);
+  assert.throws(() => new ReverseProxyCard().setConfig({ device: 3 }), /device/);
 });
 
 test('without the registry (or without any Zoraxy entity in it) the ids come from the prefix', () => {
@@ -1044,7 +1044,7 @@ test('a rule whose upstream is down gets a badge; the mini card counts them', ()
   const rows = card._buildRules(card._attr('sensor.proxy_one_rules', 'rules')).split('<div class="row">');
   assert.match(rows.find((r) => r.includes('app.proxy_one.org')), /up-badge[^>]*title="Upstream down \(Zoraxy uptime monitor\)"[\s\S]*>Down</);
   assert.doesNotMatch(rows.find((r) => r.includes('ok.proxy_one.org')), /up-badge/);
-  const mini = registryCard({}, ZoraxyMiniCard)._miniChips();
+  const mini = registryCard({}, ReverseProxyMiniCard)._miniChips();
   assert.match(mini, /data-entity="binary_sensor\.proxy_one_up_app"[^>]*>[\s\S]*Upstreams down: 1/);
   // Found from the prefix too.
   const legacy = makeCard({
@@ -1054,15 +1054,15 @@ test('a rule whose upstream is down gets a badge; the mini card counts them', ()
   assert.match(legacy._buildRules(legacy._attr(`sensor.${PREFIX}_regles_proxy`, 'rules')), /up-badge/);
 });
 
-test('the editors offer the Zoraxy device picker', () => {
-  const field = ZoraxyCardEditor.SCHEMA.find((f) => f.name === 'device');
-  assert.equal(field.selector.device.integration, 'zoraxy');
-  assert.ok(ZoraxyMiniCardEditor.SCHEMA.some((f) => f.name === 'device'));
+test('the editors offer the reverse proxy device picker', () => {
+  const field = ReverseProxyCardEditor.SCHEMA.find((f) => f.name === 'device');
+  assert.equal(field.selector.device.integration, 'reverse_proxy');
+  assert.ok(ReverseProxyMiniCardEditor.SCHEMA.some((f) => f.name === 'device'));
 });
 
 test('the header icon links to the Zoraxy web interface, tinted with the status; the title is plain text', () => {
   const card = registryCard();
-  card._config = { ...card._config, zoraxy_url: 'http://zoraxy.local:8000' };
+  card._config = { ...card._config, proxy_url: 'http://zoraxy.local:8000' };
   card._render();
   let html = card.shadowRoot.innerHTML;
   assert.match(html, /<a class="brand-link" href="http:\/\/zoraxy\.local:8000" target="_blank" rel="noopener noreferrer" title="Open the Zoraxy web interface"/);
@@ -1071,11 +1071,125 @@ test('the header icon links to the Zoraxy web interface, tinted with the status;
   assert.match(html, /<span class="name">Zoraxy<\/span>/);
   assert.doesNotMatch(html, /<a class="name"/);
   // Without a URL: the icon alone, no link; the proxy stopped turns it red.
-  card._config = { ...card._config, zoraxy_url: '' };
+  card._config = { ...card._config, proxy_url: '' };
   const running = card._hass.states['binary_sensor.proxy_one_running'];
   card._hass = { ...card._hass, states: { ...card._hass.states, 'binary_sensor.proxy_one_running': { ...running, state: 'off' } } };
   card._render();
   html = card.shadowRoot.innerHTML;
   assert.doesNotMatch(html, /<a class="brand-link"/);
   assert.match(html, /<span class="logo crit"/);
+});
+
+// ── Several reverse proxies ──────────────────────────────────────────────────
+// A Traefik device: Home Assistant's default ids, a read-only API (no controls, no certificates, no rule toggle).
+function traefikCard(Cls = ReverseProxyCard, config = {}) {
+  const entities = {};
+  const states = {};
+  const add = (id, key, state, attributes = {}) => {
+    entities[id] = { entity_id: id, platform: 'reverse_proxy', device_id: 'devT', translation_key: key };
+    states[id] = { entity_id: id, state, attributes };
+  };
+  const T = 'traefik_reverse_proxy';
+  add(`binary_sensor.${T}_proxy_running`, 'proxy_running', 'on', { proxy_type: 'traefik', features: ['middlewares', 'redirects', 'version'] });
+  add(`binary_sensor.${T}_tls_enabled`, 'tls_enabled', 'on');
+  add(`sensor.${T}_proxy_rules`, 'proxy_rules', '2', {
+    rules: [{ domain: 'ha.example.org', target: 'http://10.0.0.2:8123', enabled: true }, { domain: 'nas.example.org', target: 'http://10.0.0.3:9999', enabled: false }],
+    redirects: [{ RedirectURL: 'redirect-to-https', TargetURL: 'https://…', StatusCode: 301 }],
+  });
+  add(`sensor.${T}_active_rules`, 'active_rules', '1');
+  add(`sensor.${T}_middlewares`, 'middlewares', '4');
+  add(`sensor.${T}_inbound_port`, 'inbound_port', '443');
+  add(`sensor.${T}_version`, 'version', '3.3.6');
+  add(`binary_sensor.${T}_nas_example_org_upstream`, 'upstream_problem', 'on', { domain: 'nas.example.org' });
+  const card = new Cls();
+  card._config = config;
+  card._hass = { states, entities, locale: { language: 'en' }, user: { is_admin: true } };
+  return card;
+}
+
+test('a Traefik device: brand name and mark, no controls or certificates, rules shown read-only', () => {
+  const card = traefikCard();
+  assert.equal(card._proxyType(), 'traefik');
+  assert.equal(card._t('openProxy'), 'Open the Traefik web interface');
+  card._sectionOpen.rules = true;
+  card._render();
+  const html = card.shadowRoot.innerHTML.split('</style>')[1];
+  assert.match(html, /<span class="name">Traefik<\/span>/);
+  assert.match(html, /<span class="badge"><svg viewBox="2.67 10.17 123.05 110.77"/);
+  assert.match(html, /<div class="mv">4<\/div><div class="ml">Middlewares<\/div>/);
+  assert.doesNotMatch(html, /Certs/);
+  assert.doesNotMatch(html, /data-id="controls"/);
+  assert.doesNotMatch(html, /data-id="certs"/);
+  assert.match(html, /data-id="rules"/);
+  assert.match(html, /data-id="redirects"/);
+  // The rule's state is a plain chip, not a toggle button; the upstream badge still shows.
+  assert.doesNotMatch(html, /rule-btn/);
+  assert.match(html, /<span class="chip rule-state ok"><span class="dot"><\/span>On<\/span>/);
+  assert.match(html, /<span class="chip rule-state crit"><span class="dot"><\/span>Off<\/span>/);
+  assert.match(html, /up-badge[^>]*title="Upstream down \(Traefik uptime monitor\)"/);
+  assert.equal(card.getCardSize(), 2 + 2 + 1);
+});
+
+test('the Traefik mini card shows middlewares and the version, no certificate or control chips', () => {
+  const mini = traefikCard(ReverseProxyMiniCard)._miniChips();
+  assert.match(mini, /1\/2 rules/);
+  assert.match(mini, /Upstreams down: 1/);
+  assert.match(mini, /4 Middlewares/);
+  assert.match(mini, /Port 443/);
+  assert.match(mini, /v3\.3\.6/);
+  assert.doesNotMatch(mini, /certs|HTTPS redirect|Dev mode/);
+});
+
+test('without a proxy type the entities are taken for Zoraxy, with every feature', () => {
+  const card = registryCard();
+  assert.equal(card._proxyType(), 'zoraxy');
+  for (const f of ['controls', 'certificates', 'toggle_rules', 'redirects', 'access_rules']) assert.ok(card._has(f), f);
+  assert.ok(!card._has('middlewares'));
+  // The `features` attribute wins over the brand's defaults.
+  card._hass.states['binary_sensor.proxy_one_running'].attributes.features = ['redirects'];
+  assert.ok(!card._has('controls'));
+});
+
+test('every text names the proxy the card shows ({proxy}), the editor says both', () => {
+  for (const [lang, texts] of Object.entries(ReverseProxyCard.I18N)) {
+    for (const [key, text] of Object.entries(texts)) {
+      assert.doesNotMatch(text, /Zoraxy|Traefik/, `${lang}.${key} names a proxy`);
+    }
+  }
+  assert.equal(traefikCard()._t('ed_device'), 'Traefik device');
+  const editor = new ReverseProxyCardEditor();
+  editor.appendChild = () => {};
+  context.document.createElement = () => ({ addEventListener() {} });
+  editor._hass = { locale: { language: 'en' } };
+  editor.setConfig({});
+  assert.equal(editor._form.computeLabel({ name: 'device' }), 'Zoraxy / Traefik device');
+});
+
+test('zoraxy_url (up to 1.14.x) still gives the header link; the editor shows and saves it as proxy_url', () => {
+  const card = registryCard({ zoraxy_url: 'http://old.local:8000' });
+  assert.equal(card._url(), 'http://old.local:8000');
+  const editor = new ReverseProxyCardEditor();
+  editor.appendChild = () => {};
+  context.document.createElement = () => ({ addEventListener() {} });
+  editor._hass = { locale: { language: 'en' } };
+  editor.setConfig({ zoraxy_url: 'http://old.local:8000' });
+  assert.equal(editor._form.data.proxy_url, 'http://old.local:8000');
+  assert.equal(editor._form.data.zoraxy_url, undefined);
+  let sent;
+  editor.dispatchEvent = (ev) => { sent = ev.detail.config; };
+  editor._valueChanged({ stopPropagation() {}, detail: { value: { proxy_url: 'http://new.local:8000', zoraxy_url: 'http://old.local:8000' } } });
+  assert.deepEqual({ ...sent }, { proxy_url: 'http://new.local:8000' });
+});
+
+test('the former card names are aliases of the new cards', () => {
+  assert.ok(new ZoraxyCard() instanceof ReverseProxyCard);
+  assert.ok(new ZoraxyMiniCard() instanceof ReverseProxyMiniCard);
+  assert.match(source, /customElements\.define\("reverse-proxy-card", ReverseProxyCard\)/);
+  for (const tag of ['zoraxy-card', 'zoraxy-mini-card', 'zoraxy-card-editor', 'zoraxy-mini-card-editor']) {
+    assert.match(source, new RegExp(`\\["${tag}", \\w+\\]`), tag);
+  }
+  // Only the new names are offered in the card picker.
+  assert.deepEqual(context.window.customCards.map((c) => c.type), []);
+  assert.match(source, /type: "reverse-proxy-card"/);
+  assert.doesNotMatch(source, /type: "zoraxy-card"/);
 });

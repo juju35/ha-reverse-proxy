@@ -1,0 +1,194 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Reverzní proxy - Konfigurace",
+        "menu_options": {
+          "zoraxy": "Zoraxy",
+          "traefik": "Traefik"
+        }
+      },
+      "zoraxy": {
+        "title": "Zoraxy - Konfigurace",
+        "data": {
+          "host": "Adresa Zoraxy (URL s portem)",
+          "username": "Uživatelské jméno",
+          "password": "Heslo",
+          "scan_interval": "Interval obnovení (sekundy)",
+          "verify_ssl": "Ověřit certifikát TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Vypínejte pouze pro adresu HTTPS se samopodepsaným certifikátem."
+        }
+      },
+      "traefik": {
+        "title": "Traefik - Konfigurace",
+        "data": {
+          "host": "Adresa Traefik (URL s portem)",
+          "username": "Uživatelské jméno",
+          "password": "Heslo",
+          "scan_interval": "Interval obnovení (sekundy)",
+          "verify_ssl": "Ověřit certifikát TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Vypínejte pouze pro adresu HTTPS se samopodepsaným certifikátem.",
+          "username": "Jen pokud je API nebo dashboard Traefiku za middleware basicAuth; jinak nechte prázdné."
+        }
+      },
+      "reauth_confirm": {
+        "title": "{proxy} - Nové heslo",
+        "description": "{proxy} odmítl heslo uživatele {username} na {host}.",
+        "data": {
+          "username": "Uživatelské jméno",
+          "password": "Heslo"
+        }
+      },
+      "reconfigure": {
+        "title": "{proxy} - Změna konfigurace",
+        "description": "Změňte adresu nebo přihlašovací údaje tohoto {proxy}. Přihlášení se před uložením ověří.",
+        "data": {
+          "host": "Adresa {proxy} (URL s portem)",
+          "username": "Uživatelské jméno",
+          "password": "Heslo"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Nelze se připojit k {proxy}",
+      "invalid_auth": "Neplatné přihlašovací údaje",
+      "unknown": "Neznámá chyba"
+    },
+    "abort": {
+      "already_configured": "{proxy} je již nastaven",
+      "reauth_successful": "Heslo bylo aktualizováno",
+      "reconfigure_successful": "Konfigurace byla aktualizována"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "{proxy} - Možnosti",
+        "data": {
+          "scan_interval": "Interval obnovení (sekundy)",
+          "verify_ssl": "Ověřit certifikát TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Vypínejte pouze pro adresu HTTPS se samopodepsaným certifikátem."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "proxy_rules": {
+        "name": "Pravidla proxy"
+      },
+      "active_rules": {
+        "name": "Aktivní pravidla"
+      },
+      "tls_certificates": {
+        "name": "Certifikáty TLS"
+      },
+      "access_rules": {
+        "name": "Pravidla přístupu"
+      },
+      "inbound_port": {
+        "name": "Příchozí port"
+      },
+      "certificate": {
+        "name": "Certifikát {domain}"
+      },
+      "middlewares": {
+        "name": "Middleware"
+      },
+      "version": {
+        "name": "Verze"
+      }
+    },
+    "binary_sensor": {
+      "proxy_running": {
+        "name": "Proxy běží"
+      },
+      "tls_enabled": {
+        "name": "TLS zapnuto"
+      },
+      "https_redirect": {
+        "name": "Přesměrování HTTPS"
+      },
+      "port_80": {
+        "name": "Naslouchání na portu 80"
+      },
+      "development_mode": {
+        "name": "Vývojářský režim"
+      },
+      "certificate_expiring": {
+        "name": "Certifikát {domain} brzy vyprší"
+      },
+      "upstream_problem": {
+        "name": "Cílový server {domain}"
+      }
+    },
+    "switch": {
+      "https_redirect": {
+        "name": "Přesměrování HTTPS"
+      },
+      "port_80": {
+        "name": "Naslouchání na portu 80"
+      },
+      "development_mode": {
+        "name": "Vývojářský režim"
+      }
+    },
+    "button": {
+      "renew": {
+        "name": "Obnovit {domain}"
+      }
+    }
+  },
+  "services": {
+    "toggle_proxy_rule": {
+      "name": "Přepnout pravidlo proxy",
+      "description": "Povolí nebo zakáže pravidlo proxy.",
+      "fields": {
+        "domain": {
+          "name": "Doména",
+          "description": "Doména pravidla proxy (např. „example.com“)."
+        },
+        "enable": {
+          "name": "Povolit",
+          "description": "true pro povolení pravidla, false pro jeho zakázání. Když se vynechá, pravidlo se přepne."
+        },
+        "config_entry_id": {
+          "name": "Instance",
+          "description": "Instance, ke které pravidlo patří. Když se vynechá, použije se instance, která uvádí doménu."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_instance": {
+      "message": "Není načtena žádná instance"
+    },
+    "rule_not_found": {
+      "message": "Pravidlo proxy {domain} nebylo nalezeno"
+    },
+    "rule_change_failed": {
+      "message": "{proxy}: pravidlo {domain} se nepodařilo změnit: {error}"
+    },
+    "acme_email_unavailable": {
+      "message": "{proxy}: e-mail ACME není k dispozici"
+    },
+    "wildcard_renewal": {
+      "message": "{proxy}: {domain} je wildcard certifikát, který vyžaduje ověření DNS: obnovte ho v {proxy}"
+    },
+    "renewal_failed": {
+      "message": "{proxy}: obnovení {domain} selhalo: {error}"
+    },
+    "command_failed": {
+      "message": "{proxy}: {error}"
+    },
+    "not_supported": {
+      "message": "{proxy}: tato akce není dostupná, jeho API je jen pro čtení"
+    }
+  }
+}

@@ -1,4 +1,4 @@
-"""Fixtures for Zoraxy tests."""
+"""Fixtures for the Reverse Proxy tests."""
 
 import logging
 import os
@@ -8,7 +8,7 @@ import pytest
 from homeassistant.components import http
 from homeassistant.helpers import frame
 
-from custom_components.zoraxy.const import DOMAIN
+from custom_components.reverse_proxy.const import DOMAIN
 
 
 @pytest.fixture(autouse=True)
@@ -59,7 +59,7 @@ def stub_frontend():
     """The real frontend needs the hass_frontend package, which tests don't install."""
     with (
         patch("homeassistant.components.frontend.async_setup", return_value=True),
-        patch("custom_components.zoraxy.add_extra_js_url") as add_js,
+        patch("custom_components.reverse_proxy.add_extra_js_url") as add_js,
     ):
         # No test needs a listening server (hass_client has its own); before 2026.10, starting it with
         # sockets blocked leaves a delayed config write behind. 2026.10 no longer saves that config.

@@ -1,0 +1,194 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Omvänd proxy - Konfiguration",
+        "menu_options": {
+          "zoraxy": "Zoraxy",
+          "traefik": "Traefik"
+        }
+      },
+      "zoraxy": {
+        "title": "Zoraxy - Konfiguration",
+        "data": {
+          "host": "Zoraxy-adress (URL med port)",
+          "username": "Användarnamn",
+          "password": "Lösenord",
+          "scan_interval": "Uppdateringsintervall (sekunder)",
+          "verify_ssl": "Verifiera TLS-certifikatet"
+        },
+        "data_description": {
+          "verify_ssl": "Stäng bara av för en HTTPS-adress med ett självsignerat certifikat."
+        }
+      },
+      "traefik": {
+        "title": "Traefik - Konfiguration",
+        "data": {
+          "host": "Traefik-adress (URL med port)",
+          "username": "Användarnamn",
+          "password": "Lösenord",
+          "scan_interval": "Uppdateringsintervall (sekunder)",
+          "verify_ssl": "Verifiera TLS-certifikatet"
+        },
+        "data_description": {
+          "verify_ssl": "Stäng bara av för en HTTPS-adress med ett självsignerat certifikat.",
+          "username": "Endast om Traefiks API eller instrumentpanel ligger bakom en basicAuth-middleware; lämna annars tomt."
+        }
+      },
+      "reauth_confirm": {
+        "title": "{proxy} - Nytt lösenord",
+        "description": "{proxy} avvisade lösenordet för {username} på {host}.",
+        "data": {
+          "username": "Användarnamn",
+          "password": "Lösenord"
+        }
+      },
+      "reconfigure": {
+        "title": "{proxy} - Konfigurera om",
+        "description": "Ändra adressen eller inloggningsuppgifterna för denna {proxy}. Inloggningen kontrolleras innan den sparas.",
+        "data": {
+          "host": "{proxy}-adress (URL med port)",
+          "username": "Användarnamn",
+          "password": "Lösenord"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Det går inte att ansluta till {proxy}",
+      "invalid_auth": "Ogiltiga inloggningsuppgifter",
+      "unknown": "Okänt fel"
+    },
+    "abort": {
+      "already_configured": "{proxy} är redan konfigurerat",
+      "reauth_successful": "Lösenordet har uppdaterats",
+      "reconfigure_successful": "Konfigurationen har uppdaterats"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "{proxy} - Alternativ",
+        "data": {
+          "scan_interval": "Uppdateringsintervall (sekunder)",
+          "verify_ssl": "Verifiera TLS-certifikatet"
+        },
+        "data_description": {
+          "verify_ssl": "Stäng bara av för en HTTPS-adress med ett självsignerat certifikat."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "proxy_rules": {
+        "name": "Proxyregler"
+      },
+      "active_rules": {
+        "name": "Aktiva regler"
+      },
+      "tls_certificates": {
+        "name": "TLS-certifikat"
+      },
+      "access_rules": {
+        "name": "Åtkomstregler"
+      },
+      "inbound_port": {
+        "name": "Inkommande port"
+      },
+      "certificate": {
+        "name": "Certifikat {domain}"
+      },
+      "middlewares": {
+        "name": "Middlewares"
+      },
+      "version": {
+        "name": "Version"
+      }
+    },
+    "binary_sensor": {
+      "proxy_running": {
+        "name": "Proxy körs"
+      },
+      "tls_enabled": {
+        "name": "TLS aktiverat"
+      },
+      "https_redirect": {
+        "name": "HTTPS-omdirigering"
+      },
+      "port_80": {
+        "name": "Lyssnar på port 80"
+      },
+      "development_mode": {
+        "name": "Utvecklingsläge"
+      },
+      "certificate_expiring": {
+        "name": "Certifikat {domain} går snart ut"
+      },
+      "upstream_problem": {
+        "name": "Målserver {domain}"
+      }
+    },
+    "switch": {
+      "https_redirect": {
+        "name": "HTTPS-omdirigering"
+      },
+      "port_80": {
+        "name": "Lyssnar på port 80"
+      },
+      "development_mode": {
+        "name": "Utvecklingsläge"
+      }
+    },
+    "button": {
+      "renew": {
+        "name": "Förnya {domain}"
+      }
+    }
+  },
+  "services": {
+    "toggle_proxy_rule": {
+      "name": "Växla proxyregel",
+      "description": "Aktivera eller inaktivera en proxyregel.",
+      "fields": {
+        "domain": {
+          "name": "Domän",
+          "description": "Proxyregelns domän (t.ex. ”example.com”)."
+        },
+        "enable": {
+          "name": "Aktivera",
+          "description": "true för att aktivera regeln, false för att inaktivera den. Utelämna för att växla regeln."
+        },
+        "config_entry_id": {
+          "name": "Instans",
+          "description": "Den instans som regeln tillhör. Utelämna för att använda instansen som listar domänen."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_instance": {
+      "message": "Ingen instans är inläst"
+    },
+    "rule_not_found": {
+      "message": "Proxyregeln {domain} hittades inte"
+    },
+    "rule_change_failed": {
+      "message": "{proxy}: det gick inte att ändra regeln {domain}: {error}"
+    },
+    "acme_email_unavailable": {
+      "message": "{proxy}: ACME-e-postadressen är inte tillgänglig"
+    },
+    "wildcard_renewal": {
+      "message": "{proxy}: {domain} är ett wildcard-certifikat, som kräver en DNS-utmaning: förnya det i {proxy}"
+    },
+    "renewal_failed": {
+      "message": "{proxy}: förnyelsen av {domain} misslyckades: {error}"
+    },
+    "command_failed": {
+      "message": "{proxy}: {error}"
+    },
+    "not_supported": {
+      "message": "{proxy}: den här åtgärden är inte tillgänglig, dess API är skrivskyddat"
+    }
+  }
+}

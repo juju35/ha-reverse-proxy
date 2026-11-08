@@ -1,0 +1,194 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Fordított proxy - Konfiguráció",
+        "menu_options": {
+          "zoraxy": "Zoraxy",
+          "traefik": "Traefik"
+        }
+      },
+      "zoraxy": {
+        "title": "Zoraxy - Konfiguráció",
+        "data": {
+          "host": "Zoraxy címe (URL porttal)",
+          "username": "Felhasználónév",
+          "password": "Jelszó",
+          "scan_interval": "Frissítési időköz (másodperc)",
+          "verify_ssl": "TLS-tanúsítvány ellenőrzése"
+        },
+        "data_description": {
+          "verify_ssl": "Csak önaláírt tanúsítványt használó HTTPS-cím esetén kapcsolja ki."
+        }
+      },
+      "traefik": {
+        "title": "Traefik - Konfiguráció",
+        "data": {
+          "host": "Traefik címe (URL porttal)",
+          "username": "Felhasználónév",
+          "password": "Jelszó",
+          "scan_interval": "Frissítési időköz (másodperc)",
+          "verify_ssl": "TLS-tanúsítvány ellenőrzése"
+        },
+        "data_description": {
+          "verify_ssl": "Csak önaláírt tanúsítványt használó HTTPS-cím esetén kapcsolja ki.",
+          "username": "Csak ha a Traefik API vagy az irányítópult basicAuth middleware mögött van; különben hagyja üresen."
+        }
+      },
+      "reauth_confirm": {
+        "title": "{proxy} - Új jelszó",
+        "description": "A {proxy} elutasította {username} jelszavát itt: {host}.",
+        "data": {
+          "username": "Felhasználónév",
+          "password": "Jelszó"
+        }
+      },
+      "reconfigure": {
+        "title": "{proxy} - Újrakonfigurálás",
+        "description": "Módosítsa ennek a(z) {proxy} példánynak a címét vagy hitelesítő adatait. A bejelentkezés mentés előtt ellenőrzésre kerül.",
+        "data": {
+          "host": "{proxy} címe (URL porttal)",
+          "username": "Felhasználónév",
+          "password": "Jelszó"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Nem sikerült csatlakozni a(z) {proxy} szerverhez",
+      "invalid_auth": "Érvénytelen hitelesítő adatok",
+      "unknown": "Ismeretlen hiba"
+    },
+    "abort": {
+      "already_configured": "A {proxy} már konfigurálva van",
+      "reauth_successful": "A jelszó frissítve",
+      "reconfigure_successful": "A konfiguráció frissítve"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "{proxy} - Beállítások",
+        "data": {
+          "scan_interval": "Frissítési időköz (másodperc)",
+          "verify_ssl": "TLS-tanúsítvány ellenőrzése"
+        },
+        "data_description": {
+          "verify_ssl": "Csak önaláírt tanúsítványt használó HTTPS-cím esetén kapcsolja ki."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "proxy_rules": {
+        "name": "Proxyszabályok"
+      },
+      "active_rules": {
+        "name": "Aktív szabályok"
+      },
+      "tls_certificates": {
+        "name": "TLS-tanúsítványok"
+      },
+      "access_rules": {
+        "name": "Hozzáférési szabályok"
+      },
+      "inbound_port": {
+        "name": "Bejövő port"
+      },
+      "certificate": {
+        "name": "{domain} tanúsítvány"
+      },
+      "middlewares": {
+        "name": "Middleware-ek"
+      },
+      "version": {
+        "name": "Verzió"
+      }
+    },
+    "binary_sensor": {
+      "proxy_running": {
+        "name": "Proxy fut"
+      },
+      "tls_enabled": {
+        "name": "TLS engedélyezve"
+      },
+      "https_redirect": {
+        "name": "HTTPS-átirányítás"
+      },
+      "port_80": {
+        "name": "Figyelés a 80-as porton"
+      },
+      "development_mode": {
+        "name": "Fejlesztői mód"
+      },
+      "certificate_expiring": {
+        "name": "{domain} tanúsítvány hamarosan lejár"
+      },
+      "upstream_problem": {
+        "name": "{domain} célszerver"
+      }
+    },
+    "switch": {
+      "https_redirect": {
+        "name": "HTTPS-átirányítás"
+      },
+      "port_80": {
+        "name": "Figyelés a 80-as porton"
+      },
+      "development_mode": {
+        "name": "Fejlesztői mód"
+      }
+    },
+    "button": {
+      "renew": {
+        "name": "{domain} megújítása"
+      }
+    }
+  },
+  "services": {
+    "toggle_proxy_rule": {
+      "name": "Proxyszabály váltása",
+      "description": "Engedélyez vagy letilt egy proxyszabályt.",
+      "fields": {
+        "domain": {
+          "name": "Domain",
+          "description": "A proxyszabály domainje (pl. „example.com”)."
+        },
+        "enable": {
+          "name": "Engedélyezés",
+          "description": "true a szabály engedélyezéséhez, false a letiltásához. Ha nincs megadva, a szabály állapota átvált."
+        },
+        "config_entry_id": {
+          "name": "Példány",
+          "description": "A példány, amelyhez a szabály tartozik. Ha nincs megadva, a tartományt listázó példány lesz használva."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_instance": {
+      "message": "Nincs betöltött példány"
+    },
+    "rule_not_found": {
+      "message": "A(z) {domain} proxyszabály nem található"
+    },
+    "rule_change_failed": {
+      "message": "{proxy}: a(z) {domain} szabály nem módosítható: {error}"
+    },
+    "acme_email_unavailable": {
+      "message": "{proxy}: az ACME e-mail-cím nem érhető el"
+    },
+    "wildcard_renewal": {
+      "message": "{proxy}: a(z) {domain} wildcard tanúsítvány, amelyhez DNS-kihívás szükséges: újítsa meg a {proxy}ban"
+    },
+    "renewal_failed": {
+      "message": "{proxy}: a(z) {domain} megújítása sikertelen: {error}"
+    },
+    "command_failed": {
+      "message": "{proxy}: {error}"
+    },
+    "not_supported": {
+      "message": "{proxy}: ez a művelet nem érhető el, az API-ja csak olvasható"
+    }
+  }
+}

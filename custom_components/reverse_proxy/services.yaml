@@ -1,0 +1,25 @@
+toggle_proxy_rule:
+  name: Toggle proxy rule
+  description: Enable or disable a proxy rule (Zoraxy; Traefik's API is read-only).
+  fields:
+    domain:
+      name: Domain
+      description: The domain of the proxy rule (e.g. "example.com").
+      required: true
+      example: "example.com"
+      selector:
+        text:
+    enable:
+      name: Enable
+      description: Set to true to enable the rule, false to disable it. Leave out to toggle the rule.
+      required: false
+      example: true
+      selector:
+        boolean:
+    config_entry_id:
+      name: Instance
+      description: The reverse proxy instance the rule belongs to. Leave out to use the instance that lists the domain.
+      required: false
+      selector:
+        config_entry:
+          integration: reverse_proxy

@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.0.0 - 2026-11-08
+### Breaking changes
+- The integration is now **Reverse Proxy** (`reverse_proxy`) and the repository **ha-reverse-proxy** (the old address redirects). After the update, remove `custom_components/zoraxy/` if it is still there and add **Reverse Proxy → Zoraxy** for your Zoraxy address: the new entry takes over the former Zoraxy entry of the same address, with its device, entities (ids, names, areas, history) and removes it.
+- The action `zoraxy.toggle_proxy_rule` is now `reverse_proxy.toggle_proxy_rule`; the `config_entry_id` field is now called *Instance*.
+- Cards: `custom:reverse-proxy-card` and `custom:reverse-proxy-mini-card`, served at `/reverse_proxy/reverse-proxy-card.js` (the old resource is replaced at startup); `custom:zoraxy-card` and `custom:zoraxy-mini-card` stay as aliases. The `zoraxy_url` option is now `proxy_url` (the old name is still read).
+
+### What's new
+- **Traefik** support (v2 / v3): a Traefik entry reads its API (`/api/overview`, HTTP routers, services, middlewares, entrypoints, version) and gives proxy rules (the `@internal` ones aside) with their state and upstream health from the services' health checks, redirects from the `redirectScheme` / `redirectRegex` middlewares, a middleware count, the TLS flag, the inbound port (the `websecure` entrypoint) and a version sensor; optional HTTP basic auth when the API sits behind a `basicAuth` middleware. Traefik's API being read-only and not exposing the ACME certificates, a Traefik entry has no switch, no certificate entity and no rule toggle.
+- The config flow starts by asking which reverse proxy to add; the reauth, reconfigure and options dialogs and the error messages name the proxy of the entry.
+- Cards: the header shows the brand mark of the proxy (Zoraxy or Traefik) and only the controls its API allows; a Traefik card shows a middleware tile instead of the certificates, the rules' state as plain chips, and its mini card adds the version.
+- The *Proxy running* binary sensor carries `proxy_type` and `features` attributes.
+
+### Internals
+- One coordinator per proxy behind a common interface (`coordinator.py`), entities created from the proxy's features, Traefik screenshots in `scripts/screenshots.py`.
+
 ## 1.14.0 - 2026-11-08
 ### What's new
 - Cards: the header shows the round server icon of the project page, tinted with the proxy status (green running, red stopped, grey unavailable), with the Zoraxy mark as a badge, as on the other ha-* cards.
