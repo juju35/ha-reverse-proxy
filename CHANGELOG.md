@@ -11,6 +11,7 @@
 - The config flow starts by asking which reverse proxy to add; the reauth, reconfigure and options dialogs and the error messages name the proxy of the entry.
 - Cards: the header shows the brand mark of the proxy (Zoraxy or Traefik) and only the controls its API allows; a Traefik card shows a middleware tile instead of the certificates, the rules' state as plain chips, and its mini card adds the version.
 - The *Proxy running* binary sensor carries `proxy_type` and `features` attributes.
+- Integration icon: the round server icon of the project page (no longer the Zoraxy logo), as the integration now covers several proxies.
 
 ### Internals
 - One coordinator per proxy behind a common interface (`coordinator.py`), entities created from the proxy's features, Traefik screenshots in `scripts/screenshots.py`.
