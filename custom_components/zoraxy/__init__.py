@@ -21,6 +21,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError, 
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
+from homeassistant.helpers.service import async_register_admin_service
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
@@ -34,6 +35,7 @@ from .const import (
     DOMAIN,
     MIN_SCAN_INTERVAL,
     SERVICE_TOGGLE_PROXY_RULE,
+    UPTIME_POLL_SECONDS,
     safe_domain,
 )
 
@@ -54,7 +56,9 @@ TOGGLE_PROXY_RULE_SCHEMA = vol.Schema(
     }
 )
 
-DYNAMIC_SUFFIXES = ("_cert_expiry_", "_cert_expiring_", "_renew_")
+# Unique id suffixes of the per-certificate entities, then of the per-rule ones (after "<entry_id>").
+CERT_SUFFIXES = ("_cert_expiry_", "_cert_expiring_", "_renew_")
+RULE_SUFFIXES = ("_upstream_problem_",)
 
 CARD_FILENAME = "zoraxy-card.js"
 CARD_PATH = Path(__file__).parent / "frontend" / CARD_FILENAME
@@ -68,8 +72,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     await hass.http.async_register_static_paths([StaticPathConfig(FRONTEND_URL, str(CARD_PATH.parent), True)])
     await hass.async_add_executor_job(_remove_legacy_card_file, hass)
     await _async_register_card(hass)
-    hass.services.async_register(
-        DOMAIN, SERVICE_TOGGLE_PROXY_RULE, _async_toggle_proxy_rule(hass), TOGGLE_PROXY_RULE_SCHEMA
+    # Enabling or disabling a rule changes what Zoraxy exposes: administrators only, like the Zoraxy UI.
+    async_register_admin_service(
+        hass, DOMAIN, SERVICE_TOGGLE_PROXY_RULE, _async_toggle_proxy_rule(hass), TOGGLE_PROXY_RULE_SCHEMA
     )
     return True
 
@@ -148,15 +153,20 @@ def _lovelace_resources(lovelace: Any) -> tuple[Any, str]:
     )
 
 
-async def _cleanup_stale_entities(hass: HomeAssistant, entry: ConfigEntry, current_certs: list[str]) -> None:
+async def _cleanup_stale_entities(hass: HomeAssistant, entry: ConfigEntry, current: dict[str, list[str]]) -> None:
+    """Remove the entities of certificates or rules no longer listed: {unique id suffix: domains listed now}.
+
+    The suffix is matched right after the entry id, so a domain containing "_renew_" or "_cert_expiry_" cannot
+    be taken for another kind of entity.
+    """
     registry = er.async_get(hass)
-    current_safe = {safe_domain(d) for d in current_certs}
+    current_safe = {suffix: {safe_domain(d) for d in domains} for suffix, domains in current.items()}
     to_remove = [
         e.entity_id
         for e in er.async_entries_for_config_entry(registry, entry.entry_id)
         if any(
-            suffix in (e.unique_id or "") and (e.unique_id or "").split(suffix, 1)[-1] not in current_safe
-            for suffix in DYNAMIC_SUFFIXES
+            (e.unique_id or "").startswith(head := f"{entry.entry_id}{suffix}") and e.unique_id[len(head) :] not in safe
+            for suffix, safe in current_safe.items()
         )
     ]
     for entity_id in to_remove:
@@ -201,8 +211,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     client = ZoraxyClient(session, settings["host"], settings["username"], settings["password"])
     coordinator = ZoraxyDataUpdateCoordinator(hass, entry, client)
     await coordinator.async_config_entry_first_refresh()
+    current: dict[str, list[str]] = {}
     if coordinator.cert_list_loaded:
-        await _cleanup_stale_entities(hass, entry, coordinator.data["cert_list"])
+        current.update(dict.fromkeys(CERT_SUFFIXES, coordinator.data["cert_list"]))
+    if coordinator.proxy_list_loaded:
+        current.update(dict.fromkeys(RULE_SUFFIXES, coordinator.rule_domains()))
+    await _cleanup_stale_entities(hass, entry, current)
     entry.runtime_data = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_reload))
@@ -282,6 +296,8 @@ class ZoraxyDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         self.client = client
         self.cert_list_loaded = False
+        self.proxy_list_loaded = False
+        self._uptime_checked: float | None = None
         self._acme_email: str | None = None
         self._acme_ca: str = "Let's Encrypt"
         self._acme_checked: float | None = None
@@ -388,6 +404,27 @@ class ZoraxyDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def _previous(self, key: str) -> list:
         return (self.data or {}).get(key, [])
 
+    def rule_domains(self) -> list[str]:
+        """Domains of the proxy rules, which get an upstream health binary sensor each."""
+        return [
+            domain
+            for rule in (self.data or {}).get("proxy_list", [])
+            if isinstance(rule, dict) and isinstance(domain := rule.get("RootOrMatchingDomain"), str) and domain
+        ]
+
+    @staticmethod
+    def _extract_uptime(log: dict) -> dict[str, dict]:
+        """Latest uptime monitor check of each target, from /api/utm/list ({target id: [records, oldest first]}).
+
+        A target id is the rule's domain in lower case, "<domain> (upstream:<n>)" for a rule with several upstreams,
+        or "<domain><path>" for a virtual directory.
+        """
+        return {
+            target: records[-1]
+            for target, records in log.items()
+            if isinstance(target, str) and isinstance(records, list) and records and isinstance(records[-1], dict)
+        }
+
     async def _async_update_data(self) -> dict[str, Any]:
         try:
             proxy_status = await self.client.fetch_json("/api/proxy/status")
@@ -402,11 +439,19 @@ class ZoraxyDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 self._optional("/api/redirect/list"),
                 self._optional("/api/access/list"),
             ]
+            # The uptime monitor checks each upstream every 5 minutes (30 s while it is down) and keeps a day of
+            # records per target: read at most once a minute.
+            fetch_uptime = (
+                self._uptime_checked is None or time.monotonic() - self._uptime_checked >= UPTIME_POLL_SECONDS
+            )
+            if fetch_uptime:
+                requests.append(self._optional("/api/utm/list"))
             if fetch_acme:
                 requests += [self._optional("/api/acme/autoRenew/email"), self._optional("/api/acme/autoRenew/ca")]
             # type=root answers the root object alone (zsrc/rp.go), not a rule list: only host rules are listed.
-            host_rules, cert_list, redirect_list, access_rules, *acme = await asyncio.gather(*requests)
-            acme_email, acme_ca = acme or (None, None)
+            host_rules, cert_list, redirect_list, access_rules, *extra = await asyncio.gather(*requests)
+            uptime_log = extra.pop(0) if fetch_uptime else None
+            acme_email, acme_ca = extra or (None, None)
         except ZoraxyAuthError as err:
             raise ConfigEntryAuthFailed(str(err)) from err
         except ZoraxyError as err:
@@ -416,7 +461,16 @@ class ZoraxyDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if fetch_acme and self._store_acme(acme_email, acme_ca):
             self._acme_checked = time.monotonic()
 
-        proxy_list = host_rules if isinstance(host_rules, list) else self._previous("proxy_list")
+        # Like the certificates: only a list actually returned removes the entities of a rule.
+        self.proxy_list_loaded = isinstance(host_rules, list)
+        proxy_list = host_rules if self.proxy_list_loaded else self._previous("proxy_list")
+
+        # Not read this time, or not available (monitor still starting, older Zoraxy): the last checks are kept.
+        if isinstance(uptime_log, dict):
+            self._uptime_checked = time.monotonic()
+            uptime = self._extract_uptime(uptime_log)
+        else:
+            uptime = (self.data or {}).get("uptime", {})
 
         # Only a list actually returned by Zoraxy may remove certificate entities (see async_setup_entry).
         self.cert_list_loaded = isinstance(cert_list, list)
@@ -428,4 +482,5 @@ class ZoraxyDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "redirect_list": redirect_list if isinstance(redirect_list, list) else self._previous("redirect_list"),
             "access_rules": access_rules if isinstance(access_rules, list) else self._previous("access_rules"),
             "cert_expiry": self._extract_cert_expiry(proxy_status),
+            "uptime": uptime,
         }

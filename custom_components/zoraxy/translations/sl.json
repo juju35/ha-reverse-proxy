@@ -95,6 +95,9 @@
       },
       "certificate_expiring": {
         "name": "Potrdilo {domain} kmalu poteče"
+      },
+      "upstream_problem": {
+        "name": "Ciljni strežnik {domain}"
       }
     },
     "switch": {

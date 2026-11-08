@@ -13,7 +13,8 @@
       "tls_enabled": { "default": "mdi:shield-lock" },
       "https_redirect": { "default": "mdi:lock-check" },
       "port_80": { "default": "mdi:web" },
-      "development_mode": { "default": "mdi:code-braces" }
+      "development_mode": { "default": "mdi:code-braces" },
+      "upstream_problem": { "default": "mdi:server-network", "state": { "on": "mdi:server-network-off" } }
     },
     "switch": {
       "https_redirect": { "default": "mdi:lock-check" },

@@ -88,7 +88,7 @@ Zoraxy v3.3.2 uses **gorilla/csrf** protection. Login flow:
 - Reauth stores the new password and lets the update listener reload the entry (it reloads it itself only when that listener is not registered, e.g. the setup failed, or nothing changed)
 - Reconfigure changes host, username and password (verify_ssl stays in the options), validated by `_validate` like the user step; refuses a host another entry uses (`already_configured`), moves the unique id and the default title, reloads like the reauth
 - Diagnostics redact the entry's host/username/password and, at any depth in the coordinator data, credential keys (basic auth `Username`/`PasswordHash`, tokens, secrets, cookies, emails)
-- `toggle_proxy_rule` is registered in `async_setup` and resolves the coordinator at each call (the one whose `proxy_list` has the domain); raises `ServiceValidationError` / `HomeAssistantError`, which the card's optimistic rollback relies on
+- `toggle_proxy_rule` is registered in `async_setup` as an admin service (`async_register_admin_service`) and resolves the coordinator at each call (the one whose `proxy_list` has the domain); raises `ServiceValidationError` / `HomeAssistantError`, which the card's optimistic rollback relies on
 
 ## API Endpoints Used
 
@@ -100,6 +100,7 @@ Zoraxy v3.3.2 uses **gorilla/csrf** protection. Login flow:
 | `/api/cert/list` | GET | List of certificate domain names |
 | `/api/redirect/list` | GET | HTTP redirections |
 | `/api/access/list` | GET | Access control rules |
+| `/api/utm/list` | GET | Uptime monitor log `{target id: [records, oldest first]}`; target id = rule domain in lower case, `<domain> (upstream:<n>)` with several upstreams, `<domain><path>` for a virtual directory. Read at most every `UPTIME_POLL_SECONDS` (60 s); only the latest record per target is kept (`data["uptime"]`) |
 | `/api/acme/autoRenew/email` | GET | ACME email config |
 | `/api/acme/autoRenew/ca` | GET | ACME CA config |
 | `/api/acme/obtainCert` | GET | Trigger ACME renewal (params: domains, filename, email, ca, dns) |
@@ -118,7 +119,10 @@ Dynamic entities are created per certificate (from `/api/cert/list`):
 
 `safe_domain(domain)` converts `app.example.org` → `app_example_org`.
 
-Stale entities are cleaned up at startup via `_cleanup_stale_entities()` using `DYNAMIC_SUFFIXES = ("_cert_expiry_", "_cert_expiring_", "_renew_")`; at runtime, `async_track_cert_entities()` adds the entities of a new certificate and removes from the registry those of a certificate no longer listed (only when `cert_list_loaded`).
+Dynamic entities per proxy rule (from `/api/proxy/list`):
+- `binary_sensor.zoraxy_*_upstream_{safe_domain}` — upstream problem from the uptime monitor (`unknown` without a check)
+
+Stale entities are cleaned up at startup via `_cleanup_stale_entities()` using `CERT_SUFFIXES = ("_cert_expiry_", "_cert_expiring_", "_renew_")` and `RULE_SUFFIXES = ("_upstream_problem_",)`, matched right after the entry id; at runtime, `async_track_cert_entities()` / `async_track_rule_entities()` add the entities of a new certificate / rule and remove from the registry those no longer listed (only when `cert_list_loaded` / `proxy_list_loaded`).
 
 The `rules` / `redirects` and `certificates` list attributes are in `_unrecorded_attributes`: kept in the state for the card, left out of the recorder.
 
@@ -134,7 +138,7 @@ Web component `<zoraxy-card>`. Key design decisions:
 - **Render on change**: the card re-renders only when one of its entities' state objects, the language or the hour changes; the entity list is cached on `hass.entities`
 - **Escaping**: every entity attribute or config value goes through `zoraxyEsc()`; `zoraxy_url` is a link only when it starts with `http://` or `https://`
 - **Section state**: `_sectionOpen` dict persists open/closed state across renders
-- **Entity prefix**: `entity_prefix` option, default `zoraxy_reverse_proxy_zoraxy`
+- **Entities**: `_registry()` finds the device's entities in `hass.entities` (platform `zoraxy`, `device_id`, `translation_key`); `_eid("sensor.proxy_rules")` gives one, `_many("button.renew")` the per-domain ones, matched by their `domain` attribute. The device is the `device` option, else the one of `sensor.<entity_prefix>_regles_proxy`, else the first Zoraxy device. Without the registry (or no Zoraxy entity in it) the ids are built from `entity_prefix` (default `zoraxy_reverse_proxy_zoraxy`) and `ZoraxyCard.LEGACY`
 - **I18N**: `static I18N = {fr: {...}, en: {...}}` + `_t(key)` via `hass.locale.language`
 - **Static assets**: `ICONS`, `LOGO`, `CSS` are static class properties (created once)
 

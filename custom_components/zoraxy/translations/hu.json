@@ -95,6 +95,9 @@
       },
       "certificate_expiring": {
         "name": "{domain} tanúsítvány hamarosan lejár"
+      },
+      "upstream_problem": {
+        "name": "{domain} célszerver"
       }
     },
     "switch": {

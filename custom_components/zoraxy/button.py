@@ -29,6 +29,11 @@ class ZoraxyCertRenewButton(ZoraxyDomainEntity, ButtonEntity):
     def unique_id(self):
         return f"{self._entry.entry_id}_renew_{safe_domain(self._domain)}"
 
+    @property
+    def extra_state_attributes(self):
+        # The card finds the button of a certificate by this domain, whatever the entity id.
+        return {"domain": self._domain}
+
     async def async_press(self):
         # Raises HomeAssistantError on failure, so the caller (and the card) sees it.
         await self.coordinator.renew_certificate(self._domain)

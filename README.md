@@ -19,12 +19,13 @@ Home Assistant integration and Lovelace card for the [Zoraxy](https://github.com
 - Sensors for proxy rules, active rules, TLS certificates, access rules and the inbound port
 - One expiry sensor, one "expiring soon" binary sensor and one ACME renewal button per certificate (a certificate added later in Zoraxy gets its entities at the next update)
 - Switches for the HTTPS redirect, the port 80 listener and the development mode
-- A `zoraxy.toggle_proxy_rule` service to enable or disable a proxy rule from an automation
+- One upstream health binary sensor per proxy rule, from Zoraxy's uptime monitor
+- A `zoraxy.toggle_proxy_rule` service (administrators only) to enable or disable a proxy rule from an automation
 - A Lovelace card, shipped with the integration and registered automatically:
   - proxy status and key metrics
   - direct controls (HTTPS redirect, port 80, dev mode); turning port 80 off asks for confirmation first, as it also stops the ACME HTTP challenges
   - certificates with days left and a renewal button
-  - proxy rules with an on/off button per rule (disabling a rule asks for confirmation first), and HTTP redirects
+  - proxy rules with an on/off button per rule (disabling a rule asks for confirmation first) and a *Down* badge when the uptime monitor finds the rule's upstream offline, and HTTP redirects
   - an unavailable entity shows as *Unavailable* (its control disabled), never as *Off* or *Inactive*
 - A mini card in the same file: status and key figures on two lines, certificates expiring soon highlighted, and a detail button showing the full card; at its narrowest (4 columns of a Sections view) the status pill shows its coloured dot only
 - Visual editors for both cards, light and dark mode, English, French, German, Spanish, Serbian (Cyrillic and Latin), Italian, Dutch, European Portuguese, Polish, Romanian, Danish, Swedish, Bulgarian, Russian, Ukrainian, Hungarian, Slovak, Czech, Slovenian, Latvian and Greek
@@ -78,7 +79,7 @@ The refresh interval and the TLS verification can be changed later with **Config
 
 ### Card
 
-Edit a dashboard, click **Add card** and search for **Zoraxy Card**. Set the Zoraxy URL (opened when clicking the card title) and, if needed, the entity prefix. Or in YAML:
+Edit a dashboard, click **Add card** and search for **Zoraxy Card**. Set the Zoraxy URL (opened when clicking the card title) and, with several Zoraxy instances, the device. Or in YAML:
 
 ```yaml
 type: custom:zoraxy-card
@@ -87,17 +88,19 @@ zoraxy_url: http://zoraxy.local:8000
 
 | Option | Default | Description |
 |---|---|---|
+| `device` | — | Device id of the Zoraxy instance to show, picked in the visual editor; left out, the instance whose entity ids start with `entity_prefix`, else the first one |
 | `zoraxy_url` | — | Zoraxy web interface (`http://` or `https://`), opened from the card title and shown under it |
-| `entity_prefix` | `zoraxy_reverse_proxy_zoraxy` | Common part of the entity ids |
+| `entity_prefix` | `zoraxy_reverse_proxy_zoraxy` | Common part of the entity ids: picks the instance when `device` is left out, and finds the entities when the entity registry is not available |
 | `language` | Auto | Force the card language: `en`, `fr`, `de`, `es`, `sr`, `sr-Latn`, `it`, `nl`, `pt`, `pl`, `ro`, `da`, `sv`, `bg`, `ru`, `uk`, `hu`, `sk`, `cs`, `sl`, `lv` or `el` (by default, the Home Assistant language) |
 
-With two Zoraxy instances, the second one's entities get `_2`-suffixed ids (`…_regles_proxy_2`) that the card cannot tell apart from the first instance's. Rename that instance's entity ids to their own prefix (for example `zoraxy_b_regles_proxy`, in **Settings → Devices & services → Entities**) and set `entity_prefix: zoraxy_b` on its card.
+The card finds its entities in the entity registry, by their Zoraxy device and their kind, so renamed entity ids keep working. With two Zoraxy instances, pick the device of each card in the visual editor (or set `device`).
 
 ### Mini card
 
 `custom:zoraxy-mini-card` shows the full card's essentials on two lines, for a compact dashboard: the logo, title and status pill, then a chip per key figure:
 
 - active / total proxy rules
+- the number of rules whose upstream is down, in red, only when there are some
 - the number of certificates, or one chip per certificate expiring within 30 days (orange, red under 7 days), the closest first
 - the inbound port
 - *HTTPS redirect Off* and *Dev mode On*, in orange, only when they apply
@@ -135,6 +138,7 @@ Same options as the full card, plus:
 | `binary_sensor.*_redirection_https` | HTTP → HTTPS redirect |
 | `binary_sensor.*_ecoute_port_80` | Listening on port 80 |
 | `binary_sensor.*_mode_developpement` | Development mode (no cache) |
+| `binary_sensor.*_upstream_{domain}` | Upstream health of a proxy rule (problem): `on` when Zoraxy's uptime monitor found an upstream of the rule offline at its last check, `unknown` when it has no check of the rule (rule disabled, monitoring turned off); `upstreams` attribute with each upstream's URL, online flag, status code, latency and check time |
 | `switch.*_redirection_https` | Turns the HTTPS redirect on or off |
 | `switch.*_ecoute_port_80` | Turns the port 80 listener on or off |
 | `switch.*_mode_developpement` | Turns the development mode on or off |
@@ -148,7 +152,7 @@ Names follow the Home Assistant language (English, French, German, Spanish, Serb
 | `domain` | `string` | yes | Domain of the rule (e.g. `myapp.example.com`) |
 | `enable` | `boolean` | no | `true` to enable, `false` to disable; left out, the rule is toggled |
 
-The action fails (and the card's button goes back) when the rule is not found or Zoraxy refuses the change. With several Zoraxy instances, the rule is looked up in all of them.
+The action is reserved to administrators. It fails (and the card's button goes back) when the rule is not found or Zoraxy refuses the change. With several Zoraxy instances, the rule is looked up in all of them.
 
 ```yaml
 action: zoraxy.toggle_proxy_rule
@@ -159,7 +163,7 @@ data:
 
 ## Screenshots
 
-| Full card (certificates open) | Full card, dark (certificates open) |
+| Full card (certificates and proxy rules open) | Full card, dark (certificates and proxy rules open) |
 |---|---|
 | <img src="https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/card.png" alt="card" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-zoraxy/main/screenshots/card-dark.png" alt="card dark" width="400"> |
 
@@ -173,7 +177,7 @@ data:
 
 ## How it works
 
-The integration logs in to the Zoraxy web API, polls it at the refresh interval and logs in again when the session expires. The entities of a certificate added in Zoraxy appear at the next update, without reloading the integration. Entities of removed certificates are deleted at the next load.
+The integration logs in to the Zoraxy web API, polls it at the refresh interval and logs in again when the session expires. The entities of a certificate or proxy rule added in Zoraxy appear at the next update, without reloading the integration, and those of a removed one are deleted. The uptime monitor's results (`/api/utm/list`) are read at most once a minute; Zoraxy itself checks each upstream every 5 minutes, every 30 seconds while it is down.
 
 On the card, the button next to each proxy rule calls `zoraxy.toggle_proxy_rule`; the button updates at once and the card refreshes when the integration has polled Zoraxy again. Certificates turn orange under 30 days and red under 7 days.
 

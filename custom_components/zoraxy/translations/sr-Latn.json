@@ -95,6 +95,9 @@
       },
       "certificate_expiring": {
         "name": "Sertifikat {domain} ističe"
+      },
+      "upstream_problem": {
+        "name": "Ciljni server {domain}"
       }
     },
     "switch": {

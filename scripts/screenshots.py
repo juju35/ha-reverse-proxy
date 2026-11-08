@@ -78,19 +78,27 @@ STATES = dict(
         state(f"binary_sensor.{P}_redirection_https", "on"),
         state(f"binary_sensor.{P}_ecoute_port_80", "on"),
         state(f"binary_sensor.{P}_mode_developpement", "off"),
+        # The control tiles need the switch too, or they show Unavailable.
+        state(f"switch.{P}_redirection_https", "on"),
+        state(f"switch.{P}_ecoute_port_80", "on"),
+        state(f"switch.{P}_mode_developpement", "off"),
         state(f"sensor.{P}_regles_proxy", str(len(RULES)), rules=RULES, redirects=REDIRECTS),
         state(f"sensor.{P}_regles_actives", "2"),
         state(f"sensor.{P}_certificats_tls", str(len(CERTS))),
         state(f"sensor.{P}_port_entrant", "443"),
         *[state(f"sensor.{P}_cert_{k}", v, domain=k.replace("_", ".")) for k, v in CERTS.items()],
         *[state(f"binary_sensor.{P}_cert_expirant_{k}", "on" if k.startswith("photos") else "off") for k in CERTS],
+        # Upstream health from Zoraxy's uptime monitor: the NAS is down, the disabled rule is not checked.
+        state(f"binary_sensor.{P}_upstream_ha_example_org", "off", domain="ha.example.org"),
+        state(f"binary_sensor.{P}_upstream_nas_example_org", "on", domain="nas.example.org"),
+        state(f"binary_sensor.{P}_upstream_photos_example_org", "unknown", domain="photos.example.org"),
     ]
 )
 
 SHOTS = [
     # Each light/dark pair shows exactly the same state: only the theme changes.
-    {"file": "card", "theme": "light", "open": ["certs"]},
-    {"file": "card-dark", "theme": "dark", "open": ["certs"]},
+    {"file": "card", "theme": "light", "open": ["certs", "rules"]},
+    {"file": "card-dark", "theme": "dark", "open": ["certs", "rules"]},
     # The mini card, and the same card zoomed in (its detail button clicked).
     {"file": "mini", "theme": "light", "tag": "zoraxy-mini-card", "width": MINI_WIDTH},
     {"file": "mini-dark", "theme": "dark", "tag": "zoraxy-mini-card", "width": MINI_WIDTH},

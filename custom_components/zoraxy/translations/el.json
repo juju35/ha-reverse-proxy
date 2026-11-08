@@ -95,6 +95,9 @@
       },
       "certificate_expiring": {
         "name": "Το πιστοποιητικό {domain} λήγει σύντομα"
+      },
+      "upstream_problem": {
+        "name": "Διακομιστής προορισμού {domain}"
       }
     },
     "switch": {
