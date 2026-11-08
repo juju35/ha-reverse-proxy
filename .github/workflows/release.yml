@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # A commit is released only once Lint and Validate pass on it (HACS Validation: see the TODO below).
+  # A commit is released only once Lint, Validate and HACS Validation pass on it.
   lint:
     name: Lint
     uses: ./.github/workflows/lint.yml
@@ -28,17 +28,14 @@ jobs:
     permissions:
       contents: read
 
-  # TODO: put HACS Validation back in the release gate (needs: [lint, validate, hacs]) once the repository is
-  # renamed ha-reverse-proxy and the `reverse_proxy` domain is known to the brands repository; until then the
-  # HACS check is informative only (its own workflow still runs on pushes and pull requests).
-  # hacs:
-  #   name: HACS Validation
-  #   uses: ./.github/workflows/hacs.yml
-  #   permissions:
-  #     contents: read
+  hacs:
+    name: HACS Validation
+    uses: ./.github/workflows/hacs.yml
+    permissions:
+      contents: read
 
   release:
-    needs: [lint, validate]
+    needs: [lint, validate, hacs]
     # A manual run from another branch (a PR whose version is already bumped) must not publish
     # a release from an unmerged commit.
     if: github.ref == 'refs/heads/main'
