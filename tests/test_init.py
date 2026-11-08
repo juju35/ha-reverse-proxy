@@ -1188,7 +1188,11 @@ async def test_legacy_zoraxy_entry_is_taken_over(hass, aioclient_mock, entry):
     # Same device, now the new entry's; same entity ids, with the unique ids rebuilt on the new entry.
     device = dr.async_get(hass).async_get(device.id)
     assert device.identifiers == {(DOMAIN, entry.entry_id)}
-    assert device.config_entries == {entry.entry_id}
+    # 2026.x: one config entry per device (`config_entry_id`); before: the `config_entries` set.
+    if hasattr(device, "config_entry_id"):
+        assert device.config_entry_id == entry.entry_id
+    else:
+        assert device.config_entries == {entry.entry_id}
     registry = er.async_get(hass)
     rules = registry.async_get("sensor.my_proxy_rules")
     assert rules.platform == DOMAIN

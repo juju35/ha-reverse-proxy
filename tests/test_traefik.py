@@ -371,3 +371,5 @@ async def test_reauth_changes_the_basic_auth(hass, aioclient_mock, entry):
     assert result["reason"] == "reauth_successful"
     assert entry.data["username"] == "admin"
     assert entry.data["password"] == "new"
+    # The update listener reloads the entry: let it finish (no lingering coordinator timer).
+    await hass.async_block_till_done()

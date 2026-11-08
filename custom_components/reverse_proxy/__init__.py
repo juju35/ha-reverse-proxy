@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import inspect
 import logging
 from pathlib import Path
 from typing import Any
@@ -54,6 +55,12 @@ TOGGLE_PROXY_RULE_SCHEMA = vol.Schema(
         # The instance the rule belongs to (the card passes its device's entry); left out, the one listing the domain.
         vol.Optional("config_entry_id"): cv.string,
     }
+)
+
+# From 2026.x a device belongs to a single config entry and is moved with `new_config_entry_id`; before, it is
+# attached to the new entry and detached from the old one (the former way is deprecated, removed in 2027.8).
+_MOVE_DEVICE_WITH_NEW_ENTRY = (
+    "new_config_entry_id" in inspect.signature(dr.DeviceRegistry.async_update_device).parameters
 )
 
 # Unique id suffixes of the per-certificate entities, then of the per-rule ones (after "<entry_id>").
@@ -247,11 +254,17 @@ async def _async_adopt_legacy_entry(hass: HomeAssistant, entry: ConfigEntry) -> 
                 (DOMAIN, entry.entry_id) if ident == (LEGACY_DOMAIN, old.entry_id) else ident
                 for ident in device.identifiers
             }
-            # Two calls: adding and removing a config entry in one call loses the addition (device_registry.py).
-            device_registry.async_update_device(
-                device.id, new_identifiers=identifiers, add_config_entry_id=entry.entry_id
-            )
-            device_registry.async_update_device(device.id, remove_config_entry_id=old.entry_id)
+            if _MOVE_DEVICE_WITH_NEW_ENTRY:
+                # A device belongs to one config entry (2026.x): move it.
+                device_registry.async_update_device(
+                    device.id, new_identifiers=identifiers, new_config_entry_id=entry.entry_id
+                )
+            else:
+                # Older Home Assistant: two calls, as adding and removing in one call loses the addition.
+                device_registry.async_update_device(
+                    device.id, new_identifiers=identifiers, add_config_entry_id=entry.entry_id
+                )
+                device_registry.async_update_device(device.id, remove_config_entry_id=old.entry_id)
         await hass.config_entries.async_remove(old.entry_id)
         _LOGGER.info("Reverse proxy: took over the former Zoraxy entry %s for %s", old.entry_id, entry.data["host"])
 
