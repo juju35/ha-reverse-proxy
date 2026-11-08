@@ -1,5 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <circle cx="256.0" cy="256.0" r="256.0" fill="#5b6cf0" fill-opacity="0.16"/>
-  <circle cx="256.0" cy="256.0" r="249.856" fill="none" stroke="#5b6cf0" stroke-opacity="0.35" stroke-width="6.144"/>
-  <path transform="translate(107.52000000000001 107.52000000000001) scale(12.373333333333333)" fill="#5b6cf0" d="M13,19H14A1,1 0 0,1 15,20H22V22H15A1,1 0 0,1 14,23H10A1,1 0 0,1 9,22H2V20H9A1,1 0 0,1 10,19H11V17H4A1,1 0 0,1 3,16V12A1,1 0 0,1 4,11H20A1,1 0 0,1 21,12V16A1,1 0 0,1 20,17H13V19M4,3H20A1,1 0 0,1 21,4V8A1,1 0 0,1 20,9H4A1,1 0 0,1 3,8V4A1,1 0 0,1 4,3M9,7H10V5H9V7M9,15H10V13H9V15M5,5V7H7V5H5M5,13V15H7V13H5Z"/>
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6f7ef5"/><stop offset="1" stop-color="#4553d6"/></linearGradient></defs>
+  <rect x="0" y="0" width="512" height="512" rx="112.64" ry="112.64" fill="url(#g)"/>
+  <path transform="translate(102.4 117.76) scale(12.799999999999999)" fill="#ffffff" d="M13,19H14A1,1 0 0,1 15,20H22V22H15A1,1 0 0,1 14,23H10A1,1 0 0,1 9,22H2V20H9A1,1 0 0,1 10,19H11V17H4A1,1 0 0,1 3,16V12A1,1 0 0,1 4,11H20A1,1 0 0,1 21,12V16A1,1 0 0,1 20,17H13V19M4,3H20A1,1 0 0,1 21,4V8A1,1 0 0,1 20,9H4A1,1 0 0,1 3,8V4A1,1 0 0,1 4,3M9,7H10V5H9V7M9,15H10V13H9V15M5,5V7H7V5H5M5,13V15H7V13H5Z"/>
+  <circle cx="416.1536" cy="95.8464" r="66.56" fill="#ff7a1a" stroke="#ffffff" stroke-width="11.264"/>
+  <path transform="translate(374.8864 54.5792) scale(3.4389333333333334)" fill="#ffffff" d="M21,9L17,5V8H10V10H17V13M7,11L3,15L7,19V16H14V14H7V11Z"/>
 </svg>

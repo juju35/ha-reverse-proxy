@@ -23,7 +23,8 @@ custom_components/reverse_proxy/
 ├── icons.json           # MDI icon per translation key
 ├── translations/        # en, fr, de, es, sr, sr-Latn, it, nl, pt, pt-BR (copy of pt), pl, ro, da, sv, bg, ru, uk, hu, sk, cs, sl, lv, el
 ├── frontend/reverse-proxy-card.js  # Full card and mini card (custom:reverse-proxy-card, -mini-card; zoraxy-card aliases)
-└── brand/               # icon.svg (source) → icon.png, icon@2x.png, logo.png: the showcase-site pastille (mdi:server-network, accent #5b6cf0);
+└── brand/               # icon.svg (source) → icon.png, icon@2x.png, logo.png, logo@2x.png: rounded indigo tile, white server-network glyph,
+                         # orange swap badge — the style of the other ha-* integration icons (parcel, git-sync, smart-comfort);
                          # zoraxy.svg, traefik.svg: the brand marks used as header badges
 ```
 
