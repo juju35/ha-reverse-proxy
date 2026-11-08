@@ -11,8 +11,7 @@ test('a manual Release run publishes only from main', () => {
   assert.match(job, /^\s{4}if: github\.ref == 'refs\/heads\/main'$/m);
 });
 
-test('the release still waits for Lint and Validate (HACS temporarily out of the gate, see the TODO)', () => {
+test('the release still waits for Lint, Validate and HACS Validation', () => {
   const job = release.slice(release.indexOf('\n  release:'));
-  assert.match(job, /needs: \[lint, validate\]/);
-  assert.match(release, /TODO: put HACS Validation back/);
+  assert.match(job, /needs: \[lint, validate, hacs\]/);
 });
