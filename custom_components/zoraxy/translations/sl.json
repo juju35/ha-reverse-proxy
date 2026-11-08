@@ -129,6 +129,10 @@
         "enable": {
           "name": "Omogoči",
           "description": "true za omogočanje pravila, false za onemogočanje. Če je izpuščeno, se pravilo preklopi."
+        },
+        "config_entry_id": {
+          "name": "Primerek Zoraxy",
+          "description": "Primerek Zoraxy, ki mu pravilo pripada. Če je izpuščeno, se uporabi primerek, ki navaja domeno."
         }
       }
     }

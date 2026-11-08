@@ -36,6 +36,7 @@ from .const import (
     MIN_SCAN_INTERVAL,
     SERVICE_TOGGLE_PROXY_RULE,
     UPTIME_POLL_SECONDS,
+    UPTIME_STALE_SECONDS,
     safe_domain,
 )
 
@@ -53,6 +54,8 @@ TOGGLE_PROXY_RULE_SCHEMA = vol.Schema(
         vol.Required("domain"): vol.All(cv.string, vol.Strip, vol.Length(min=1)),
         # True enables, False disables, left out toggles the rule.
         vol.Optional("enable"): cv.boolean,
+        # The instance the rule belongs to (the card passes its device's entry); left out, the one listing the domain.
+        vol.Optional("config_entry_id"): cv.string,
     }
 )
 
@@ -237,10 +240,11 @@ def _async_toggle_proxy_rule(hass: HomeAssistant):
     async def handle(call: ServiceCall) -> None:
         domain_name: str = call.data["domain"]
         enable: bool | None = call.data.get("enable")
+        entry_id: str | None = call.data.get("config_entry_id")
         coordinators: list[ZoraxyDataUpdateCoordinator] = [
             entry.runtime_data
             for entry in hass.config_entries.async_entries(DOMAIN)
-            if entry.state is ConfigEntryState.LOADED
+            if entry.state is ConfigEntryState.LOADED and entry_id in (None, entry.entry_id)
         ]
         if not coordinators:
             raise ServiceValidationError(translation_domain=DOMAIN, translation_key="no_instance")
@@ -465,10 +469,13 @@ class ZoraxyDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.proxy_list_loaded = isinstance(host_rules, list)
         proxy_list = host_rules if self.proxy_list_loaded else self._previous("proxy_list")
 
-        # Not read this time, or not available (monitor still starting, older Zoraxy): the last checks are kept.
+        # Not read this time, or not available (monitor still starting, older Zoraxy): the last checks are kept,
+        # until they are UPTIME_STALE_SECONDS old: then upstream health becomes unknown rather than stale forever.
         if isinstance(uptime_log, dict):
             self._uptime_checked = time.monotonic()
             uptime = self._extract_uptime(uptime_log)
+        elif self._uptime_checked is None or time.monotonic() - self._uptime_checked >= UPTIME_STALE_SECONDS:
+            uptime = {}
         else:
             uptime = (self.data or {}).get("uptime", {})
 

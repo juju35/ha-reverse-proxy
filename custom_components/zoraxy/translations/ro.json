@@ -129,6 +129,10 @@
         "enable": {
           "name": "Activează",
           "description": "true pentru a activa regula, false pentru a o dezactiva. Lăsați necompletat pentru a comuta regula."
+        },
+        "config_entry_id": {
+          "name": "Instanță Zoraxy",
+          "description": "Instanța Zoraxy căreia îi aparține regula. Lăsați necompletat pentru a folosi instanța care listează domeniul."
         }
       }
     }

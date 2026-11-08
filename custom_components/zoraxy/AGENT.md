@@ -88,7 +88,7 @@ Zoraxy v3.3.2 uses **gorilla/csrf** protection. Login flow:
 - Reauth stores the new password and lets the update listener reload the entry (it reloads it itself only when that listener is not registered, e.g. the setup failed, or nothing changed)
 - Reconfigure changes host, username and password (verify_ssl stays in the options), validated by `_validate` like the user step; refuses a host another entry uses (`already_configured`), moves the unique id and the default title, reloads like the reauth
 - Diagnostics redact the entry's host/username/password and, at any depth in the coordinator data, credential keys (basic auth `Username`/`PasswordHash`, tokens, secrets, cookies, emails)
-- `toggle_proxy_rule` is registered in `async_setup` as an admin service (`async_register_admin_service`) and resolves the coordinator at each call (the one whose `proxy_list` has the domain); raises `ServiceValidationError` / `HomeAssistantError`, which the card's optimistic rollback relies on
+- `toggle_proxy_rule` is registered in `async_setup` as an admin service (`async_register_admin_service`) and resolves the coordinator at each call (the entry given by the optional `config_entry_id`, which the card sends from its device's `primary_config_entry`, else the one whose `proxy_list` has the domain); raises `ServiceValidationError` / `HomeAssistantError`, which the card's optimistic rollback relies on
 
 ## API Endpoints Used
 
@@ -100,7 +100,7 @@ Zoraxy v3.3.2 uses **gorilla/csrf** protection. Login flow:
 | `/api/cert/list` | GET | List of certificate domain names |
 | `/api/redirect/list` | GET | HTTP redirections |
 | `/api/access/list` | GET | Access control rules |
-| `/api/utm/list` | GET | Uptime monitor log `{target id: [records, oldest first]}`; target id = rule domain in lower case, `<domain> (upstream:<n>)` with several upstreams, `<domain><path>` for a virtual directory. Read at most every `UPTIME_POLL_SECONDS` (60 s); only the latest record per target is kept (`data["uptime"]`) |
+| `/api/utm/list` | GET | Uptime monitor log `{target id: [records, oldest first]}`; target id = rule domain in lower case, `<domain> (upstream:<n>)` with several upstreams, `<domain><path>` for a virtual directory. Read at most every `UPTIME_POLL_SECONDS` (60 s); only the latest record per target is kept (`data["uptime"]`), dropped once no read succeeded for `UPTIME_STALE_SECONDS` (3 min) |
 | `/api/acme/autoRenew/email` | GET | ACME email config |
 | `/api/acme/autoRenew/ca` | GET | ACME CA config |
 | `/api/acme/obtainCert` | GET | Trigger ACME renewal (params: domains, filename, email, ca, dns) |
@@ -135,6 +135,7 @@ The `rules` / `redirects` and `certificates` list attributes are in `_unrecorded
 Served by the integration at `/zoraxy/zoraxy-card.js` (`async_setup` registers the static path and the dashboard resource, as ha-parcel does). Versions up to 1.2.1 copied it to `/config/www/` and loaded it from `/local/zoraxy-card.js`: that copy is deleted and that resource replaced at startup. `_lovelace_resources()` reads `hass.data["lovelace"]` as a dict (before 2025.2) or a dataclass (`mode` from 2025.2, then `resource_mode` from 2026.2); YAML mode falls back to `add_extra_js_url`.
 
 Web component `<zoraxy-card>`. Key design decisions:
+- **Admin only**: rule buttons are rendered `disabled` (state only) when `hass.user.is_admin === false`; toggle failures go to a `hass-notification` toast (the call passes `notifyOnError` false)
 - **Render on change**: the card re-renders only when one of its entities' state objects, the language or the hour changes; the entity list is cached on `hass.entities`
 - **Escaping**: every entity attribute or config value goes through `zoraxyEsc()`; `zoraxy_url` is a link only when it starts with `http://` or `https://`
 - **Section state**: `_sectionOpen` dict persists open/closed state across renders

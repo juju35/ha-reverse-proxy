@@ -129,6 +129,10 @@
         "enable": {
           "name": "Iespējot",
           "description": "true, lai iespējotu kārtulu, false, lai to atspējotu. Ja nav norādīts, kārtula tiek pārslēgta."
+        },
+        "config_entry_id": {
+          "name": "Zoraxy instance",
+          "description": "Zoraxy instance, kurai pieder kārtula. Ja nav norādīts, tiek izmantota instance, kurā ir šis domēns."
         }
       }
     }

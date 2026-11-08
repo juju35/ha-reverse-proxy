@@ -129,6 +129,10 @@
         "enable": {
           "name": "Aktivér",
           "description": "true for at aktivere reglen, false for at deaktivere den. Udelad for at skifte reglens tilstand."
+        },
+        "config_entry_id": {
+          "name": "Zoraxy-instans",
+          "description": "Den Zoraxy-instans, reglen hører til. Udelad for at bruge den instans, der viser domænet."
         }
       }
     }

@@ -129,6 +129,10 @@
         "enable": {
           "name": "Povoliť",
           "description": "true na povolenie pravidla, false na jeho zakázanie. Ak sa vynechá, pravidlo sa prepne."
+        },
+        "config_entry_id": {
+          "name": "Inštancia Zoraxy",
+          "description": "Inštancia Zoraxy, ku ktorej pravidlo patrí. Ak sa vynechá, použije sa inštancia, ktorá uvádza doménu."
         }
       }
     }

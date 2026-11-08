@@ -5,6 +5,8 @@ DEFAULT_SCAN_INTERVAL = 30  # seconds
 MIN_SCAN_INTERVAL = 10  # seconds
 ACME_POLL_SECONDS = 3600  # the ACME auto-renew settings are re-read at most once an hour
 UPTIME_POLL_SECONDS = 60  # the uptime monitor log is re-read at most once a minute
+# Last uptime monitor checks older than this (the log could not be read since): dropped, upstream health unknown.
+UPTIME_STALE_SECONDS = 3 * UPTIME_POLL_SECONDS
 DEFAULT_HOST = "http://zoraxy.local:8000"
 DEFAULT_VERIFY_SSL = True
 

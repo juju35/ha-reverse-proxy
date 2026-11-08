@@ -129,6 +129,10 @@
         "enable": {
           "name": "Omogući",
           "description": "Postavi na true da omogućiš pravilo, na false da ga onemogućiš. Izostavi za prebacivanje stanja pravila."
+        },
+        "config_entry_id": {
+          "name": "Zoraxy instanca",
+          "description": "Zoraxy instanca kojoj pravilo pripada. Izostavi za instancu koja navodi domen."
         }
       }
     }

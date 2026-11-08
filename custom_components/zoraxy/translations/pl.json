@@ -129,6 +129,10 @@
         "enable": {
           "name": "Włącz",
           "description": "Ustaw true, aby włączyć regułę, false, aby ją wyłączyć. Pomiń, aby przełączyć regułę."
+        },
+        "config_entry_id": {
+          "name": "Instancja Zoraxy",
+          "description": "Instancja Zoraxy, do której należy reguła. Pomiń, aby użyć instancji, która wymienia domenę."
         }
       }
     }

@@ -129,6 +129,10 @@
         "enable": {
           "name": "Activer",
           "description": "true pour activer la règle, false pour la désactiver. Omis, la règle est basculée."
+        },
+        "config_entry_id": {
+          "name": "Instance Zoraxy",
+          "description": "L'instance Zoraxy à laquelle appartient la règle. Omis, l'instance qui liste le domaine est utilisée."
         }
       }
     }

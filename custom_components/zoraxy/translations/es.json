@@ -129,6 +129,10 @@
         "enable": {
           "name": "Activar",
           "description": "true para activar la regla, false para desactivarla. Si se omite, la regla se alterna."
+        },
+        "config_entry_id": {
+          "name": "Instancia de Zoraxy",
+          "description": "La instancia de Zoraxy a la que pertenece la regla. Si se omite, se usa la instancia que lista el dominio."
         }
       }
     }

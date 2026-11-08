@@ -129,6 +129,10 @@
         "enable": {
           "name": "Ativar",
           "description": "Definir como true para ativar a regra, false para a desativar. Omitir para alternar a regra."
+        },
+        "config_entry_id": {
+          "name": "Instância Zoraxy",
+          "description": "A instância Zoraxy a que a regra pertence. Omitir para usar a instância que lista o domínio."
         }
       }
     }

@@ -138,7 +138,7 @@ Same options as the full card, plus:
 | `binary_sensor.*_redirection_https` | HTTP → HTTPS redirect |
 | `binary_sensor.*_ecoute_port_80` | Listening on port 80 |
 | `binary_sensor.*_mode_developpement` | Development mode (no cache) |
-| `binary_sensor.*_upstream_{domain}` | Upstream health of a proxy rule (problem): `on` when Zoraxy's uptime monitor found an upstream of the rule offline at its last check, `unknown` when it has no check of the rule (rule disabled, monitoring turned off); `upstreams` attribute with each upstream's URL, online flag, status code, latency and check time |
+| `binary_sensor.*_upstream_{domain}` | Upstream health of a proxy rule (problem): `on` when Zoraxy's uptime monitor found an upstream of the rule offline at its last check, `unknown` when it has no check of the rule (rule disabled, monitoring turned off) or when the uptime monitor log could not be read for 3 minutes; `upstreams` attribute with each upstream's URL, online flag, status code, latency and check time |
 | `switch.*_redirection_https` | Turns the HTTPS redirect on or off |
 | `switch.*_ecoute_port_80` | Turns the port 80 listener on or off |
 | `switch.*_mode_developpement` | Turns the development mode on or off |
@@ -151,8 +151,9 @@ Names follow the Home Assistant language (English, French, German, Spanish, Serb
 |---|---|---|---|
 | `domain` | `string` | yes | Domain of the rule (e.g. `myapp.example.com`) |
 | `enable` | `boolean` | no | `true` to enable, `false` to disable; left out, the rule is toggled |
+| `config_entry_id` | `string` | no | The Zoraxy instance (config entry) the rule belongs to; left out, the instance that lists the domain |
 
-The action is reserved to administrators. It fails (and the card's button goes back) when the rule is not found or Zoraxy refuses the change. With several Zoraxy instances, the rule is looked up in all of them.
+The action is reserved to administrators. It fails (and the card's button goes back) when the rule is not found or Zoraxy refuses the change. With several Zoraxy instances, the rule is looked up in all of them, unless `config_entry_id` names one.
 
 ```yaml
 action: zoraxy.toggle_proxy_rule
@@ -179,7 +180,7 @@ data:
 
 The integration logs in to the Zoraxy web API, polls it at the refresh interval and logs in again when the session expires. The entities of a certificate or proxy rule added in Zoraxy appear at the next update, without reloading the integration, and those of a removed one are deleted. The uptime monitor's results (`/api/utm/list`) are read at most once a minute; Zoraxy itself checks each upstream every 5 minutes, every 30 seconds while it is down.
 
-On the card, the button next to each proxy rule calls `zoraxy.toggle_proxy_rule`; the button updates at once and the card refreshes when the integration has polled Zoraxy again. Certificates turn orange under 30 days and red under 7 days.
+On the card, the button next to each proxy rule calls `zoraxy.toggle_proxy_rule` for the card's own instance; for users who are not administrators the button only shows the rule's state and is disabled, and a failed change shows its error in a toast; the button updates at once and the card refreshes when the integration has polled Zoraxy again. Certificates turn orange under 30 days and red under 7 days.
 
 To debug:
 

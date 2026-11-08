@@ -129,6 +129,10 @@
         "enable": {
           "name": "Inschakelen",
           "description": "Stel in op true om de regel in te schakelen, false om hem uit te schakelen. Weglaten om de regel om te schakelen."
+        },
+        "config_entry_id": {
+          "name": "Zoraxy-instantie",
+          "description": "De Zoraxy-instantie waartoe de regel behoort. Weglaten om de instantie te gebruiken die het domein vermeldt."
         }
       }
     }

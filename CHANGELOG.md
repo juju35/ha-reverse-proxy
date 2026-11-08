@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.13.1 - 2026-11-08
+### Fixes
+- Cards: a proxy rule's button now changes the rule of the card's own Zoraxy instance (new optional `config_entry_id` field of `zoraxy.toggle_proxy_rule`), shows a failure in a toast, and is disabled for users who are not administrators.
+- Upstream health becomes unknown when Zoraxy's uptime monitor log cannot be read for 3 minutes, instead of keeping the last check forever.
+
 ## 1.13.0 - 2026-11-07
 ### What's new
 - Upstream health: each proxy rule gets a problem binary sensor from Zoraxy's uptime monitor, on when an upstream of the rule was found offline at its last check.

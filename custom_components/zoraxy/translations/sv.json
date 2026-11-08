@@ -129,6 +129,10 @@
         "enable": {
           "name": "Aktivera",
           "description": "true för att aktivera regeln, false för att inaktivera den. Utelämna för att växla regeln."
+        },
+        "config_entry_id": {
+          "name": "Zoraxy-instans",
+          "description": "Den Zoraxy-instans som regeln tillhör. Utelämna för att använda instansen som listar domänen."
         }
       }
     }
