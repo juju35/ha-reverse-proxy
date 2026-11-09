@@ -190,5 +190,19 @@
     "not_supported": {
       "message": "{proxy}: ta akcja jest niedostępna, jego API jest tylko do odczytu"
     }
+  },
+  "issues": {
+    "certificate_expiring": {
+      "title": "Certyfikat {domain} wkrótce wygasa",
+      "description": "Certyfikat TLS {domain} na {proxy} wygasa {expires}. Odnów go (Zoraxy: przycisk Odnów certyfikatu) lub sprawdź automatyczne odnawianie. Ten problem zniknie po odnowieniu certyfikatu."
+    },
+    "certificate_expired": {
+      "title": "Certyfikat {domain} wygasł",
+      "description": "Certyfikat TLS {domain} na {proxy} wygasł {expires}: przeglądarki odrzucają stronę. Odnów go teraz; ten problem zniknie po odnowieniu."
+    },
+    "upstream_offline": {
+      "title": "{domain} nieosiągalna za {proxy}",
+      "description": "Wszystkie serwery docelowe reguły {domain} na {proxy} są offline od {since}. Sprawdź usługę za nią; ten problem zniknie, gdy któryś odpowie."
+    }
   }
 }

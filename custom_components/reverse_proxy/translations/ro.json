@@ -190,5 +190,19 @@
     "not_supported": {
       "message": "{proxy}: această acțiune nu este disponibilă, API-ul său este doar în citire"
     }
+  },
+  "issues": {
+    "certificate_expiring": {
+      "title": "Certificatul pentru {domain} expiră curând",
+      "description": "Certificatul TLS pentru {domain} pe {proxy} expiră pe {expires}. Reînnoiește-l (Zoraxy: butonul Reînnoiește al certificatului) sau verifică reînnoirea automată. Problema dispare după reînnoirea certificatului."
+    },
+    "certificate_expired": {
+      "title": "Certificatul pentru {domain} a expirat",
+      "description": "Certificatul TLS pentru {domain} pe {proxy} a expirat pe {expires}: browserele refuză site-ul. Reînnoiește-l acum; problema dispare după reînnoire."
+    },
+    "upstream_offline": {
+      "title": "{domain} inaccesibil în spatele {proxy}",
+      "description": "Toate upstream-urile regulii {domain} pe {proxy} sunt offline de la {since}. Verifică serviciul din spate; problema dispare imediat ce unul răspunde."
+    }
   }
 }

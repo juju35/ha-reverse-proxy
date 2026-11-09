@@ -190,5 +190,19 @@
     "not_supported": {
       "message": "{proxy}: den här åtgärden är inte tillgänglig, dess API är skrivskyddat"
     }
+  },
+  "issues": {
+    "certificate_expiring": {
+      "title": "Certifikatet för {domain} går snart ut",
+      "description": "TLS-certifikatet för {domain} på {proxy} går ut {expires}. Förnya det (Zoraxy: certifikatets Förnya-knapp) eller kontrollera den automatiska förnyelsen. Problemet försvinner när certifikatet är förnyat."
+    },
+    "certificate_expired": {
+      "title": "Certifikatet för {domain} har gått ut",
+      "description": "TLS-certifikatet för {domain} på {proxy} gick ut {expires}: webbläsare vägrar sidan. Förnya det nu; problemet försvinner när det är förnyat."
+    },
+    "upstream_offline": {
+      "title": "{domain} nås inte bakom {proxy}",
+      "description": "Alla upstreams för regeln {domain} på {proxy} har varit offline sedan {since}. Kontrollera tjänsten bakom; problemet försvinner så snart en upstream svarar igen."
+    }
   }
 }

@@ -190,5 +190,19 @@
     "not_supported": {
       "message": "{proxy}: ez a művelet nem érhető el, az API-ja csak olvasható"
     }
+  },
+  "issues": {
+    "certificate_expiring": {
+      "title": "A(z) {domain} tanúsítványa hamarosan lejár",
+      "description": "A(z) {domain} TLS-tanúsítványa a(z) {proxy} proxyn {expires} napon lejár. Újítsd meg (Zoraxy: a tanúsítvány Megújítás gombja), vagy ellenőrizd az automatikus megújítást. A probléma a megújítás után eltűnik."
+    },
+    "certificate_expired": {
+      "title": "A(z) {domain} tanúsítványa lejárt",
+      "description": "A(z) {domain} TLS-tanúsítványa a(z) {proxy} proxyn {expires} napon lejárt: a böngészők elutasítják az oldalt. Újítsd meg most; a probléma a megújítás után eltűnik."
+    },
+    "upstream_offline": {
+      "title": "A(z) {domain} nem érhető el a(z) {proxy} mögött",
+      "description": "A(z) {domain} szabály minden upstreamje a(z) {proxy} proxyn {since} óta offline. Ellenőrizd a mögötte lévő szolgáltatást; a probléma eltűnik, amint egy upstream újra válaszol."
+    }
   }
 }
