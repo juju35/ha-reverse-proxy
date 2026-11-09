@@ -190,5 +190,19 @@
     "not_supported": {
       "message": "{proxy}: to dejanje ni na voljo, njegov API je samo za branje"
     }
+  },
+  "issues": {
+    "certificate_expiring": {
+      "title": "Potrdilo za {domain} kmalu poteče",
+      "description": "Potrdilo TLS za {domain} na {proxy} poteče {expires}. Obnovite ga (Zoraxy: gumb Obnovi potrdila) ali preverite samodejno obnovo. Težava izgine, ko je potrdilo obnovljeno."
+    },
+    "certificate_expired": {
+      "title": "Potrdilo za {domain} je poteklo",
+      "description": "Potrdilo TLS za {domain} na {proxy} je poteklo {expires}: brskalniki zavračajo stran. Obnovite ga zdaj; težava izgine po obnovi."
+    },
+    "upstream_offline": {
+      "title": "{domain} ni dosegljiva za {proxy}",
+      "description": "Vsi strežniki pravila {domain} na {proxy} so brez povezave od {since}. Preverite storitev za njim; težava izgine, ko kateri spet odgovori."
+    }
   }
 }

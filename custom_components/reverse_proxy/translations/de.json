@@ -190,5 +190,19 @@
     "not_supported": {
       "message": "{proxy}: Diese Aktion ist nicht verfügbar, die API ist schreibgeschützt"
     }
+  },
+  "issues": {
+    "certificate_expiring": {
+      "title": "Zertifikat von {domain} läuft bald ab",
+      "description": "Das TLS-Zertifikat von {domain} auf {proxy} läuft am {expires} ab. Erneuere es (Zoraxy: die Schaltfläche Erneuern des Zertifikats) oder prüfe die automatische Erneuerung. Dieses Problem verschwindet, sobald das Zertifikat erneuert ist."
+    },
+    "certificate_expired": {
+      "title": "Zertifikat von {domain} abgelaufen",
+      "description": "Das TLS-Zertifikat von {domain} auf {proxy} ist am {expires} abgelaufen: Browser verweigern die Seite. Erneuere es jetzt; dieses Problem verschwindet, sobald es erneuert ist."
+    },
+    "upstream_offline": {
+      "title": "{domain} hinter {proxy} nicht erreichbar",
+      "description": "Alle Upstreams der Regel {domain} auf {proxy} sind seit {since} offline. Prüfe den Dienst dahinter; dieses Problem verschwindet, sobald ein Upstream wieder antwortet."
+    }
   }
 }

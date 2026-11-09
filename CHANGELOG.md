@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.2.0 - 2026-11-09
+
+### Features
+- **Repairs issues**: a certificate expiring within 30 days (warning) or expired (error), and a rule whose upstreams have all been offline for 10 minutes (error), in Settings → Repairs; each goes away by itself once fixed, and with the entry when it is removed.
+
 ## 2.1.0 - 2026-11-09
 
 ### Performance

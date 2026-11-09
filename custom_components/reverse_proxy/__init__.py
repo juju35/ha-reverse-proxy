@@ -37,6 +37,7 @@ from .const import (
     safe_domain,
 )
 from .coordinator import COORDINATORS, ProxyDataUpdateCoordinator, entry_proxy_type, entry_settings
+from .repairs import ProxyIssues, async_remove_issues
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -293,6 +294,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         current.update(dict.fromkeys(RULE_SUFFIXES, coordinator.rule_domains()))
     await _cleanup_stale_entities(hass, entry, current)
     entry.runtime_data = coordinator
+    issues = ProxyIssues(hass, coordinator)
+    issues.async_update()
+    entry.async_on_unload(coordinator.async_add_listener(issues.async_update))
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_reload))
     return True
@@ -304,6 +308,11 @@ async def _async_reload(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Its Repairs issues (certificates, upstreams) go with it."""
+    async_remove_issues(hass, entry.entry_id)
 
 
 def _async_toggle_proxy_rule(hass: HomeAssistant):

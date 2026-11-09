@@ -190,5 +190,19 @@
     "not_supported": {
       "message": "{proxy}: ova radnja nije dostupna, njegov API je samo za čitanje"
     }
+  },
+  "issues": {
+    "certificate_expiring": {
+      "title": "Sertifikat za {domain} uskoro ističe",
+      "description": "TLS sertifikat za {domain} na {proxy} ističe {expires}. Obnovite ga (Zoraxy: dugme Obnovi sertifikata) ili proverite automatsko obnavljanje. Problem nestaje kada se sertifikat obnovi."
+    },
+    "certificate_expired": {
+      "title": "Sertifikat za {domain} je istekao",
+      "description": "TLS sertifikat za {domain} na {proxy} je istekao {expires}: pregledači odbijaju sajt. Obnovite ga sada; problem nestaje kada se obnovi."
+    },
+    "upstream_offline": {
+      "title": "{domain} nije dostupan iza {proxy}",
+      "description": "Svi odredišni serveri pravila {domain} na {proxy} nisu na mreži od {since}. Proverite uslugu iza njega; problem nestaje čim neki ponovo odgovori."
+    }
   }
 }

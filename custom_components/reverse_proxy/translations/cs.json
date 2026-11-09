@@ -190,5 +190,19 @@
     "not_supported": {
       "message": "{proxy}: tato akce není dostupná, jeho API je jen pro čtení"
     }
+  },
+  "issues": {
+    "certificate_expiring": {
+      "title": "Certifikát {domain} brzy vyprší",
+      "description": "TLS certifikát {domain} na {proxy} vyprší {expires}. Obnovte ho (Zoraxy: tlačítko Obnovit certifikátu) nebo zkontrolujte automatické obnovení. Problém zmizí po obnovení certifikátu."
+    },
+    "certificate_expired": {
+      "title": "Certifikát {domain} vypršel",
+      "description": "TLS certifikát {domain} na {proxy} vypršel {expires}: prohlížeče stránku odmítají. Obnovte ho hned; problém zmizí po obnovení."
+    },
+    "upstream_offline": {
+      "title": "{domain} je za {proxy} nedostupná",
+      "description": "Všechny upstreamy pravidla {domain} na {proxy} jsou offline od {since}. Zkontrolujte službu za ním; problém zmizí, jakmile některý odpoví."
+    }
   }
 }

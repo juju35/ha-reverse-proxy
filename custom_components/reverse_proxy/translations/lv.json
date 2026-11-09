@@ -190,5 +190,19 @@
     "not_supported": {
       "message": "{proxy}: šī darbība nav pieejama, tā API ir tikai lasāms"
     }
+  },
+  "issues": {
+    "certificate_expiring": {
+      "title": "{domain} sertifikāts drīz beigsies",
+      "description": "{domain} TLS sertifikāts starpniekserverī {proxy} beidzas {expires}. Atjaunojiet to (Zoraxy: sertifikāta poga Atjaunot) vai pārbaudiet automātisko atjaunošanu. Problēma pazūd, kad sertifikāts ir atjaunots."
+    },
+    "certificate_expired": {
+      "title": "{domain} sertifikāts ir beidzies",
+      "description": "{domain} TLS sertifikāts starpniekserverī {proxy} beidzās {expires}: pārlūki atsaka vietni. Atjaunojiet to tūlīt; problēma pazūd pēc atjaunošanas."
+    },
+    "upstream_offline": {
+      "title": "{domain} nav sasniedzams aiz {proxy}",
+      "description": "Visi noteikuma {domain} upstream serveri starpniekserverī {proxy} ir bezsaistē kopš {since}. Pārbaudiet pakalpojumu aiz tā; problēma pazūd, tiklīdz kāds atbild."
+    }
   }
 }

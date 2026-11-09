@@ -47,3 +47,4 @@ async_setup_entry  # unused function (custom_components/reverse_proxy/switch.py:
 _.is_on  # unused property (custom_components/reverse_proxy/switch.py:34)
 _.async_turn_on  # unused method (custom_components/reverse_proxy/switch.py:38)
 _.async_turn_off  # unused method (custom_components/reverse_proxy/switch.py:42)
+async_remove_entry  # unused function (custom_components/reverse_proxy/__init__.py:313)

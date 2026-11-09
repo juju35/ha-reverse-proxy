@@ -190,5 +190,19 @@
     "not_supported": {
       "message": "{proxy}: deze actie is niet beschikbaar, de API is alleen-lezen"
     }
+  },
+  "issues": {
+    "certificate_expiring": {
+      "title": "Certificaat van {domain} verloopt binnenkort",
+      "description": "Het TLS-certificaat van {domain} op {proxy} verloopt op {expires}. Vernieuw het (Zoraxy: de knop Vernieuwen van het certificaat) of controleer de automatische vernieuwing. Dit probleem verdwijnt zodra het certificaat vernieuwd is."
+    },
+    "certificate_expired": {
+      "title": "Certificaat van {domain} verlopen",
+      "description": "Het TLS-certificaat van {domain} op {proxy} is verlopen op {expires}: browsers weigeren de site. Vernieuw het nu; dit probleem verdwijnt zodra het vernieuwd is."
+    },
+    "upstream_offline": {
+      "title": "{domain} onbereikbaar achter {proxy}",
+      "description": "Alle upstreams van de regel {domain} op {proxy} zijn offline sinds {since}. Controleer de dienst erachter; dit probleem verdwijnt zodra een upstream weer antwoordt."
+    }
   }
 }

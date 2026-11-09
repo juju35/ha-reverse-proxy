@@ -41,6 +41,7 @@ The cards only show the controls the proxy has.
 
 - Sensors for proxy rules, active rules, the inbound port, and per proxy: TLS certificates and access rules (Zoraxy), middlewares and version (Traefik)
 - One upstream health binary sensor per proxy rule
+- **Repairs**: an issue when a certificate expires within 30 days (an error once expired), and when every upstream of a rule has been offline for 10 minutes; each goes away by itself once fixed
 - Zoraxy: one expiry sensor, one "expiring soon" binary sensor and one ACME renewal button per certificate (a certificate added later in Zoraxy gets its entities at the next update); switches for the HTTPS redirect, the port 80 listener and the development mode; a `reverse_proxy.toggle_proxy_rule` action (administrators only) to enable or disable a proxy rule from an automation
 - A Lovelace card, shipped with the integration and registered automatically:
   - proxy status, brand mark and key metrics
@@ -187,6 +188,18 @@ Traefik only:
 | `sensor.* version` | Traefik version (diagnostic; also the device's software version) |
 
 Names follow the Home Assistant language under the **Zoraxy Reverse Proxy** or **Traefik Reverse Proxy** device. Zoraxy entity ids keep their historical French suffixes (`sensor.zoraxy_reverse_proxy_zoraxy_regles_proxy`…) so dashboards and automations from 1.x keep working, on new installs too; Traefik entities get Home Assistant's default ids (`sensor.traefik_reverse_proxy_proxy_rules`…).
+
+### Repairs
+
+The integration raises issues in **Settings → Repairs**, removed by themselves once the cause is gone:
+
+| Issue | When | Severity |
+|---|---|---|
+| Certificate of *domain* expires soon | A certificate expires within 30 days (the *expiring soon* binary sensor is on) | Warning |
+| Certificate of *domain* expired | Its expiry date has passed | Error |
+| *domain* unreachable behind *proxy* | Every upstream of the rule has been offline at each check for 10 minutes (a service restarting raises nothing) | Error |
+
+They follow the proxy's data: while the proxy itself can't be reached, the issues raised stay as they are. Removing the integration entry removes its issues.
 
 ### Action `reverse_proxy.toggle_proxy_rule` (Zoraxy)
 
