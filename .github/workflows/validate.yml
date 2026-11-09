@@ -21,6 +21,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  version:
+    name: Version consistency
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # The checks the release makes, before merging: a version bumped in one file only fails the release on main.
+      - name: Same version everywhere, and in the changelog
+        run: |
+          VERSION="$(jq -r .version custom_components/reverse_proxy/manifest.json)"
+          grep -q "REVERSE_PROXY_CARD_VERSION = '$VERSION'" custom_components/reverse_proxy/frontend/reverse-proxy-card.js || { echo "::error file=custom_components/reverse_proxy/frontend/reverse-proxy-card.js::version $VERSION not found in custom_components/reverse_proxy/frontend/reverse-proxy-card.js"; exit 1; }
+          grep -q "^## $VERSION " CHANGELOG.md || { echo "::error file=CHANGELOG.md::no '## $VERSION' entry in CHANGELOG.md"; exit 1; }
+          echo "Version $VERSION everywhere"
+
   validate-hassfest:
     name: Validate with hassfest
     runs-on: ubuntu-latest
