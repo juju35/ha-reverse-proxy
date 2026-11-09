@@ -69,7 +69,7 @@ jobs:
       - name: Split the translations
         if: steps.version.outputs.exists == 'false'
         run: |
-          npm install --no-save --no-package-lock acorn@8
+          npm install --no-save --no-package-lock acorn@8.19.0
           node scripts/split-frontend.mjs
 
       - name: Build zip and notes
