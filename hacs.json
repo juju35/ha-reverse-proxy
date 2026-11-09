@@ -2,5 +2,7 @@
   "name": "Reverse Proxy (Zoraxy, Traefik)",
   "content_in_root": false,
   "render_readme": true,
+  "zip_release": true,
+  "filename": "reverse_proxy.zip",
   "homeassistant": "2024.12.0"
 }
