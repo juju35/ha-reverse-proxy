@@ -372,5 +372,6 @@ async def test_reconfigure_asks_for_the_email(hass, aioclient_mock, entry):
     )
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "reconfigure_successful"
+    await hass.async_block_till_done()  # the reload of the entry
     assert entry.data["username"] == "ops@example.org"
     assert entry.data["password"] == "new"
