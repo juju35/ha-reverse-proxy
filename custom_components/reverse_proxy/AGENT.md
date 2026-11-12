@@ -25,7 +25,7 @@ custom_components/reverse_proxy/
 ├── frontend/reverse-proxy-card.js  # Full card and mini card (custom:reverse-proxy-card, -mini-card; zoraxy-card aliases)
 └── brand/               # icon.svg (source) → icon.png, icon@2x.png, logo.png, logo@2x.png: rounded indigo tile, white server-network glyph,
                          # orange swap badge — the style of the other ha-* integration icons (parcel, git-sync, smart-comfort);
-                         # zoraxy.svg, traefik.svg: the brand marks used as header badges
+                         # zoraxy.svg, traefik.svg, nginx_proxy_manager.svg: the brand marks used as header badges
 ```
 
 ## Proxy abstraction
@@ -48,7 +48,7 @@ custom_components/reverse_proxy/
 - `/api/` (status and version, `{status: "OK", version: {major, minor, revision}}`) is required; `/api/nginx/proxy-hosts`, `/api/nginx/redirection-hosts`, `/api/nginx/certificates`, `/api/nginx/access-lists` are optional (previous value kept).
 - A rule is a proxy host: domain = first `domain_names`, target `forward_scheme://forward_host:forward_port`, `enabled`, `tls` = a `certificate_id`. No upstream health check in NPM: upstream sensors stay unknown. Port: 443 once a host has a certificate, else 80.
 - Certificates are named after their first domain name (an imported one without any: its `nice_name`); `expires_on` (`YYYY-MM-DD HH:mm:ss`, UTC) → aware ISO by `npm_expiry`. Renewal: POST `/api/nginx/certificates/{id}/renew`, Let's Encrypt only (`provider == "letsencrypt"`). Toggle: POST `/api/nginx/proxy-hosts/{id}/enable|disable`.
-- The card's brand mark is an "N" monogram until the official logo is added.
+- The card's brand mark is the Nginx Proxy Manager logo (brand/nginx_proxy_manager.svg, inlined in `BRANDS`).
 
 ## Zoraxy authentication
 
