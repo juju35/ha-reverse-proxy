@@ -17,5 +17,5 @@
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/juju35/ha-reverse-proxy/issues",
   "requirements": [],
-  "version": "2.4.0"
+  "version": "2.4.1"
 }

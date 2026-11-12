@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.4.1 - 2026-11-13
+
+### Fixes
+- Nginx Proxy Manager: no more upstream health binary sensor per proxy host (#67). NPM does not check its upstreams, so these sensors (shown as *Upstream {domain}* / *Serveur cible {domain}*) could only ever be `unknown`, while the target of each proxy host is already in the *Proxy rules* sensor and on the card. Those created by 2.4.0 are removed at startup; Zoraxy and Traefik keep theirs.
+
 ## 2.4.0 - 2026-11-12
 
 ### Features

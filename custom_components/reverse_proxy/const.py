@@ -54,12 +54,15 @@ EXPIRY_WARNING_DAYS = 30  # days before expiry that trigger the warning
 # What each proxy's API lets the integration do; the entities and the card's controls follow.
 # controls: HTTPS redirect, port 80 and development mode switches; certificates: TLS certificate entities and
 # ACME renewal; toggle_rules: enabling or disabling a proxy rule; redirects: a redirect list; access_rules: an
-# access rule count; version: a version sensor; middlewares: a middleware count.
+# access rule count; version: a version sensor; middlewares: a middleware count; upstream_health: the proxy checks
+# the upstreams of its rules (one upstream health binary sensor per rule).
 FEATURES: dict[str, frozenset[str]] = {
-    PROXY_ZORAXY: frozenset({"controls", "certificates", "toggle_rules", "redirects", "access_rules"}),
-    PROXY_TRAEFIK: frozenset({"redirects", "version", "middlewares"}),
+    PROXY_ZORAXY: frozenset(
+        {"controls", "certificates", "toggle_rules", "redirects", "access_rules", "upstream_health"}
+    ),
+    PROXY_TRAEFIK: frozenset({"redirects", "version", "middlewares", "upstream_health"}),
     # Nginx Proxy Manager: proxy hosts on/off, Let's Encrypt renewal, redirection hosts, access lists; no global
-    # option to switch (the HTTPS redirect is per host) and no upstream health check.
+    # option to switch (the HTTPS redirect is per host) and no upstream health check, hence no upstream sensor.
     PROXY_NPM: frozenset({"certificates", "toggle_rules", "redirects", "access_rules", "version"}),
 }
 

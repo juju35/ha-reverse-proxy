@@ -293,7 +293,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     current: dict[str, list[str]] = {}
     if coordinator.cert_list_loaded:
         current.update(dict.fromkeys(CERT_SUFFIXES, coordinator.cert_list))
-    if coordinator.proxy_list_loaded:
+    if "upstream_health" not in coordinator.features:
+        # No upstream sensor for a proxy that does not check its upstreams: those created by 2.4.0 go (#67).
+        current.update({suffix: [] for suffix in RULE_SUFFIXES})
+    elif coordinator.proxy_list_loaded:
         current.update(dict.fromkeys(RULE_SUFFIXES, coordinator.rule_domains()))
     await _cleanup_stale_entities(hass, entry, current)
     entry.runtime_data = coordinator

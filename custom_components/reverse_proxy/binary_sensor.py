@@ -28,9 +28,11 @@ async def async_setup_entry(hass, entry, async_add_entities):
         entities += async_track_cert_entities(
             coordinator, entry, async_add_entities, lambda d: [CertExpiringBinarySensor(coordinator, entry, d)]
         )
-    entities += async_track_rule_entities(
-        coordinator, entry, async_add_entities, lambda d: [UpstreamProblemBinarySensor(coordinator, entry, d)]
-    )
+    if "upstream_health" in features:
+        # Only for a proxy that checks its upstreams: elsewhere the sensor could only ever be unknown (#67).
+        entities += async_track_rule_entities(
+            coordinator, entry, async_add_entities, lambda d: [UpstreamProblemBinarySensor(coordinator, entry, d)]
+        )
     async_add_entities(entities)
 
 

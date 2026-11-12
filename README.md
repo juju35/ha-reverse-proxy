@@ -26,7 +26,7 @@ Home Assistant integration and Lovelace cards for your reverse proxy — [Zoraxy
 |---|---|---|---|
 | Proxy status, TLS flag, inbound port | ✓ | ✓ (`/api/overview`, entrypoints) | ✓ (`/api/`; 443 once a host has a certificate, else 80) |
 | Proxy rules, active rules | ✓ | ✓ (HTTP routers, Traefik's own `@internal` ones aside) | ✓ proxy hosts (first domain name) |
-| Upstream health per rule | ✓ Zoraxy's uptime monitor | ✓ service health checks (`serverStatus`), `unknown` without a health check | — `unknown` (NPM does not check its upstreams) |
+| Upstream health per rule | ✓ Zoraxy's uptime monitor | ✓ service health checks (`serverStatus`), `unknown` without a health check | — no sensor (NPM does not check its upstreams) |
 | Redirects | ✓ redirection rules | ✓ `redirectScheme` / `redirectRegex` middlewares | ✓ redirection hosts |
 | Access rules / middlewares count | access rules | middlewares | access lists |
 | Version | — | ✓ | ✓ |
@@ -40,7 +40,7 @@ The cards only show the controls the proxy has.
 ## Features
 
 - Sensors for proxy rules, active rules, the inbound port, and per proxy: TLS certificates and access rules (Zoraxy), middlewares and version (Traefik), TLS certificates, access lists and version (Nginx Proxy Manager)
-- One upstream health binary sensor per proxy rule
+- One upstream health binary sensor per proxy rule (Zoraxy and Traefik: Nginx Proxy Manager does not check its upstreams)
 - **Repairs**: an issue when a certificate expires within 30 days (an error once expired), and when every upstream of a rule has been offline for 10 minutes; each goes away by itself once fixed
 - Zoraxy and Nginx Proxy Manager: one expiry sensor, one "expiring soon" binary sensor and one renewal button per certificate (a certificate added later in Zoraxy gets its entities at the next update); a `reverse_proxy.toggle_proxy_rule` action (administrators only) to enable or disable a proxy rule from an automation; Zoraxy: switches for the HTTPS redirect, the port 80 listener and the development mode
 - A Lovelace card, shipped with the integration and registered automatically:
@@ -168,7 +168,7 @@ Every proxy:
 | `sensor.* inbound port` | Proxy listening port (Traefik: the `websecure` entrypoint, else the first TLS entrypoint, else the first one; Nginx Proxy Manager: 443 once a host has a certificate, else 80) |
 | `binary_sensor.* proxy running` | Proxy running; `proxy_type` and `features` attributes tell the cards which proxy it is |
 | `binary_sensor.* TLS enabled` | TLS enabled (Traefik: a router or an entrypoint with TLS; Nginx Proxy Manager: a proxy host with a certificate) |
-| `binary_sensor.* {domain} upstream` | Upstream health of a proxy rule (problem): `on` when the proxy found an upstream of the rule offline at its last check, `unknown` when it has no check of the rule (always, for Nginx Proxy Manager, which does not check its upstreams); `upstreams` attribute with each upstream's URL and online flag (Zoraxy adds the status code, latency and check time) |
+| `binary_sensor.* {domain} upstream` | Upstream health of a proxy rule (problem): `on` when the proxy found an upstream of the rule offline at its last check, `unknown` when it has no check of the rule (none for Nginx Proxy Manager, which does not check its upstreams: the rule's target is in the *Proxy rules* sensor); `upstreams` attribute with each upstream's URL and online flag (Zoraxy adds the status code, latency and check time) |
 
 Zoraxy and Nginx Proxy Manager:
 
