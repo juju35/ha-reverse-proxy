@@ -162,8 +162,25 @@ async def test_setup_entities(hass, aioclient_mock, entry):
 
     # No option switch: NPM has no global HTTPS redirect, port 80 or dev mode.
     assert hass.states.async_entity_ids("switch") == []
-    # NPM does not check the upstreams: their health is unknown.
-    assert hass.states.get(f"binary_sensor.{N}_ha_example_org_upstream").state == "unknown"
+    # NPM does not check the upstreams: no upstream health sensor, it could only be unknown (#67).
+    assert hass.states.get(f"binary_sensor.{N}_ha_example_org_upstream") is None
+
+
+async def test_upstream_sensors_of_2_4_0_removed(hass, aioclient_mock, entry):
+    """The upstream sensors 2.4.0 created for the proxy hosts are removed from the registry at startup (#67)."""
+    registry = er.async_get(hass)
+    stale = registry.async_get_or_create(
+        "binary_sensor",
+        DOMAIN,
+        f"{entry.entry_id}_upstream_problem_ha_example_org",
+        config_entry=entry,
+        suggested_object_id=f"{N}_ha_example_org_upstream",
+    )
+    mock_npm(aioclient_mock)
+    await _setup(hass, entry)
+    assert registry.async_get(stale.entity_id) is None
+    assert hass.states.get(stale.entity_id) is None
+    assert hass.states.get(f"sensor.{N}_ha_example_org_certificate") is not None
 
 
 async def test_device_carries_the_version(hass, aioclient_mock, entry):
@@ -220,8 +237,9 @@ async def test_proxy_host_failure_keeps_rules(hass, aioclient_mock, entry):
     mock_npm(aioclient_mock, proxy_hosts=500)
     await entry.runtime_data.async_refresh()
     await hass.async_block_till_done()
-    assert hass.states.get(f"sensor.{N}_proxy_rules").state == "2"
-    assert hass.states.get(f"binary_sensor.{N}_nas_example_org_upstream") is not None
+    rules = hass.states.get(f"sensor.{N}_proxy_rules")
+    assert rules.state == "2"
+    assert [r["domain"] for r in rules.attributes["rules"]] == ["ha.example.org", "nas.example.org"]
 
 
 async def test_diagnostics_redact_npm_secrets(hass, aioclient_mock, entry):

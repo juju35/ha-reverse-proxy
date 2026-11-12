@@ -147,7 +147,7 @@ async def test_setup_entities(hass, aioclient_mock, entry):
     running = hass.states.get(f"binary_sensor.{T}_proxy_running")
     assert running.state == "on"
     assert running.attributes["proxy_type"] == "traefik"
-    assert running.attributes["features"] == ["middlewares", "redirects", "version"]
+    assert running.attributes["features"] == ["middlewares", "redirects", "upstream_health", "version"]
     assert hass.states.get(f"binary_sensor.{T}_tls_enabled").state == "on"
 
     rules = hass.states.get(f"sensor.{T}_proxy_rules")
