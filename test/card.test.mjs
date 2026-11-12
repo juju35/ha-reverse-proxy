@@ -1162,7 +1162,7 @@ test('every text names the proxy the card shows ({proxy}), the editor says both'
   context.document.createElement = () => ({ addEventListener() {} });
   editor._hass = { locale: { language: 'en' } };
   editor.setConfig({});
-  assert.equal(editor._form.computeLabel({ name: 'device' }), 'Zoraxy / Traefik device');
+  assert.equal(editor._form.computeLabel({ name: 'device' }), 'Zoraxy / Traefik / Nginx Proxy Manager device');
 });
 
 test('zoraxy_url (up to 1.14.x) still gives the header link; the editor shows and saves it as proxy_url', () => {

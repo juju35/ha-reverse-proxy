@@ -5,7 +5,8 @@
         "title": "Зворотний проксі - Налаштування",
         "menu_options": {
           "zoraxy": "Zoraxy",
-          "traefik": "Traefik"
+          "traefik": "Traefik",
+          "nginx_proxy_manager": "Nginx Proxy Manager"
         }
       },
       "zoraxy": {
@@ -35,6 +36,20 @@
           "username": "Лише якщо API або панель Traefik знаходяться за middleware basicAuth; інакше залиште порожнім."
         }
       },
+      "nginx_proxy_manager": {
+        "title": "Nginx Proxy Manager - Налаштування",
+        "data": {
+          "host": "Адреса Nginx Proxy Manager (URL з портом)",
+          "username": "Електронна пошта",
+          "password": "Пароль",
+          "scan_interval": "Інтервал оновлення (секунди)",
+          "verify_ssl": "Перевіряти сертифікат TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Вимикайте лише для адреси HTTPS із самопідписаним сертифікатом.",
+          "username": "Адреса електронної пошти для входу в Nginx Proxy Manager (обліковий запис без двофакторної автентифікації)."
+        }
+      },
       "reauth_confirm": {
         "title": "{proxy} - Новий пароль",
         "description": "{proxy} відхилив пароль користувача {username} на {host}.",
@@ -49,6 +64,7 @@
         "data": {
           "host": "Адреса {proxy} (URL з портом)",
           "username": "Ім'я користувача",
+          "email": "Електронна пошта",
           "password": "Пароль"
         }
       }

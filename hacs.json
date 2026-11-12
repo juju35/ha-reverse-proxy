@@ -1,5 +1,5 @@
 {
-  "name": "Reverse Proxy (Zoraxy, Traefik)",
+  "name": "Reverse Proxy (Zoraxy, Traefik, Nginx Proxy Manager)",
   "content_in_root": false,
   "render_readme": true,
   "zip_release": true,

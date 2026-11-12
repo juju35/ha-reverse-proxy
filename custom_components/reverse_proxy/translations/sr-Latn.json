@@ -5,7 +5,8 @@
         "title": "Obrnuti proksi - Konfiguracija",
         "menu_options": {
           "zoraxy": "Zoraxy",
-          "traefik": "Traefik"
+          "traefik": "Traefik",
+          "nginx_proxy_manager": "Nginx Proxy Manager"
         }
       },
       "zoraxy": {
@@ -35,6 +36,20 @@
           "username": "Samo ako su Traefik API ili kontrolna tabla iza basicAuth međusloja; u suprotnom ostavite prazno."
         }
       },
+      "nginx_proxy_manager": {
+        "title": "Nginx Proxy Manager - Konfiguracija",
+        "data": {
+          "host": "Nginx Proxy Manager adresa (URL sa portom)",
+          "username": "E-pošta",
+          "password": "Lozinka",
+          "scan_interval": "Interval osvežavanja (sekunde)",
+          "verify_ssl": "Proveri TLS sertifikat"
+        },
+        "data_description": {
+          "verify_ssl": "Isključi samo za HTTPS adresu sa samopotpisanim sertifikatom.",
+          "username": "Adresa e-pošte kojom se prijavljujete u Nginx Proxy Manager (nalog bez dvofaktorske potvrde identiteta)."
+        }
+      },
       "reauth_confirm": {
         "title": "{proxy} - Nova lozinka",
         "description": "{proxy} je odbio lozinku korisnika {username} na {host}.",
@@ -49,6 +64,7 @@
         "data": {
           "host": "{proxy} adresa (URL sa portom)",
           "username": "Korisničko ime",
+          "email": "E-pošta",
           "password": "Lozinka"
         }
       }

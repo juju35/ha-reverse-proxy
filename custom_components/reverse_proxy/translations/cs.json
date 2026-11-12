@@ -5,7 +5,8 @@
         "title": "Reverzní proxy - Konfigurace",
         "menu_options": {
           "zoraxy": "Zoraxy",
-          "traefik": "Traefik"
+          "traefik": "Traefik",
+          "nginx_proxy_manager": "Nginx Proxy Manager"
         }
       },
       "zoraxy": {
@@ -35,6 +36,20 @@
           "username": "Jen pokud je API nebo dashboard Traefiku za middleware basicAuth; jinak nechte prázdné."
         }
       },
+      "nginx_proxy_manager": {
+        "title": "Nginx Proxy Manager - Konfigurace",
+        "data": {
+          "host": "Adresa Nginx Proxy Manager (URL s portem)",
+          "username": "E-mail",
+          "password": "Heslo",
+          "scan_interval": "Interval obnovení (sekundy)",
+          "verify_ssl": "Ověřit certifikát TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Vypínejte pouze pro adresu HTTPS se samopodepsaným certifikátem.",
+          "username": "E-mailová adresa, kterou se přihlašujete do Nginx Proxy Manager (účet bez dvoufázového ověření)."
+        }
+      },
       "reauth_confirm": {
         "title": "{proxy} - Nové heslo",
         "description": "{proxy} odmítl heslo uživatele {username} na {host}.",
@@ -49,6 +64,7 @@
         "data": {
           "host": "Adresa {proxy} (URL s portem)",
           "username": "Uživatelské jméno",
+          "email": "E-mail",
           "password": "Heslo"
         }
       }

@@ -5,7 +5,8 @@
         "title": "Fordított proxy - Konfiguráció",
         "menu_options": {
           "zoraxy": "Zoraxy",
-          "traefik": "Traefik"
+          "traefik": "Traefik",
+          "nginx_proxy_manager": "Nginx Proxy Manager"
         }
       },
       "zoraxy": {
@@ -35,6 +36,20 @@
           "username": "Csak ha a Traefik API vagy az irányítópult basicAuth middleware mögött van; különben hagyja üresen."
         }
       },
+      "nginx_proxy_manager": {
+        "title": "Nginx Proxy Manager - Konfiguráció",
+        "data": {
+          "host": "Nginx Proxy Manager címe (URL porttal)",
+          "username": "E-mail",
+          "password": "Jelszó",
+          "scan_interval": "Frissítési időköz (másodperc)",
+          "verify_ssl": "TLS-tanúsítvány ellenőrzése"
+        },
+        "data_description": {
+          "verify_ssl": "Csak önaláírt tanúsítványt használó HTTPS-cím esetén kapcsolja ki.",
+          "username": "Az e-mail-cím, amellyel bejelentkezel a Nginx Proxy Managerbe (kétlépcsős azonosítás nélküli fiók)."
+        }
+      },
       "reauth_confirm": {
         "title": "{proxy} - Új jelszó",
         "description": "A {proxy} elutasította {username} jelszavát itt: {host}.",
@@ -49,6 +64,7 @@
         "data": {
           "host": "{proxy} címe (URL porttal)",
           "username": "Felhasználónév",
+          "email": "E-mail",
           "password": "Jelszó"
         }
       }

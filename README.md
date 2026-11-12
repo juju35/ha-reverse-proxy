@@ -12,51 +12,52 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/juju35/ha-reverse-proxy/blob/main/LICENSE)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/julienstep9)
 
-Home Assistant integration and Lovelace cards for your reverse proxy — [Zoraxy](https://github.com/tobychui/zoraxy) or [Traefik](https://traefik.io/traefik/): proxy status, proxy rules and their upstream health, redirects and, where the proxy's API allows it, controls, TLS certificates with ACME renewal and rules you can switch on and off from the dashboard. Formerly *ha-zoraxy*: see [Upgrading from ha-zoraxy](#upgrading-from-ha-zoraxy).
+Home Assistant integration and Lovelace cards for your reverse proxy — [Zoraxy](https://github.com/tobychui/zoraxy), [Traefik](https://traefik.io/traefik/) or [Nginx Proxy Manager](https://nginxproxymanager.com/): proxy status, proxy rules and their upstream health, redirects and, where the proxy's API allows it, controls, TLS certificates with ACME renewal and rules you can switch on and off from the dashboard. Formerly *ha-zoraxy*: see [Upgrading from ha-zoraxy](#upgrading-from-ha-zoraxy).
 
 [![Open your Home Assistant instance and open a repository inside the Marketplace.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=juju35&repository=ha-reverse-proxy&category=integration)
 
-| Zoraxy | Traefik |
-|---|---|
-| <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/card.png" alt="reverse-proxy-card, Zoraxy" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/card-traefik.png" alt="reverse-proxy-card, Traefik" width="400"> |
+| Zoraxy | Traefik | Nginx Proxy Manager |
+|---|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/card.png" alt="reverse-proxy-card, Zoraxy" width="300"> | <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/card-traefik.png" alt="reverse-proxy-card, Traefik" width="300"> | <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/card-npm.png" alt="reverse-proxy-card, Nginx Proxy Manager" width="300"> |
 
 ## Supported reverse proxies
 
-| | Zoraxy (v3.3.2+) | Traefik (v2 / v3) |
-|---|---|---|
-| Proxy status, TLS flag, inbound port | ✓ | ✓ (`/api/overview`, entrypoints) |
-| Proxy rules, active rules | ✓ | ✓ (HTTP routers, Traefik's own `@internal` ones aside) |
-| Upstream health per rule | ✓ Zoraxy's uptime monitor | ✓ service health checks (`serverStatus`), `unknown` without a health check |
-| Redirects | ✓ redirection rules | ✓ `redirectScheme` / `redirectRegex` middlewares |
-| Access rules / middlewares count | access rules | middlewares |
-| Version | — | ✓ |
-| HTTPS redirect, port 80, dev mode switches | ✓ | — (API read-only) |
-| TLS certificates, expiry, ACME renewal | ✓ | — (not exposed by the API: `acme.json`) |
-| Enable / disable a rule | ✓ (`reverse_proxy.toggle_proxy_rule`) | — (API read-only) |
-| Login | Zoraxy account | none, or HTTP basic auth (dashboard behind a `basicAuth` middleware) |
+| | Zoraxy (v3.3.2+) | Traefik (v2 / v3) | Nginx Proxy Manager (v2) |
+|---|---|---|---|
+| Proxy status, TLS flag, inbound port | ✓ | ✓ (`/api/overview`, entrypoints) | ✓ (`/api/`; 443 once a host has a certificate, else 80) |
+| Proxy rules, active rules | ✓ | ✓ (HTTP routers, Traefik's own `@internal` ones aside) | ✓ proxy hosts (first domain name) |
+| Upstream health per rule | ✓ Zoraxy's uptime monitor | ✓ service health checks (`serverStatus`), `unknown` without a health check | — `unknown` (NPM does not check its upstreams) |
+| Redirects | ✓ redirection rules | ✓ `redirectScheme` / `redirectRegex` middlewares | ✓ redirection hosts |
+| Access rules / middlewares count | access rules | middlewares | access lists |
+| Version | — | ✓ | ✓ |
+| HTTPS redirect, port 80, dev mode switches | ✓ | — (API read-only) | — (per host in NPM) |
+| TLS certificates, expiry, ACME renewal | ✓ | — (not exposed by the API: `acme.json`) | ✓ (renewal: Let's Encrypt certificates) |
+| Enable / disable a rule | ✓ (`reverse_proxy.toggle_proxy_rule`) | — (API read-only) | ✓ (`reverse_proxy.toggle_proxy_rule`) |
+| Login | Zoraxy account | none, or HTTP basic auth (dashboard behind a `basicAuth` middleware) | NPM account (email and password, without two-factor authentication) |
 
 The cards only show the controls the proxy has.
 
 ## Features
 
-- Sensors for proxy rules, active rules, the inbound port, and per proxy: TLS certificates and access rules (Zoraxy), middlewares and version (Traefik)
+- Sensors for proxy rules, active rules, the inbound port, and per proxy: TLS certificates and access rules (Zoraxy), middlewares and version (Traefik), TLS certificates, access lists and version (Nginx Proxy Manager)
 - One upstream health binary sensor per proxy rule
 - **Repairs**: an issue when a certificate expires within 30 days (an error once expired), and when every upstream of a rule has been offline for 10 minutes; each goes away by itself once fixed
-- Zoraxy: one expiry sensor, one "expiring soon" binary sensor and one ACME renewal button per certificate (a certificate added later in Zoraxy gets its entities at the next update); switches for the HTTPS redirect, the port 80 listener and the development mode; a `reverse_proxy.toggle_proxy_rule` action (administrators only) to enable or disable a proxy rule from an automation
+- Zoraxy and Nginx Proxy Manager: one expiry sensor, one "expiring soon" binary sensor and one renewal button per certificate (a certificate added later in Zoraxy gets its entities at the next update); a `reverse_proxy.toggle_proxy_rule` action (administrators only) to enable or disable a proxy rule from an automation; Zoraxy: switches for the HTTPS redirect, the port 80 listener and the development mode
 - A Lovelace card, shipped with the integration and registered automatically:
   - proxy status, brand mark and key metrics
   - proxy rules with the rule's state, a *Down* badge when the proxy finds the rule's upstream offline, and redirects
-  - Zoraxy: direct controls (HTTPS redirect, port 80, dev mode; turning port 80 off asks for confirmation first, as it also stops the ACME HTTP challenges), certificates with days left and a renewal button, an on/off button per rule (disabling a rule asks for confirmation first)
+  - Zoraxy: direct controls (HTTPS redirect, port 80, dev mode; turning port 80 off asks for confirmation first, as it also stops the ACME HTTP challenges)
+  - Zoraxy and Nginx Proxy Manager: certificates with days left and a renewal button, an on/off button per rule (disabling a rule asks for confirmation first)
   - an unavailable entity shows as *Unavailable* (its control disabled), never as *Off* or *Inactive*
 - A mini card in the same file: status and key figures on two lines, alerts highlighted, and a detail button showing the full card; at its narrowest (4 columns of a Sections view) the status pill shows its coloured dot only
 - Visual editors for both cards, light and dark mode, English, French, German, Spanish, Serbian (Cyrillic and Latin), Italian, Dutch, European Portuguese, Polish, Romanian, Danish, Swedish, Bulgarian, Russian, Ukrainian, Hungarian, Slovak, Czech, Slovenian, Latvian and Greek
-- Several instances, of either proxy, each with its own device and card
-- Automatic reconnection when the Zoraxy session expires (about one hour)
+- Several instances, of any of these proxies, each with its own device and card
+- Automatic reconnection when the Zoraxy session (about one hour) or the Nginx Proxy Manager token (a day) expires
 
 ## Prerequisites
 
 - Home Assistant **2024.12** or later
-- Zoraxy **v3.3.2** or later and an account on its web interface, or Traefik with its [API](https://doc.traefik.io/traefik/operations/api/) reachable from Home Assistant (`api.insecure: true` on the `traefik` entrypoint, or the dashboard router; with a `basicAuth` middleware, give the integration its credentials)
+- Zoraxy **v3.3.2** or later and an account on its web interface, or Traefik with its [API](https://doc.traefik.io/traefik/operations/api/) reachable from Home Assistant (`api.insecure: true` on the `traefik` entrypoint, or the dashboard router; with a `basicAuth` middleware, give the integration its credentials), or Nginx Proxy Manager v2 and an account on its admin interface (port 81) without two-factor authentication: a dedicated user whose permissions allow managing the proxy hosts and certificates is enough
 
 ## Installation
 
@@ -97,16 +98,16 @@ The new entry takes over the former Zoraxy entry of the same address: its device
 
 ### Integration
 
-**Settings → Devices & services → Add integration → Reverse Proxy**, pick **Zoraxy** or **Traefik**, then fill in:
+**Settings → Devices & services → Add integration → Reverse Proxy**, pick **Zoraxy**, **Traefik** or **Nginx Proxy Manager**, then fill in:
 
-| Field | Zoraxy | Traefik |
-|---|---|---|
-| Address | `http://zoraxy.local:8000` | `http://traefik.local:8080` (the API entrypoint or the dashboard address) |
-| Username / Password | Your Zoraxy credentials | Only when the API or dashboard is behind a `basicAuth` middleware |
-| Refresh interval | `30` seconds (10 minimum) | same |
-| Verify the TLS certificate | On by default; turn it off only for an `https://` address with a self-signed certificate | same |
+| Field | Zoraxy | Traefik | Nginx Proxy Manager |
+|---|---|---|---|
+| Address | `http://zoraxy.local:8000` | `http://traefik.local:8080` (the API entrypoint or the dashboard address) | `http://npm.local:81` (the admin interface) |
+| Username / Password | Your Zoraxy credentials | Only when the API or dashboard is behind a `basicAuth` middleware | The email and password of an NPM account |
+| Refresh interval | `30` seconds (10 minimum) | same | same |
+| Verify the TLS certificate | On by default; turn it off only for an `https://` address with a self-signed certificate | same | same |
 
-The refresh interval and the TLS verification can be changed later with **Configure** on the integration. To change the address, the username or the password without removing the integration, use **⋮ → Reconfigure** on it: the new settings are saved only once the proxy accepts them. When the proxy refuses the credentials, Home Assistant asks for new ones in **Settings → Devices & services**. Zoraxy entries created with version 1.5.0 or earlier keep the TLS verification off, as before; turn it on in the options if your certificate is valid.
+The refresh interval and the TLS verification can be changed later with **Configure** on the integration. To change the address, the username (Nginx Proxy Manager: the email) or the password without removing the integration, use **⋮ → Reconfigure** on it: the new settings are saved only once the proxy accepts them. When the proxy refuses the credentials, Home Assistant asks for new ones in **Settings → Devices & services**. Zoraxy entries created with version 1.5.0 or earlier keep the TLS verification off, as before; turn it on in the options if your certificate is valid.
 
 ### Card
 
@@ -126,7 +127,7 @@ proxy_url: http://zoraxy.local:8000
 | `entity_prefix` | `zoraxy_reverse_proxy_zoraxy` | Common part of the entity ids of a Zoraxy install of 1.x: picks the instance when `device` is left out, and finds the entities when the entity registry is not available |
 | `language` | Auto | Force the card language: `en`, `fr`, `de`, `es`, `sr`, `sr-Latn`, `it`, `nl`, `pt`, `pl`, `ro`, `da`, `sv`, `bg`, `ru`, `uk`, `hu`, `sk`, `cs`, `sl`, `lv` or `el` (by default, the Home Assistant language) |
 
-The card finds its entities in the entity registry, by their device and their kind, so renamed entity ids keep working, and reads which proxy the device is (and what its API allows) from the *Proxy running* binary sensor: a Traefik card has no controls, certificates or rule buttons. With several instances, pick the device of each card in the visual editor (or set `device`).
+The card finds its entities in the entity registry, by their device and their kind, so renamed entity ids keep working, and reads which proxy the device is (and what its API allows) from the *Proxy running* binary sensor: a Traefik card has no controls, certificates or rule buttons, a Nginx Proxy Manager card no controls (its certificates and rule buttons are there). With several instances, pick the device of each card in the visual editor (or set `device`).
 
 ### Mini card
 
@@ -134,9 +135,9 @@ The card finds its entities in the entity registry, by their device and their ki
 
 - active / total proxy rules
 - the number of rules whose upstream is down, in red, only when there are some
-- Zoraxy: the number of certificates, or one chip per certificate expiring within 30 days (orange, red under 7 days), the closest first; Traefik: the number of middlewares
+- Zoraxy and Nginx Proxy Manager: the number of certificates, or one chip per certificate expiring within 30 days (orange, red under 7 days), the closest first; Traefik: the number of middlewares
 - the inbound port
-- Zoraxy: *HTTPS redirect Off* and *Dev mode On*, in orange, only when they apply; Traefik: the version
+- Zoraxy: *HTTPS redirect Off* and *Dev mode On*, in orange, only when they apply; Traefik and Nginx Proxy Manager: the version
 
 Chips needing attention are tinted; a click on a chip opens its entity. The **detail** button (top right) switches the card to the full [card](#card), with the same configuration, and back, as does a click anywhere else on the page (`zoom: false` removes it). Search for **Reverse Proxy Mini Card** when adding a card, or in YAML:
 
@@ -152,9 +153,9 @@ Same options as the full card, plus:
 |---|---|---|
 | `zoom` | `true` | Detail button switching to the full card and back |
 
-| Zoraxy | Traefik |
-|---|---|
-| <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/mini.png" alt="reverse-proxy-mini-card, Zoraxy" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/mini-traefik.png" alt="reverse-proxy-mini-card, Traefik" width="400"> |
+| Zoraxy | Traefik | Nginx Proxy Manager |
+|---|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/mini.png" alt="reverse-proxy-mini-card, Zoraxy" width="300"> | <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/mini-traefik.png" alt="reverse-proxy-mini-card, Traefik" width="300"> | <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/mini-npm.png" alt="reverse-proxy-mini-card, Nginx Proxy Manager" width="300"> |
 
 ### Entities
 
@@ -164,20 +165,25 @@ Every proxy:
 |---|---|
 | `sensor.* proxy rules` | Number of proxy rules (rules and redirects as attributes) |
 | `sensor.* active rules` | Active proxy rules |
-| `sensor.* inbound port` | Proxy listening port (Traefik: the `websecure` entrypoint, else the first TLS entrypoint, else the first one) |
+| `sensor.* inbound port` | Proxy listening port (Traefik: the `websecure` entrypoint, else the first TLS entrypoint, else the first one; Nginx Proxy Manager: 443 once a host has a certificate, else 80) |
 | `binary_sensor.* proxy running` | Proxy running; `proxy_type` and `features` attributes tell the cards which proxy it is |
-| `binary_sensor.* TLS enabled` | TLS enabled (Traefik: a router or an entrypoint with TLS) |
-| `binary_sensor.* {domain} upstream` | Upstream health of a proxy rule (problem): `on` when the proxy found an upstream of the rule offline at its last check, `unknown` when it has no check of the rule; `upstreams` attribute with each upstream's URL and online flag (Zoraxy adds the status code, latency and check time) |
+| `binary_sensor.* TLS enabled` | TLS enabled (Traefik: a router or an entrypoint with TLS; Nginx Proxy Manager: a proxy host with a certificate) |
+| `binary_sensor.* {domain} upstream` | Upstream health of a proxy rule (problem): `on` when the proxy found an upstream of the rule offline at its last check, `unknown` when it has no check of the rule (always, for Nginx Proxy Manager, which does not check its upstreams); `upstreams` attribute with each upstream's URL and online flag (Zoraxy adds the status code, latency and check time) |
+
+Zoraxy and Nginx Proxy Manager:
+
+| Entity | Description |
+|---|---|
+| `sensor.* TLS certificates` | Number of TLS certificates |
+| `sensor.* access rules` | Number of access rules (Nginx Proxy Manager: access lists) |
+| `sensor.* {domain} certificate` | Certificate expiry date (Nginx Proxy Manager: named after its first domain name, an imported certificate without one after its name) |
+| `binary_sensor.* {domain} certificate expiring` | `on` when the certificate expires in less than 30 days |
+| `button.* renew {domain}` | Renews the certificate. Zoraxy: ACME renewal (HTTP challenge); a wildcard certificate (listed by Zoraxy as `_.example.org`) needs a DNS challenge: renew it in Zoraxy, the button only explains it. Nginx Proxy Manager: Let's Encrypt certificates only (an imported one can't be renewed by NPM) |
 
 Zoraxy only:
 
 | Entity | Description |
 |---|---|
-| `sensor.* TLS certificates` | Number of TLS certificates |
-| `sensor.* access rules` | Number of access rules |
-| `sensor.* {domain} certificate` | Certificate expiry date |
-| `binary_sensor.* {domain} certificate expiring` | `on` when the certificate expires in less than 30 days |
-| `button.* renew {domain}` | Triggers the ACME renewal (HTTP challenge). A wildcard certificate (listed by Zoraxy as `_.example.org`) needs a DNS challenge: renew it in Zoraxy, the button only explains it |
 | `binary_sensor.* HTTPS redirect`, `switch.* HTTPS redirect` | HTTP → HTTPS redirect, and its switch |
 | `binary_sensor.* port 80 listener`, `switch.* port 80 listener` | Listening on port 80, and its switch |
 | `binary_sensor.* development mode`, `switch.* development mode` | Development mode (no cache), and its switch |
@@ -187,9 +193,14 @@ Traefik only:
 | Entity | Description |
 |---|---|
 | `sensor.* middlewares` | Number of HTTP middlewares (Traefik's own `@internal` ones aside) |
-| `sensor.* version` | Traefik version (diagnostic; also the device's software version) |
 
-Names follow the Home Assistant language under the **Zoraxy Reverse Proxy** or **Traefik Reverse Proxy** device. Zoraxy entity ids keep their historical French suffixes (`sensor.zoraxy_reverse_proxy_zoraxy_regles_proxy`…) so dashboards and automations from 1.x keep working, on new installs too; Traefik entities get Home Assistant's default ids (`sensor.traefik_reverse_proxy_proxy_rules`…).
+Traefik and Nginx Proxy Manager:
+
+| Entity | Description |
+|---|---|
+| `sensor.* version` | Proxy version (diagnostic; also the device's software version) |
+
+Names follow the Home Assistant language under the **Zoraxy Reverse Proxy**, **Traefik Reverse Proxy** or **Nginx Proxy Manager** device. Zoraxy entity ids keep their historical French suffixes (`sensor.zoraxy_reverse_proxy_zoraxy_regles_proxy`…) so dashboards and automations from 1.x keep working, on new installs too; Traefik and Nginx Proxy Manager entities get Home Assistant's default ids (`sensor.traefik_reverse_proxy_proxy_rules`, `sensor.nginx_proxy_manager_proxy_rules`…).
 
 ### Repairs
 
@@ -203,11 +214,11 @@ The integration raises issues in **Settings → Repairs**, removed by themselves
 
 They follow the proxy's data: while the proxy itself can't be reached, the issues raised stay as they are. Removing the integration entry removes its issues.
 
-### Action `reverse_proxy.toggle_proxy_rule` (Zoraxy)
+### Action `reverse_proxy.toggle_proxy_rule` (Zoraxy, Nginx Proxy Manager)
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `domain` | `string` | yes | Domain of the rule (e.g. `myapp.example.com`) |
+| `domain` | `string` | yes | Domain of the rule (e.g. `myapp.example.com`; Nginx Proxy Manager: the first domain name of the proxy host) |
 | `enable` | `boolean` | no | `true` to enable, `false` to disable; left out, the rule is toggled |
 | `config_entry_id` | `string` | no | The instance (config entry) the rule belongs to; left out, the instance that lists the domain |
 
@@ -230,6 +241,10 @@ data:
 |---|---|
 | <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/card-traefik.png" alt="card Traefik" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/card-traefik-dark.png" alt="card Traefik dark" width="400"> |
 
+| Full card, Nginx Proxy Manager (certificates and proxy rules open) | Full card, Nginx Proxy Manager, dark |
+|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/card-npm.png" alt="card Nginx Proxy Manager" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/card-npm-dark.png" alt="card Nginx Proxy Manager dark" width="400"> |
+
 | Mini card, Zoraxy | Mini card, Zoraxy, dark |
 |---|---|
 | <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/mini.png" alt="mini" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/mini-dark.png" alt="mini dark" width="400"> |
@@ -238,15 +253,19 @@ data:
 |---|---|
 | <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/mini-traefik.png" alt="mini Traefik" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/mini-traefik-dark.png" alt="mini Traefik dark" width="400"> |
 
+| Mini card, Nginx Proxy Manager | Mini card, Nginx Proxy Manager, dark |
+|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/mini-npm.png" alt="mini Nginx Proxy Manager" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/mini-npm-dark.png" alt="mini Nginx Proxy Manager dark" width="400"> |
+
 | Mini card zoomed in | Mini card zoomed in (dark) |
 |---|---|
 | <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/mini-zoom.png" alt="mini zoomed" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/mini-zoom-dark.png" alt="mini zoomed dark" width="400"> |
 
 ## How it works
 
-The integration polls the proxy's API at the refresh interval. Zoraxy: it logs in to the web API and logs in again when the session expires; the uptime monitor's results (`/api/utm/list`) are read at most once a minute (Zoraxy itself checks each upstream every 5 minutes, every 30 seconds while it is down). Traefik: `/api/overview`, the HTTP routers, services, middlewares and entrypoints are read at each poll, the version once an hour. The entities of a certificate or proxy rule added in the proxy appear at the next update, without reloading the integration, and those of a removed one are deleted.
+The integration polls the proxy's API at the refresh interval. Zoraxy: it logs in to the web API and logs in again when the session expires; the uptime monitor's results (`/api/utm/list`) are read at most once a minute (Zoraxy itself checks each upstream every 5 minutes, every 30 seconds while it is down). Traefik: `/api/overview`, the HTTP routers, services, middlewares and entrypoints are read at each poll, the version once an hour. Nginx Proxy Manager: it asks for a token with the account's email and password (`/api/tokens`), then reads `/api/`, the proxy hosts, redirection hosts, certificates and access lists at each poll, and asks for a new token when it expires. The entities of a certificate or proxy rule added in the proxy appear at the next update, without reloading the integration, and those of a removed one are deleted.
 
-On the card, the button next to each Zoraxy rule calls `reverse_proxy.toggle_proxy_rule` for the card's own instance; for users who are not administrators the button only shows the rule's state and is disabled, and a failed change shows its error in a toast; the button updates at once and the card refreshes when the integration has polled the proxy again. Certificates turn orange under 30 days and red under 7 days.
+On the card, the button next to each Zoraxy or Nginx Proxy Manager rule calls `reverse_proxy.toggle_proxy_rule` for the card's own instance; for users who are not administrators the button only shows the rule's state and is disabled, and a failed change shows its error in a toast; the button updates at once and the card refreshes when the integration has polled the proxy again. Certificates turn orange under 30 days and red under 7 days.
 
 To debug:
 
@@ -262,7 +281,7 @@ logger:
 
 ```bash
 pip install playwright pillow && playwright install chromium
-python scripts/screenshots.py   # renders both cards, for Zoraxy and Traefik, with mock entities into screenshots/ (CHROMIUM_PATH: an installed Chromium)
+python scripts/screenshots.py   # renders both cards, for Zoraxy, Traefik and Nginx Proxy Manager, with mock entities into screenshots/ (CHROMIUM_PATH: an installed Chromium)
 ```
 
 ### Releasing

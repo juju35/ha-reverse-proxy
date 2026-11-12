@@ -311,7 +311,7 @@ def test_router_hosts(rule, hosts):
 async def _start_traefik_flow(hass):
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     assert result["type"] is FlowResultType.MENU
-    assert result["menu_options"] == ["zoraxy", "traefik"]
+    assert result["menu_options"] == ["zoraxy", "traefik", "nginx_proxy_manager"]
     result = await hass.config_entries.flow.async_configure(result["flow_id"], {"next_step_id": "traefik"})
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "traefik"

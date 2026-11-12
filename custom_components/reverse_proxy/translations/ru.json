@@ -5,7 +5,8 @@
         "title": "Обратный прокси - Настройка",
         "menu_options": {
           "zoraxy": "Zoraxy",
-          "traefik": "Traefik"
+          "traefik": "Traefik",
+          "nginx_proxy_manager": "Nginx Proxy Manager"
         }
       },
       "zoraxy": {
@@ -35,6 +36,20 @@
           "username": "Только если API или панель Traefik находятся за middleware basicAuth; иначе оставьте пустым."
         }
       },
+      "nginx_proxy_manager": {
+        "title": "Nginx Proxy Manager - Настройка",
+        "data": {
+          "host": "Адрес Nginx Proxy Manager (URL с портом)",
+          "username": "Электронная почта",
+          "password": "Пароль",
+          "scan_interval": "Интервал обновления (секунды)",
+          "verify_ssl": "Проверять сертификат TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Отключайте только для адреса HTTPS с самоподписанным сертификатом.",
+          "username": "Адрес электронной почты для входа в Nginx Proxy Manager (учётная запись без двухфакторной аутентификации)."
+        }
+      },
       "reauth_confirm": {
         "title": "{proxy} - Новый пароль",
         "description": "{proxy} отклонил пароль пользователя {username} на {host}.",
@@ -49,6 +64,7 @@
         "data": {
           "host": "Адрес {proxy} (URL с портом)",
           "username": "Имя пользователя",
+          "email": "Электронная почта",
           "password": "Пароль"
         }
       }

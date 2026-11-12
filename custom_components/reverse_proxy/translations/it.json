@@ -5,7 +5,8 @@
         "title": "Reverse proxy - Configurazione",
         "menu_options": {
           "zoraxy": "Zoraxy",
-          "traefik": "Traefik"
+          "traefik": "Traefik",
+          "nginx_proxy_manager": "Nginx Proxy Manager"
         }
       },
       "zoraxy": {
@@ -35,6 +36,20 @@
           "username": "Solo se l'API o la dashboard di Traefik sono dietro un middleware basicAuth; altrimenti lasciare vuoto."
         }
       },
+      "nginx_proxy_manager": {
+        "title": "Nginx Proxy Manager - Configurazione",
+        "data": {
+          "host": "Indirizzo di Nginx Proxy Manager (URL con porta)",
+          "username": "E-mail",
+          "password": "Password",
+          "scan_interval": "Intervallo di aggiornamento (secondi)",
+          "verify_ssl": "Verifica il certificato TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Disattivare solo per un indirizzo HTTPS con un certificato autofirmato.",
+          "username": "L'indirizzo e-mail con cui accedi a Nginx Proxy Manager (un account senza autenticazione a due fattori)."
+        }
+      },
       "reauth_confirm": {
         "title": "{proxy} - Nuova password",
         "description": "{proxy} ha rifiutato la password di {username} su {host}.",
@@ -49,6 +64,7 @@
         "data": {
           "host": "Indirizzo di {proxy} (URL con porta)",
           "username": "Nome utente",
+          "email": "E-mail",
           "password": "Password"
         }
       }

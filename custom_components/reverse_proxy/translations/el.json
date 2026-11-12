@@ -5,7 +5,8 @@
         "title": "Αντίστροφος διακομιστής μεσολάβησης - Διαμόρφωση",
         "menu_options": {
           "zoraxy": "Zoraxy",
-          "traefik": "Traefik"
+          "traefik": "Traefik",
+          "nginx_proxy_manager": "Nginx Proxy Manager"
         }
       },
       "zoraxy": {
@@ -35,6 +36,20 @@
           "username": "Μόνο αν το API ή ο πίνακας του Traefik βρίσκεται πίσω από middleware basicAuth· αλλιώς αφήστε το κενό."
         }
       },
+      "nginx_proxy_manager": {
+        "title": "Nginx Proxy Manager - Διαμόρφωση",
+        "data": {
+          "host": "Διεύθυνση Nginx Proxy Manager (URL με θύρα)",
+          "username": "Email",
+          "password": "Κωδικός πρόσβασης",
+          "scan_interval": "Διάστημα ανανέωσης (δευτερόλεπτα)",
+          "verify_ssl": "Επαλήθευση του πιστοποιητικού TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Απενεργοποιήστε το μόνο για διεύθυνση HTTPS με αυτοϋπογεγραμμένο πιστοποιητικό.",
+          "username": "Η διεύθυνση email με την οποία συνδέεστε στο Nginx Proxy Manager (λογαριασμός χωρίς έλεγχο ταυτότητας δύο παραγόντων)."
+        }
+      },
       "reauth_confirm": {
         "title": "{proxy} - Νέος κωδικός πρόσβασης",
         "description": "Το {proxy} απέρριψε τον κωδικό πρόσβασης του {username} στο {host}.",
@@ -49,6 +64,7 @@
         "data": {
           "host": "Διεύθυνση {proxy} (URL με θύρα)",
           "username": "Όνομα χρήστη",
+          "email": "Email",
           "password": "Κωδικός πρόσβασης"
         }
       }

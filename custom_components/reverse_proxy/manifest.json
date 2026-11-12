@@ -1,6 +1,6 @@
 {
   "domain": "reverse_proxy",
-  "name": "Reverse Proxy (Zoraxy, Traefik)",
+  "name": "Reverse Proxy (Zoraxy, Traefik, Nginx Proxy Manager)",
   "after_dependencies": [
     "lovelace"
   ],
@@ -17,5 +17,5 @@
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/juju35/ha-reverse-proxy/issues",
   "requirements": [],
-  "version": "2.3.0"
+  "version": "2.4.0"
 }

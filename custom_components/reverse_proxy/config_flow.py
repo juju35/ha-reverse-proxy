@@ -20,7 +20,7 @@ from homeassistant.helpers.selector import (
     TextSelectorType,
 )
 
-from .api import ProxyAuthError, ProxyError, TraefikClient, ZoraxyClient, normalize_host
+from .api import NpmClient, ProxyAuthError, ProxyError, TraefikClient, ZoraxyClient, normalize_host
 from .const import (
     CONF_PROXY_TYPE,
     CONF_SCAN_INTERVAL,
@@ -30,6 +30,7 @@ from .const import (
     DOMAIN,
     MIN_SCAN_INTERVAL,
     PROXIES,
+    PROXY_NPM,
     PROXY_TRAEFIK,
     PROXY_TYPES,
     PROXY_ZORAXY,
@@ -45,13 +46,17 @@ PASSWORD_SELECTOR = TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWO
 
 
 def _user_schema(proxy_type: str) -> vol.Schema:
-    """Fields of a new entry: Zoraxy needs an account, Traefik's API has none of its own (basic auth optional)."""
+    """Fields of a new entry: Zoraxy and Nginx Proxy Manager need an account (NPM: its email), Traefik's API has
+    none of its own (basic auth optional)."""
     host = vol.Required("host", default=PROXIES[proxy_type]["default_host"])
     if proxy_type == PROXY_TRAEFIK:
         credentials = {
             vol.Optional("username", default=""): str,
             vol.Optional("password", default=""): PASSWORD_SELECTOR,
         }
+    elif proxy_type == PROXY_NPM:
+        # The email address of an Nginx Proxy Manager account.
+        credentials = {vol.Required("username"): str, vol.Required("password"): PASSWORD_SELECTOR}
     else:
         credentials = {vol.Required("username", default="admin"): str, vol.Required("password"): PASSWORD_SELECTOR}
     return vol.Schema(
@@ -64,12 +69,23 @@ def _user_schema(proxy_type: str) -> vol.Schema:
     )
 
 
+# Nginx Proxy Manager signs in with an email: its account field is labelled as such (stored as "username").
+NPM_ACCOUNT_FIELD = "email"
+
+
+def _account_field(proxy_type: str) -> str:
+    """Name of the account field in the reconfigure form: "email" for Nginx Proxy Manager, else "username"."""
+    return NPM_ACCOUNT_FIELD if proxy_type == PROXY_NPM else "username"
+
+
 def _reconfigure_schema(proxy_type: str) -> vol.Schema:
     if proxy_type == PROXY_TRAEFIK:
         credentials = {
             vol.Optional("username", default=""): str,
             vol.Optional("password", default=""): PASSWORD_SELECTOR,
         }
+    elif proxy_type == PROXY_NPM:
+        credentials = {vol.Required(NPM_ACCOUNT_FIELD): str, vol.Required("password"): PASSWORD_SELECTOR}
     else:
         credentials = {vol.Required("username"): str, vol.Required("password"): PASSWORD_SELECTOR}
     return vol.Schema({vol.Required("host"): str, **credentials})
@@ -91,11 +107,8 @@ async def _validate(
     session = async_create_clientsession(
         hass, verify_ssl=verify_ssl, auto_cleanup=False, cookie_jar=aiohttp.CookieJar(unsafe=True)
     )
-    client = (
-        TraefikClient(session, host, username, password)
-        if proxy_type == PROXY_TRAEFIK
-        else ZoraxyClient(session, host, username, password)
-    )
+    clients = {PROXY_TRAEFIK: TraefikClient, PROXY_NPM: NpmClient}
+    client = clients.get(proxy_type, ZoraxyClient)(session, host, username, password)
     try:
         await client.login()
     except ProxyAuthError:
@@ -130,6 +143,9 @@ class ReverseProxyConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def async_step_traefik(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         return await self._async_step_proxy(PROXY_TRAEFIK, user_input)
+
+    async def async_step_nginx_proxy_manager(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        return await self._async_step_proxy(PROXY_NPM, user_input)
 
     async def _async_step_proxy(self, proxy_type: str, user_input: dict[str, Any] | None) -> ConfigFlowResult:
         errors: dict[str, str] = {}
@@ -216,7 +232,7 @@ class ReverseProxyConfigFlow(ConfigFlow, domain=DOMAIN):
             if any(e.unique_id == unique_id for e in self._async_current_entries() if e.entry_id != entry.entry_id):
                 return self.async_abort(reason="already_configured", description_placeholders=_placeholders(proxy_type))
             settings = {**entry.data, **entry.options}
-            username = user_input.get("username", "").strip()
+            username = user_input.get(_account_field(proxy_type), "").strip()
             error = await _validate(
                 self.hass,
                 proxy_type,
@@ -247,7 +263,8 @@ class ReverseProxyConfigFlow(ConfigFlow, domain=DOMAIN):
                 return self.async_abort(reason="reconfigure_successful")
             errors["base"] = error
 
-        suggested = user_input or {"host": entry.data["host"], "username": entry.data.get("username", "")}
+        account = {_account_field(proxy_type): entry.data.get("username", "")}
+        suggested = user_input or {"host": entry.data["host"], **account}
         return self.async_show_form(
             step_id="reconfigure",
             data_schema=self.add_suggested_values_to_schema(_reconfigure_schema(proxy_type), suggested),
