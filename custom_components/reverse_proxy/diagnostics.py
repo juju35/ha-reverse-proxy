@@ -9,7 +9,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 # Entry fields, and the keys of the proxy answers that can hold credentials (basic auth of proxy rules,
-# SSO and ACME settings). async_redact_data matches the keys at any depth.
+# SSO and ACME settings; Nginx Proxy Manager: DNS provider credentials and the key of an imported certificate in a
+# certificate's meta, custom nginx configuration of a host). async_redact_data matches the keys at any depth.
 TO_REDACT = {
     "host",
     "username",
@@ -34,6 +35,10 @@ TO_REDACT = {
     "Cookies",
     "email",
     "Email",
+    "letsencrypt_email",
+    "dns_provider_credentials",
+    "certificate_key",
+    "advanced_config",
 }
 
 

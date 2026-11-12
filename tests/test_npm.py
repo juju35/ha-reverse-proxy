@@ -63,8 +63,21 @@ CERTIFICATES = [
         "nice_name": "ha.example.org",
         "domain_names": ["ha.example.org"],
         "expires_on": "2099-02-10 12:00:00",
+        "meta": {
+            "letsencrypt_email": "admin@example.org",
+            "dns_challenge": True,
+            "dns_provider": "cloudflare",
+            "dns_provider_credentials": "dns_cloudflare_api_token = abc",
+        },
     },
-    {"id": 4, "provider": "other", "nice_name": "Imported", "domain_names": [], "expires_on": "2099-01-01 00:00:00"},
+    {
+        "id": 4,
+        "provider": "other",
+        "nice_name": "Imported",
+        "domain_names": [],
+        "expires_on": "2099-01-01 00:00:00",
+        "meta": {"certificate": "-----BEGIN CERTIFICATE-----", "certificate_key": "-----BEGIN PRIVATE KEY-----"},
+    },
 ]
 ACCESS_LISTS = [{"id": 1, "name": "LAN only"}]
 
@@ -211,6 +224,25 @@ async def test_proxy_host_failure_keeps_rules(hass, aioclient_mock, entry):
     assert hass.states.get(f"binary_sensor.{N}_nas_example_org_upstream") is not None
 
 
+async def test_diagnostics_redact_npm_secrets(hass, aioclient_mock, entry):
+    """DNS provider credentials, the key of an imported certificate and the account's email never leave."""
+    from homeassistant.components.diagnostics import REDACTED
+
+    from custom_components.reverse_proxy.diagnostics import async_get_config_entry_diagnostics
+
+    mock_npm(aioclient_mock)
+    await _setup(hass, entry)
+    diag = await async_get_config_entry_diagnostics(hass, entry)
+    certs = diag["coordinator"]["data"]["certificates"]
+    assert certs[0]["meta"]["dns_provider_credentials"] == REDACTED
+    assert certs[0]["meta"]["letsencrypt_email"] == REDACTED
+    assert certs[0]["meta"]["dns_provider"] == "cloudflare"
+    assert certs[1]["meta"]["certificate_key"] == REDACTED
+    assert diag["entry"]["data"]["username"] == REDACTED
+    assert diag["entry"]["data"]["password"] == REDACTED
+    assert "abc" not in str(diag)
+
+
 async def test_refused_login_starts_reauth(hass, aioclient_mock, entry):
     mock_npm(aioclient_mock, token_status=401)
     await _setup(hass, entry)
@@ -309,6 +341,13 @@ async def test_config_flow_two_factor_account(hass, aioclient_mock):
     aioclient_mock.post(f"{HOST}/api/tokens", json={"requires_2fa": True, "challenge_token": "x"})
     result = await _flow(hass, {"host": HOST, "username": "admin@example.org", "password": "secret"})
     assert result["errors"] == {"base": "invalid_auth"}
+
+
+async def test_config_flow_other_server_error_page(hass, aioclient_mock):
+    """A 400 without JSON comes from another server: a wrong address, not refused credentials."""
+    aioclient_mock.post(f"{HOST}/api/tokens", status=400, text="<html>Bad Request</html>")
+    result = await _flow(hass, {"host": HOST, "username": "admin@example.org", "password": "secret"})
+    assert result["errors"] == {"base": "cannot_connect"}
 
 
 async def test_config_flow_not_an_npm(hass, aioclient_mock):

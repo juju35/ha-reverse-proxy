@@ -276,11 +276,12 @@ class NpmClient(LoginClient):
             data = None
         if status >= 500:
             raise ProxyError(f"Nginx Proxy Manager login failed (HTTP {status})")
+        # NPM always answers JSON: another server's error page is an address problem, not refused credentials.
+        if not isinstance(data, dict):
+            raise ProxyError(f"No Nginx Proxy Manager API at {self.host} (/api/tokens gives no JSON)")
         if status in (400, 401, 403):
             _LOGGER.debug("Nginx Proxy Manager: login refused (HTTP %s): %s", status, body[:200])
             raise ProxyAuthError(f"Nginx Proxy Manager refused the login (HTTP {status})")
-        if not isinstance(data, dict):
-            raise ProxyError(f"No Nginx Proxy Manager API at {self.host} (/api/tokens gives no JSON)")
         if data.get("requires_2fa"):
             # The API asks for a second factor: an account with two-factor authentication cannot be polled.
             raise ProxyAuthError("Nginx Proxy Manager asks for a two-factor code for this account")
