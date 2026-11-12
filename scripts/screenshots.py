@@ -1,4 +1,4 @@
-"""Render the reverse proxy card and mini card (Zoraxy and Traefik) with mock entities and save the README screenshots.
+"""Render the reverse proxy card and mini card (Zoraxy, Traefik, Nginx Proxy Manager) with mock entities and save the README screenshots.
 
 Usage: python scripts/screenshots.py  (needs `pip install playwright pillow` and `playwright install chromium`)
 The clock is frozen so certificate countdowns stay the same. A file is rewritten only when its decoded pixels
@@ -19,6 +19,7 @@ WIDTH = 460  # full card, and the mini card zoomed in
 MINI_WIDTH = 380
 P = "zoraxy_reverse_proxy_zoraxy"
 T = "traefik_reverse_proxy"
+N = "nginx_proxy_manager"
 
 THEMES = {
     "light": {
@@ -75,6 +76,7 @@ def state(entity_id, value, **attributes):
 
 ZORAXY_FEATURES = ["access_rules", "certificates", "controls", "redirects", "toggle_rules"]
 TRAEFIK_FEATURES = ["middlewares", "redirects", "version"]
+NPM_FEATURES = ["access_rules", "certificates", "redirects", "toggle_rules", "version"]
 
 # A Zoraxy instance: the 1.x entity ids (French suffixes), every feature.
 STATES = dict(
@@ -124,12 +126,48 @@ TRAEFIK_STATES = dict(
 )
 
 
+# A Nginx Proxy Manager instance: Home Assistant's default entity ids, proxy hosts with their on/off button,
+# Let's Encrypt certificates; NPM does not check the upstreams, so their health is unknown.
+NPM_RULES = [
+    {"domain": "ha.example.org", "target": "http://192.168.1.10:8123", "enabled": True, "tls": True},
+    {"domain": "nas.example.org", "target": "https://192.168.1.20:5001", "enabled": True, "tls": True},
+    {"domain": "photos.example.org", "target": "http://192.168.1.20:2342", "enabled": False, "tls": True},
+]
+NPM_REDIRECTS = [{"RedirectURL": "example.org", "TargetURL": "https://www.example.org", "StatusCode": 301}]
+NPM_STATES = dict(
+    [
+        state(f"binary_sensor.{N}_proxy_running", "on", proxy_type="nginx_proxy_manager", features=NPM_FEATURES),
+        state(f"binary_sensor.{N}_tls_enabled", "on"),
+        state(f"sensor.{N}_proxy_rules", str(len(NPM_RULES)), rules=NPM_RULES, redirects=NPM_REDIRECTS),
+        state(f"sensor.{N}_active_rules", "2"),
+        state(f"sensor.{N}_tls_certificates", str(len(CERTS))),
+        state(f"sensor.{N}_access_rules", "1"),
+        state(f"sensor.{N}_inbound_port", "443"),
+        state(f"sensor.{N}_version", "2.12.3"),
+        *[state(f"sensor.{N}_{k}_certificate", v, domain=k.replace("_", ".")) for k, v in CERTS.items()],
+        *[
+            state(
+                f"binary_sensor.{N}_{k}_certificate_expiring",
+                "on" if k.startswith("photos") else "off",
+                domain=k.replace("_", "."),
+            )
+            for k in CERTS
+        ],
+        *[state(f"button.{N}_renew_{k}", "unknown", domain=k.replace("_", ".")) for k in CERTS],
+        *[
+            state(f"binary_sensor.{N}_{r['domain'].replace('.', '_')}_upstream", "unknown", domain=r["domain"])
+            for r in NPM_RULES
+        ],
+    ]
+)
+
+
 def registry(states, platform="reverse_proxy", device="dev-1"):
     """The entity registry the card reads: every state under one device of the integration."""
     entities = {}
     for entity_id in states:
         object_id = entity_id.split(".", 1)[1]
-        key = object_id.removeprefix(f"{T}_") if object_id.startswith(T) else object_id
+        key = object_id.removeprefix(f"{T}_").removeprefix(f"{N}_")
         # Translation keys of the Traefik ids (device name + translated name); the Zoraxy ids use the prefix fallback.
         translation_key = {
             "proxy_running": "proxy_running",
@@ -139,7 +177,19 @@ def registry(states, platform="reverse_proxy", device="dev-1"):
             "middlewares": "middlewares",
             "inbound_port": "inbound_port",
             "version": "version",
-        }.get(key, "upstream_problem" if key.endswith("_upstream") else key)
+            "tls_certificates": "tls_certificates",
+            "access_rules": "access_rules",
+        }.get(key) or (
+            "upstream_problem"
+            if key.endswith("_upstream")
+            else "certificate_expiring"
+            if key.endswith("_certificate_expiring")
+            else "certificate"
+            if key.endswith("_certificate")
+            else "renew"
+            if key.startswith("renew_")
+            else key
+        )
         entities[entity_id] = {
             "entity_id": entity_id,
             "platform": platform,
@@ -188,7 +238,28 @@ SHOTS = [
         "width": MINI_WIDTH,
         "states": TRAEFIK_STATES,
         "url": "https://traefik.example.org",
-    },
+    },  # And for a Nginx Proxy Manager instance.
+    *[
+        {
+            "file": f"card-npm{suffix}",
+            "theme": theme,
+            "open": ["certs", "rules"],
+            "states": NPM_STATES,
+            "url": "http://npm.example.org:81",
+        }
+        for theme, suffix in (("light", ""), ("dark", "-dark"))
+    ],
+    *[
+        {
+            "file": f"mini-npm{suffix}",
+            "theme": theme,
+            "tag": "reverse-proxy-mini-card",
+            "width": MINI_WIDTH,
+            "states": NPM_STATES,
+            "url": "http://npm.example.org:81",
+        }
+        for theme, suffix in (("light", ""), ("dark", "-dark"))
+    ],
 ]
 
 
