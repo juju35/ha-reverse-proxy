@@ -64,6 +64,7 @@
         "data": {
           "host": "Διεύθυνση {proxy} (URL με θύρα)",
           "username": "Όνομα χρήστη",
+          "email": "Email",
           "password": "Κωδικός πρόσβασης"
         }
       }

@@ -64,6 +64,7 @@
         "data": {
           "host": "{proxy}-adresse (URL med port)",
           "username": "Brugernavn",
+          "email": "E-mail",
           "password": "Adgangskode"
         }
       }

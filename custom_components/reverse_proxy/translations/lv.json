@@ -64,6 +64,7 @@
         "data": {
           "host": "{proxy} adrese (URL ar portu)",
           "username": "Lietotājvārds",
+          "email": "E-pasts",
           "password": "Parole"
         }
       }

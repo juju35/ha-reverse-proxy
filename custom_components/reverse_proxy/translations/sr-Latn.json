@@ -64,6 +64,7 @@
         "data": {
           "host": "{proxy} adresa (URL sa portom)",
           "username": "Korisničko ime",
+          "email": "E-pošta",
           "password": "Lozinka"
         }
       }

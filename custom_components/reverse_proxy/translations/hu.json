@@ -64,6 +64,7 @@
         "data": {
           "host": "{proxy} címe (URL porttal)",
           "username": "Felhasználónév",
+          "email": "E-mail",
           "password": "Jelszó"
         }
       }

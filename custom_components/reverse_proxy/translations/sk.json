@@ -64,6 +64,7 @@
         "data": {
           "host": "Adresa {proxy} (URL s portom)",
           "username": "Používateľské meno",
+          "email": "E-mail",
           "password": "Heslo"
         }
       }

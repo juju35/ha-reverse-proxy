@@ -64,6 +64,7 @@
         "data": {
           "host": "Dirección de {proxy} (URL con puerto)",
           "username": "Nombre de usuario",
+          "email": "Correo electrónico",
           "password": "Contraseña"
         }
       }

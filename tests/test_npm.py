@@ -354,3 +354,23 @@ async def test_config_flow_not_an_npm(hass, aioclient_mock):
     aioclient_mock.post(f"{HOST}/api/tokens", text="<html>nope</html>")
     result = await _flow(hass, {"host": HOST, "username": "admin@example.org", "password": "secret"})
     assert result["errors"] == {"base": "cannot_connect"}
+
+
+async def test_reconfigure_asks_for_the_email(hass, aioclient_mock, entry):
+    """NPM's account field is "email" in the reconfigure form, saved as the entry's username."""
+    mock_npm(aioclient_mock)
+    await _setup(hass, entry)
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": "reconfigure", "entry_id": entry.entry_id}
+    )
+    assert result["step_id"] == "reconfigure"
+    fields = [str(key) for key in result["data_schema"].schema]
+    assert "email" in fields
+    assert "username" not in fields
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"host": HOST, "email": "ops@example.org", "password": "new"}
+    )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+    assert entry.data["username"] == "ops@example.org"
+    assert entry.data["password"] == "new"

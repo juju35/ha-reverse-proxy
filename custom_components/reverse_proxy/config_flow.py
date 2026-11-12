@@ -69,12 +69,23 @@ def _user_schema(proxy_type: str) -> vol.Schema:
     )
 
 
+# Nginx Proxy Manager signs in with an email: its account field is labelled as such (stored as "username").
+NPM_ACCOUNT_FIELD = "email"
+
+
+def _account_field(proxy_type: str) -> str:
+    """Name of the account field in the reconfigure form: "email" for Nginx Proxy Manager, else "username"."""
+    return NPM_ACCOUNT_FIELD if proxy_type == PROXY_NPM else "username"
+
+
 def _reconfigure_schema(proxy_type: str) -> vol.Schema:
     if proxy_type == PROXY_TRAEFIK:
         credentials = {
             vol.Optional("username", default=""): str,
             vol.Optional("password", default=""): PASSWORD_SELECTOR,
         }
+    elif proxy_type == PROXY_NPM:
+        credentials = {vol.Required(NPM_ACCOUNT_FIELD): str, vol.Required("password"): PASSWORD_SELECTOR}
     else:
         credentials = {vol.Required("username"): str, vol.Required("password"): PASSWORD_SELECTOR}
     return vol.Schema({vol.Required("host"): str, **credentials})
@@ -221,7 +232,7 @@ class ReverseProxyConfigFlow(ConfigFlow, domain=DOMAIN):
             if any(e.unique_id == unique_id for e in self._async_current_entries() if e.entry_id != entry.entry_id):
                 return self.async_abort(reason="already_configured", description_placeholders=_placeholders(proxy_type))
             settings = {**entry.data, **entry.options}
-            username = user_input.get("username", "").strip()
+            username = user_input.get(_account_field(proxy_type), "").strip()
             error = await _validate(
                 self.hass,
                 proxy_type,
@@ -252,7 +263,8 @@ class ReverseProxyConfigFlow(ConfigFlow, domain=DOMAIN):
                 return self.async_abort(reason="reconfigure_successful")
             errors["base"] = error
 
-        suggested = user_input or {"host": entry.data["host"], "username": entry.data.get("username", "")}
+        account = {_account_field(proxy_type): entry.data.get("username", "")}
+        suggested = user_input or {"host": entry.data["host"], **account}
         return self.async_show_form(
             step_id="reconfigure",
             data_schema=self.add_suggested_values_to_schema(_reconfigure_schema(proxy_type), suggested),

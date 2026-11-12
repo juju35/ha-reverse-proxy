@@ -64,6 +64,7 @@
         "data": {
           "host": "Adresa {proxy} (URL cu port)",
           "username": "Nume de utilizator",
+          "email": "E-mail",
           "password": "Parolă"
         }
       }
