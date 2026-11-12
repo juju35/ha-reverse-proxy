@@ -1,4 +1,4 @@
-const REVERSE_PROXY_CARD_VERSION = '2.2.1';
+const REVERSE_PROXY_CARD_VERSION = '2.3.0';
 
 // Escapes a value interpolated into innerHTML, as text or inside a quoted attribute (as parcelEsc in ha-parcel).
 function rpEsc(s) {
@@ -95,6 +95,8 @@ class ReverseProxyCard extends HTMLElement {
       zoomIn: "Afficher la carte complète", zoomOut: "Revenir à la vue compacte",
       ruleCount: "{a}/{n} règles", certCount: "{n} certs",
       ed_zoom: "Bouton détail", ed_zoom_helper: "Bascule vers la carte complète et revient",
+      ed_show_title: "Afficher le titre",
+      ed_show_subtitle: "Afficher le sous-titre",
       ed_language: "Langue", lang_auto: "Auto (langue de Home Assistant)",
       unavailable: "Indisponible", cancel: "Annuler",
       confirmPort80Off: "Arrêter l'écoute du port 80 ? Les requêtes HTTP et les challenges ACME HTTP n'atteindront plus {proxy}.",
@@ -118,6 +120,8 @@ class ReverseProxyCard extends HTMLElement {
       zoomIn: "Show the full card", zoomOut: "Back to the compact view",
       ruleCount: "{a}/{n} rules", certCount: "{n} certs",
       ed_zoom: "Detail button", ed_zoom_helper: "Switches to the full card and back",
+      ed_show_title: "Show title",
+      ed_show_subtitle: "Show subtitle",
       ed_language: "Language", lang_auto: "Auto (Home Assistant language)",
       unavailable: "Unavailable", cancel: "Cancel",
       confirmPort80Off: "Stop listening on port 80? Plain HTTP requests and ACME HTTP challenges will no longer reach {proxy}.",
@@ -141,6 +145,8 @@ class ReverseProxyCard extends HTMLElement {
       zoomIn: "Vollständige Karte anzeigen", zoomOut: "Zurück zur kompakten Ansicht",
       ruleCount: "{a}/{n} Regeln", certCount: "{n} Zert.",
       ed_zoom: "Detail-Schaltfläche", ed_zoom_helper: "Wechselt zur vollständigen Karte und zurück",
+      ed_show_title: "Titel anzeigen",
+      ed_show_subtitle: "Untertitel anzeigen",
       ed_language: "Sprache", lang_auto: "Auto (Sprache von Home Assistant)",
       unavailable: "Nicht verfügbar", cancel: "Abbrechen",
       confirmPort80Off: "Port 80 nicht mehr abhören? HTTP-Anfragen und ACME-HTTP-Challenges erreichen {proxy} dann nicht mehr.",
@@ -164,6 +170,8 @@ class ReverseProxyCard extends HTMLElement {
       zoomIn: "Mostrar la tarjeta completa", zoomOut: "Volver a la vista compacta",
       ruleCount: "{a}/{n} reglas", certCount: "{n} cert.",
       ed_zoom: "Botón de detalle", ed_zoom_helper: "Cambia a la tarjeta completa y vuelve",
+      ed_show_title: "Mostrar el título",
+      ed_show_subtitle: "Mostrar el subtítulo",
       ed_language: "Idioma", lang_auto: "Auto (idioma de Home Assistant)",
       unavailable: "No disponible", cancel: "Cancelar",
       confirmPort80Off: "¿Dejar de escuchar en el puerto 80? Las peticiones HTTP y los desafíos ACME HTTP ya no llegarán a {proxy}.",
@@ -187,6 +195,8 @@ class ReverseProxyCard extends HTMLElement {
       zoomIn: "Прикажи целу картицу", zoomOut: "Назад на компактни приказ",
       ruleCount: "Правила: {a}/{n}", certCount: "Серт.: {n}",
       ed_zoom: "Дугме за детаље", ed_zoom_helper: "Пребацује картицу на пун приказ и назад",
+      ed_show_title: "Прикажи наслов",
+      ed_show_subtitle: "Прикажи поднаслов",
       ed_language: "Језик", lang_auto: "Аутоматски (језик Home Assistant-а)",
       unavailable: "Недоступно", cancel: "Откажи",
       confirmPort80Off: "Престати са ослушкивањем порта 80? HTTP захтеви и ACME HTTP провере више неће стизати до {proxy}-ја.",
@@ -210,6 +220,8 @@ class ReverseProxyCard extends HTMLElement {
       zoomIn: "Prikaži celu karticu", zoomOut: "Nazad na kompaktni prikaz",
       ruleCount: "Pravila: {a}/{n}", certCount: "Sert.: {n}",
       ed_zoom: "Dugme za detalje", ed_zoom_helper: "Prebacuje karticu na pun prikaz i nazad",
+      ed_show_title: "Prikaži naslov",
+      ed_show_subtitle: "Prikaži podnaslov",
       ed_language: "Jezik", lang_auto: "Automatski (jezik Home Assistant-a)",
       unavailable: "Nedostupno", cancel: "Otkaži",
       confirmPort80Off: "Prestati sa osluškivanjem porta 80? HTTP zahtevi i ACME HTTP provere više neće stizati do {proxy}-ja.",
@@ -233,6 +245,8 @@ class ReverseProxyCard extends HTMLElement {
       zoomIn: "Mostra la scheda completa", zoomOut: "Torna alla vista compatta",
       ruleCount: "Regole: {a}/{n}", certCount: "Cert.: {n}",
       ed_zoom: "Pulsante dettagli", ed_zoom_helper: "Passa alla scheda completa e ritorna",
+      ed_show_title: "Mostra il titolo",
+      ed_show_subtitle: "Mostra il sottotitolo",
       ed_language: "Lingua", lang_auto: "Auto (lingua di Home Assistant)",
       unavailable: "Non disponibile", cancel: "Annulla",
       confirmPort80Off: "Smettere di ascoltare sulla porta 80? Le richieste HTTP e le verifiche ACME HTTP non raggiungeranno più {proxy}.",
@@ -256,6 +270,8 @@ class ReverseProxyCard extends HTMLElement {
       zoomIn: "Volledige kaart tonen", zoomOut: "Terug naar de compacte weergave",
       ruleCount: "Regels: {a}/{n}", certCount: "Cert.: {n}",
       ed_zoom: "Detailknop", ed_zoom_helper: "Schakelt naar de volledige kaart en terug",
+      ed_show_title: "Titel tonen",
+      ed_show_subtitle: "Ondertitel tonen",
       ed_language: "Taal", lang_auto: "Auto (taal van Home Assistant)",
       unavailable: "Niet beschikbaar", cancel: "Annuleren",
       confirmPort80Off: "Niet meer luisteren op poort 80? HTTP-verzoeken en ACME HTTP-challenges bereiken {proxy} dan niet meer.",
@@ -279,6 +295,8 @@ class ReverseProxyCard extends HTMLElement {
       zoomIn: "Mostrar o cartão completo", zoomOut: "Voltar à vista compacta",
       ruleCount: "Regras: {a}/{n}", certCount: "Cert.: {n}",
       ed_zoom: "Botão de detalhe", ed_zoom_helper: "Muda para o cartão completo e volta",
+      ed_show_title: "Mostrar o título",
+      ed_show_subtitle: "Mostrar o subtítulo",
       ed_language: "Idioma", lang_auto: "Auto (idioma do Home Assistant)",
       unavailable: "Indisponível", cancel: "Cancelar",
       confirmPort80Off: "Deixar de escutar na porta 80? Os pedidos HTTP e os desafios ACME HTTP deixarão de chegar ao {proxy}.",
@@ -302,6 +320,8 @@ class ReverseProxyCard extends HTMLElement {
       zoomIn: "Pokaż pełną kartę", zoomOut: "Wróć do widoku kompaktowego",
       ruleCount: "Reguły: {a}/{n}", certCount: "Cert.: {n}",
       ed_zoom: "Przycisk szczegółów", ed_zoom_helper: "Przełącza na pełną kartę i z powrotem",
+      ed_show_title: "Pokaż tytuł",
+      ed_show_subtitle: "Pokaż podtytuł",
       ed_language: "Język", lang_auto: "Auto (język Home Assistant)",
       unavailable: "Niedostępny", cancel: "Anuluj",
       confirmPort80Off: "Przestać nasłuchiwać na porcie 80? Żądania HTTP i wyzwania ACME HTTP nie będą już docierać do {proxy}.",
@@ -325,6 +345,8 @@ class ReverseProxyCard extends HTMLElement {
       zoomIn: "Afișează cardul complet", zoomOut: "Înapoi la vizualizarea compactă",
       ruleCount: "Reguli: {a}/{n}", certCount: "Cert.: {n}",
       ed_zoom: "Buton de detalii", ed_zoom_helper: "Comută la cardul complet și înapoi",
+      ed_show_title: "Afișează titlul",
+      ed_show_subtitle: "Afișează subtitlul",
       ed_language: "Limbă", lang_auto: "Automat (limba Home Assistant)",
       unavailable: "Indisponibil", cancel: "Anulează",
       confirmPort80Off: "Opriți ascultarea pe portul 80? Cererile HTTP și verificările ACME HTTP nu vor mai ajunge la {proxy}.",
@@ -348,6 +370,8 @@ class ReverseProxyCard extends HTMLElement {
       zoomIn: "Vis hele kortet", zoomOut: "Tilbage til kompakt visning",
       ruleCount: "Regler: {a}/{n}", certCount: "Cert.: {n}",
       ed_zoom: "Detaljeknap", ed_zoom_helper: "Skifter til hele kortet og tilbage",
+      ed_show_title: "Vis titel",
+      ed_show_subtitle: "Vis undertitel",
       ed_language: "Sprog", lang_auto: "Auto (Home Assistant-sprog)",
       unavailable: "Utilgængelig", cancel: "Annuller",
       confirmPort80Off: "Stop med at lytte på port 80? HTTP-anmodninger og ACME HTTP-udfordringer når ikke længere frem til {proxy}.",
@@ -371,6 +395,8 @@ class ReverseProxyCard extends HTMLElement {
       zoomIn: "Visa hela kortet", zoomOut: "Tillbaka till kompakt vy",
       ruleCount: "Regler: {a}/{n}", certCount: "Cert.: {n}",
       ed_zoom: "Detaljknapp", ed_zoom_helper: "Växlar till hela kortet och tillbaka",
+      ed_show_title: "Visa rubrik",
+      ed_show_subtitle: "Visa underrubrik",
       ed_language: "Språk", lang_auto: "Auto (Home Assistant-språk)",
       unavailable: "Ej tillgänglig", cancel: "Avbryt",
       confirmPort80Off: "Sluta lyssna på port 80? HTTP-förfrågningar och ACME HTTP-utmaningar når inte längre {proxy}.",
@@ -394,6 +420,8 @@ class ReverseProxyCard extends HTMLElement {
       zoomIn: "Покажи цялата карта", zoomOut: "Обратно към компактния изглед",
       ruleCount: "Правила: {a}/{n}", certCount: "Серт.: {n}",
       ed_zoom: "Бутон за детайли", ed_zoom_helper: "Превключва към цялата карта и обратно",
+      ed_show_title: "Показване на заглавието",
+      ed_show_subtitle: "Показване на подзаглавието",
       ed_language: "Език", lang_auto: "Автоматично (езикът на Home Assistant)",
       unavailable: "Недостъпно", cancel: "Отказ",
       confirmPort80Off: "Да се спре ли слушането на порт 80? HTTP заявките и ACME HTTP проверките вече няма да достигат до {proxy}.",
@@ -417,6 +445,8 @@ class ReverseProxyCard extends HTMLElement {
       zoomIn: "Показать полную карточку", zoomOut: "Вернуться к компактному виду",
       ruleCount: "Правила: {a}/{n}", certCount: "Серт.: {n}",
       ed_zoom: "Кнопка подробностей", ed_zoom_helper: "Переключает на полную карточку и обратно",
+      ed_show_title: "Показывать заголовок",
+      ed_show_subtitle: "Показывать подзаголовок",
       ed_language: "Язык", lang_auto: "Авто (язык Home Assistant)",
       unavailable: "Недоступно", cancel: "Отмена",
       confirmPort80Off: "Прекратить прослушивание порта 80? HTTP-запросы и проверки ACME HTTP больше не будут доходить до {proxy}.",
@@ -440,6 +470,8 @@ class ReverseProxyCard extends HTMLElement {
       zoomIn: "Показати повну картку", zoomOut: "Повернутися до компактного вигляду",
       ruleCount: "Правила: {a}/{n}", certCount: "Серт.: {n}",
       ed_zoom: "Кнопка деталей", ed_zoom_helper: "Перемикає на повну картку і назад",
+      ed_show_title: "Показувати заголовок",
+      ed_show_subtitle: "Показувати підзаголовок",
       ed_language: "Мова", lang_auto: "Авто (мова Home Assistant)",
       unavailable: "Недоступно", cancel: "Скасувати",
       confirmPort80Off: "Припинити прослуховування порту 80? HTTP-запити та перевірки ACME HTTP більше не надходитимуть до {proxy}.",
@@ -463,6 +495,8 @@ class ReverseProxyCard extends HTMLElement {
       zoomIn: "Teljes kártya megjelenítése", zoomOut: "Vissza a kompakt nézethez",
       ruleCount: "Szabályok: {a}/{n}", certCount: "Tan.: {n}",
       ed_zoom: "Részletek gomb", ed_zoom_helper: "Átvált a teljes kártyára és vissza",
+      ed_show_title: "Cím megjelenítése",
+      ed_show_subtitle: "Alcím megjelenítése",
       ed_language: "Nyelv", lang_auto: "Automatikus (Home Assistant nyelve)",
       unavailable: "Nem elérhető", cancel: "Mégse",
       confirmPort80Off: "Leállítja a figyelést a 80-as porton? A HTTP-kérések és az ACME HTTP-kihívások többé nem jutnak el a {proxy}hoz.",
@@ -486,6 +520,8 @@ class ReverseProxyCard extends HTMLElement {
       zoomIn: "Zobraziť celú kartu", zoomOut: "Späť na kompaktné zobrazenie",
       ruleCount: "Pravidlá: {a}/{n}", certCount: "Cert.: {n}",
       ed_zoom: "Tlačidlo podrobností", ed_zoom_helper: "Prepne na celú kartu a späť",
+      ed_show_title: "Zobraziť názov",
+      ed_show_subtitle: "Zobraziť podnázov",
       ed_language: "Jazyk", lang_auto: "Automaticky (jazyk Home Assistant)",
       unavailable: "Nedostupné", cancel: "Zrušiť",
       confirmPort80Off: "Prestať počúvať na porte 80? Požiadavky HTTP a overenia ACME HTTP sa už nedostanú k {proxy}.",
@@ -509,6 +545,8 @@ class ReverseProxyCard extends HTMLElement {
       zoomIn: "Zobrazit celou kartu", zoomOut: "Zpět na kompaktní zobrazení",
       ruleCount: "Pravidla: {a}/{n}", certCount: "Cert.: {n}",
       ed_zoom: "Tlačítko podrobností", ed_zoom_helper: "Přepne na celou kartu a zpět",
+      ed_show_title: "Zobrazit název",
+      ed_show_subtitle: "Zobrazit podnázev",
       ed_language: "Jazyk", lang_auto: "Automaticky (jazyk Home Assistant)",
       unavailable: "Nedostupné", cancel: "Zrušit",
       confirmPort80Off: "Přestat naslouchat na portu 80? Požadavky HTTP a ověření ACME HTTP se už k {proxy} nedostanou.",
@@ -532,6 +570,8 @@ class ReverseProxyCard extends HTMLElement {
       zoomIn: "Prikaži celotno kartico", zoomOut: "Nazaj na strnjeni pogled",
       ruleCount: "Pravila: {a}/{n}", certCount: "Potr.: {n}",
       ed_zoom: "Gumb za podrobnosti", ed_zoom_helper: "Preklopi na celotno kartico in nazaj",
+      ed_show_title: "Prikaži naslov",
+      ed_show_subtitle: "Prikaži podnaslov",
       ed_language: "Jezik", lang_auto: "Samodejno (jezik Home Assistanta)",
       unavailable: "Ni na voljo", cancel: "Prekliči",
       confirmPort80Off: "Prenehati poslušati na vratih 80? Zahteve HTTP in preverjanja ACME HTTP ne bodo več dosegla {proxy}ja.",
@@ -555,6 +595,8 @@ class ReverseProxyCard extends HTMLElement {
       zoomIn: "Rādīt pilno kartīti", zoomOut: "Atpakaļ uz kompakto skatu",
       ruleCount: "Kārtulas: {a}/{n}", certCount: "Sert.: {n}",
       ed_zoom: "Detaļu poga", ed_zoom_helper: "Pārslēdz uz pilno kartīti un atpakaļ",
+      ed_show_title: "Rādīt virsrakstu",
+      ed_show_subtitle: "Rādīt apakšvirsrakstu",
       ed_language: "Valoda", lang_auto: "Automātiski (Home Assistant valoda)",
       unavailable: "Nav pieejams", cancel: "Atcelt",
       confirmPort80Off: "Pārtraukt klausīšanos portā 80? HTTP pieprasījumi un ACME HTTP pārbaudes vairs nesasniegs {proxy}.",
@@ -578,6 +620,8 @@ class ReverseProxyCard extends HTMLElement {
       zoomIn: "Εμφάνιση πλήρους κάρτας", zoomOut: "Επιστροφή στη συμπαγή προβολή",
       ruleCount: "Κανόνες: {a}/{n}", certCount: "Πιστ.: {n}",
       ed_zoom: "Κουμπί λεπτομερειών", ed_zoom_helper: "Εναλλάσσει στην πλήρη κάρτα και πίσω",
+      ed_show_title: "Εμφάνιση τίτλου",
+      ed_show_subtitle: "Εμφάνιση υπότιτλου",
       ed_language: "Γλώσσα", lang_auto: "Αυτόματα (γλώσσα του Home Assistant)",
       unavailable: "Μη διαθέσιμο", cancel: "Ακύρωση",
       confirmPort80Off: "Διακοπή ακρόασης στη θύρα 80; Τα αιτήματα HTTP και οι έλεγχοι ACME HTTP δεν θα φτάνουν πλέον στο {proxy}.",
@@ -627,6 +671,7 @@ class ReverseProxyCard extends HTMLElement {
        letters (5ch of the 16 px title); the pill keeps its whole text and only gives way (ellipsis) when even
        that minimum title does not fit; the icon buttons never shrink. */
     .titles { flex: 1 1 0; min-width: 5ch; font-size: 16px; }
+    :host([hide-title]) .titles > .name, :host([hide-subtitle]) .titles > .sub { display: none; }
     #status { display: flex; flex: 0 1 auto; min-width: 0; }
     .name { font-size: 16px; font-weight: 500; line-height: 1.25; color: var(--primary-text-color); text-decoration: none;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
@@ -789,6 +834,9 @@ class ReverseProxyCard extends HTMLElement {
       if (config[key] != null && typeof config[key] !== "string") throw new Error(`${key} must be a string`);
     }
     this._config = config;
+    // show_title / show_subtitle: the header's title / subtitle, hidden by the stylesheet
+    this.toggleAttribute?.("hide-title", config.show_title === false);
+    this.toggleAttribute?.("hide-subtitle", config.show_subtitle === false);
     this._states = null;
     if (this._hass) this._render();
   }
@@ -1636,6 +1684,8 @@ class ReverseProxyCardEditor extends HTMLElement {
     { name: "device", selector: { device: { integration: "reverse_proxy" } } },
     { name: "proxy_url", selector: { text: { type: "url" } } },
     { name: "entity_prefix", selector: { text: {} } },
+    { name: "show_title", selector: { boolean: {} } },
+    { name: "show_subtitle", selector: { boolean: {} } },
   ];
 
   // The fields, then the language picker (its "Auto" label in the editor's language).
@@ -1668,7 +1718,7 @@ class ReverseProxyCardEditor extends HTMLElement {
     return [...this.SCHEMA, { name: "language", selector: { select: { mode: "dropdown", options } } }];
   }
 
-  static DEFAULTS = { entity_prefix: "zoraxy_reverse_proxy_zoraxy" };
+  static DEFAULTS = { entity_prefix: "zoraxy_reverse_proxy_zoraxy", show_title: true, show_subtitle: true };
 
   setConfig(config) {
     this._config = Object.assign({}, config);
