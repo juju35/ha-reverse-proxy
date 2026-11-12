@@ -5,7 +5,8 @@
         "title": "Обратен прокси - Конфигурация",
         "menu_options": {
           "zoraxy": "Zoraxy",
-          "traefik": "Traefik"
+          "traefik": "Traefik",
+          "nginx_proxy_manager": "Nginx Proxy Manager"
         }
       },
       "zoraxy": {
@@ -33,6 +34,20 @@
         "data_description": {
           "verify_ssl": "Изключете само за HTTPS адрес със самоподписан сертификат.",
           "username": "Само ако API или таблото на Traefik са зад basicAuth middleware; иначе оставете празно."
+        }
+      },
+      "nginx_proxy_manager": {
+        "title": "Nginx Proxy Manager - Конфигурация",
+        "data": {
+          "host": "Адрес на Nginx Proxy Manager (URL с порт)",
+          "username": "Имейл",
+          "password": "Парола",
+          "scan_interval": "Интервал на опресняване (секунди)",
+          "verify_ssl": "Проверка на TLS сертификата"
+        },
+        "data_description": {
+          "verify_ssl": "Изключете само за HTTPS адрес със самоподписан сертификат.",
+          "username": "Имейл адресът, с който влизате в Nginx Proxy Manager (акаунт без двуфакторно удостоверяване)."
         }
       },
       "reauth_confirm": {

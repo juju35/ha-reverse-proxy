@@ -20,7 +20,7 @@ from homeassistant.helpers.selector import (
     TextSelectorType,
 )
 
-from .api import ProxyAuthError, ProxyError, TraefikClient, ZoraxyClient, normalize_host
+from .api import NpmClient, ProxyAuthError, ProxyError, TraefikClient, ZoraxyClient, normalize_host
 from .const import (
     CONF_PROXY_TYPE,
     CONF_SCAN_INTERVAL,
@@ -30,6 +30,7 @@ from .const import (
     DOMAIN,
     MIN_SCAN_INTERVAL,
     PROXIES,
+    PROXY_NPM,
     PROXY_TRAEFIK,
     PROXY_TYPES,
     PROXY_ZORAXY,
@@ -45,13 +46,17 @@ PASSWORD_SELECTOR = TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWO
 
 
 def _user_schema(proxy_type: str) -> vol.Schema:
-    """Fields of a new entry: Zoraxy needs an account, Traefik's API has none of its own (basic auth optional)."""
+    """Fields of a new entry: Zoraxy and Nginx Proxy Manager need an account (NPM: its email), Traefik's API has
+    none of its own (basic auth optional)."""
     host = vol.Required("host", default=PROXIES[proxy_type]["default_host"])
     if proxy_type == PROXY_TRAEFIK:
         credentials = {
             vol.Optional("username", default=""): str,
             vol.Optional("password", default=""): PASSWORD_SELECTOR,
         }
+    elif proxy_type == PROXY_NPM:
+        # The email address of an Nginx Proxy Manager account.
+        credentials = {vol.Required("username"): str, vol.Required("password"): PASSWORD_SELECTOR}
     else:
         credentials = {vol.Required("username", default="admin"): str, vol.Required("password"): PASSWORD_SELECTOR}
     return vol.Schema(
@@ -91,11 +96,8 @@ async def _validate(
     session = async_create_clientsession(
         hass, verify_ssl=verify_ssl, auto_cleanup=False, cookie_jar=aiohttp.CookieJar(unsafe=True)
     )
-    client = (
-        TraefikClient(session, host, username, password)
-        if proxy_type == PROXY_TRAEFIK
-        else ZoraxyClient(session, host, username, password)
-    )
+    clients = {PROXY_TRAEFIK: TraefikClient, PROXY_NPM: NpmClient}
+    client = clients.get(proxy_type, ZoraxyClient)(session, host, username, password)
     try:
         await client.login()
     except ProxyAuthError:
@@ -130,6 +132,9 @@ class ReverseProxyConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def async_step_traefik(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         return await self._async_step_proxy(PROXY_TRAEFIK, user_input)
+
+    async def async_step_nginx_proxy_manager(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        return await self._async_step_proxy(PROXY_NPM, user_input)
 
     async def _async_step_proxy(self, proxy_type: str, user_input: dict[str, Any] | None) -> ConfigFlowResult:
         errors: dict[str, str] = {}

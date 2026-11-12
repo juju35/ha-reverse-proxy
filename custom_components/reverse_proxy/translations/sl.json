@@ -5,7 +5,8 @@
         "title": "Povratni proxy - Konfiguracija",
         "menu_options": {
           "zoraxy": "Zoraxy",
-          "traefik": "Traefik"
+          "traefik": "Traefik",
+          "nginx_proxy_manager": "Nginx Proxy Manager"
         }
       },
       "zoraxy": {
@@ -33,6 +34,20 @@
         "data_description": {
           "verify_ssl": "Izklopite samo za naslov HTTPS s samopodpisanim potrdilom.",
           "username": "Samo če sta API ali nadzorna plošča Traefik za vmesno programsko opremo basicAuth; sicer pustite prazno."
+        }
+      },
+      "nginx_proxy_manager": {
+        "title": "Nginx Proxy Manager - Konfiguracija",
+        "data": {
+          "host": "Naslov Nginx Proxy Manager (URL z vrati)",
+          "username": "E-pošta",
+          "password": "Geslo",
+          "scan_interval": "Interval osveževanja (sekunde)",
+          "verify_ssl": "Preveri potrdilo TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Izklopite samo za naslov HTTPS s samopodpisanim potrdilom.",
+          "username": "E-poštni naslov, s katerim se prijavite v Nginx Proxy Manager (račun brez dvostopenjskega preverjanja)."
         }
       },
       "reauth_confirm": {

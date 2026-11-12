@@ -5,7 +5,8 @@
         "title": "Reverse proxy - Configuration",
         "menu_options": {
           "zoraxy": "Zoraxy",
-          "traefik": "Traefik"
+          "traefik": "Traefik",
+          "nginx_proxy_manager": "Nginx Proxy Manager"
         }
       },
       "zoraxy": {
@@ -33,6 +34,20 @@
         "data_description": {
           "verify_ssl": "Turn off only for an HTTPS address with a self-signed certificate.",
           "username": "Only when the Traefik API or dashboard is behind a basicAuth middleware; leave empty otherwise."
+        }
+      },
+      "nginx_proxy_manager": {
+        "title": "Nginx Proxy Manager - Configuration",
+        "data": {
+          "host": "Nginx Proxy Manager address (URL with port)",
+          "username": "Email",
+          "password": "Password",
+          "scan_interval": "Refresh interval (seconds)",
+          "verify_ssl": "Verify the TLS certificate"
+        },
+        "data_description": {
+          "verify_ssl": "Turn off only for an HTTPS address with a self-signed certificate.",
+          "username": "The email address you sign in to Nginx Proxy Manager with (an account without two-factor authentication)."
         }
       },
       "reauth_confirm": {

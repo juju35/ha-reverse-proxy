@@ -5,7 +5,8 @@
         "title": "Proxy inverso - Configuración",
         "menu_options": {
           "zoraxy": "Zoraxy",
-          "traefik": "Traefik"
+          "traefik": "Traefik",
+          "nginx_proxy_manager": "Nginx Proxy Manager"
         }
       },
       "zoraxy": {
@@ -33,6 +34,20 @@
         "data_description": {
           "verify_ssl": "Desactívalo solo para una dirección HTTPS con un certificado autofirmado.",
           "username": "Solo si la API o el panel de Traefik están detrás de un middleware basicAuth; si no, dejar vacío."
+        }
+      },
+      "nginx_proxy_manager": {
+        "title": "Nginx Proxy Manager - Configuración",
+        "data": {
+          "host": "Dirección de Nginx Proxy Manager (URL con puerto)",
+          "username": "Correo electrónico",
+          "password": "Contraseña",
+          "scan_interval": "Intervalo de actualización (segundos)",
+          "verify_ssl": "Verificar el certificado TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Desactívalo solo para una dirección HTTPS con un certificado autofirmado.",
+          "username": "La dirección de correo con la que inicias sesión en Nginx Proxy Manager (una cuenta sin autenticación de dos factores)."
         }
       },
       "reauth_confirm": {

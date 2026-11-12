@@ -21,6 +21,7 @@ MINOR_VERSION  # unused variable (custom_components/reverse_proxy/config_flow.py
 _.async_step_user  # unused method (custom_components/reverse_proxy/config_flow.py:124)
 _.async_step_zoraxy  # unused method (custom_components/reverse_proxy/config_flow.py:128)
 _.async_step_traefik  # unused method (custom_components/reverse_proxy/config_flow.py:131)
+_.async_step_nginx_proxy_manager  # unused method (config flow step, called by Home Assistant)
 _.async_step_reauth  # unused method (custom_components/reverse_proxy/config_flow.py:167)
 entry_data  # unused variable (custom_components/reverse_proxy/config_flow.py:167)
 _.async_step_reconfigure  # unused method (custom_components/reverse_proxy/config_flow.py:208)

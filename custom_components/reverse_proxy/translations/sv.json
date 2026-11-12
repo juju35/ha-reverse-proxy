@@ -5,7 +5,8 @@
         "title": "Omvänd proxy - Konfiguration",
         "menu_options": {
           "zoraxy": "Zoraxy",
-          "traefik": "Traefik"
+          "traefik": "Traefik",
+          "nginx_proxy_manager": "Nginx Proxy Manager"
         }
       },
       "zoraxy": {
@@ -33,6 +34,20 @@
         "data_description": {
           "verify_ssl": "Stäng bara av för en HTTPS-adress med ett självsignerat certifikat.",
           "username": "Endast om Traefiks API eller instrumentpanel ligger bakom en basicAuth-middleware; lämna annars tomt."
+        }
+      },
+      "nginx_proxy_manager": {
+        "title": "Nginx Proxy Manager - Konfiguration",
+        "data": {
+          "host": "Nginx Proxy Manager-adress (URL med port)",
+          "username": "E-post",
+          "password": "Lösenord",
+          "scan_interval": "Uppdateringsintervall (sekunder)",
+          "verify_ssl": "Verifiera TLS-certifikatet"
+        },
+        "data_description": {
+          "verify_ssl": "Stäng bara av för en HTTPS-adress med ett självsignerat certifikat.",
+          "username": "E-postadressen du loggar in i Nginx Proxy Manager med (ett konto utan tvåfaktorsautentisering)."
         }
       },
       "reauth_confirm": {

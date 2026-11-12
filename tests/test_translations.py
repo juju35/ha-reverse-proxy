@@ -50,7 +50,8 @@ _TO_LATIN = dict(re.findall(r"([а-џ])([^а-џ]+)", _SERBIAN))
 _TO_LATIN |= {c.upper(): lat.capitalize() for c, lat in _TO_LATIN.items()}
 # Left in Latin script in both files: the product name, acronyms, placeholders and literal values.
 _KEPT_LATIN = re.compile(
-    r"Zoraxy|Traefik|basicAuth|API|HTTPS|URL|TLS|ACME|DNS|\{\w+\}|\btrue\b|\bfalse\b|\"example\.com\""
+    r"Zoraxy|Traefik|Nginx Proxy Manager|basicAuth|API|HTTPS|URL|TLS|ACME|DNS"
+    r"|\{\w+\}|\btrue\b|\bfalse\b|\"example\.com\""
 )
 
 

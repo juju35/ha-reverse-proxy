@@ -5,7 +5,8 @@
         "title": "Reversais starpniekserveris - Konfigurācija",
         "menu_options": {
           "zoraxy": "Zoraxy",
-          "traefik": "Traefik"
+          "traefik": "Traefik",
+          "nginx_proxy_manager": "Nginx Proxy Manager"
         }
       },
       "zoraxy": {
@@ -33,6 +34,20 @@
         "data_description": {
           "verify_ssl": "Izslēdziet tikai HTTPS adresei ar pašparakstītu sertifikātu.",
           "username": "Tikai tad, ja Traefik API vai informācijas panelis ir aiz basicAuth starpprogrammatūras; citādi atstājiet tukšu."
+        }
+      },
+      "nginx_proxy_manager": {
+        "title": "Nginx Proxy Manager - Konfigurācija",
+        "data": {
+          "host": "Nginx Proxy Manager adrese (URL ar portu)",
+          "username": "E-pasts",
+          "password": "Parole",
+          "scan_interval": "Atsvaidzināšanas intervāls (sekundes)",
+          "verify_ssl": "Pārbaudīt TLS sertifikātu"
+        },
+        "data_description": {
+          "verify_ssl": "Izslēdziet tikai HTTPS adresei ar pašparakstītu sertifikātu.",
+          "username": "E-pasta adrese, ar kuru piesakāties Nginx Proxy Manager (konts bez divfaktoru autentifikācijas)."
         }
       },
       "reauth_confirm": {

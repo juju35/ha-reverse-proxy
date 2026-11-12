@@ -24,13 +24,14 @@ from homeassistant.helpers.service import async_register_admin_service
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import IntegrationNotFound, async_get_integration
 
-from .api import TraefikClient, ZoraxyClient, normalize_host
+from .api import NpmClient, TraefikClient, ZoraxyClient, normalize_host
 from .const import (
     CONF_PROXY_TYPE,
     CONF_VERIFY_SSL,
     DEFAULT_VERIFY_SSL,
     DOMAIN,
     LEGACY_DOMAIN,
+    PROXY_NPM,
     PROXY_TRAEFIK,
     PROXY_ZORAXY,
     SERVICE_TOGGLE_PROXY_RULE,
@@ -283,6 +284,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
     if proxy_type == PROXY_TRAEFIK:
         client = TraefikClient(session, settings["host"], settings.get("username", ""), settings.get("password", ""))
+    elif proxy_type == PROXY_NPM:
+        client = NpmClient(session, settings["host"], settings["username"], settings["password"])
     else:
         client = ZoraxyClient(session, settings["host"], settings["username"], settings["password"])
     coordinator = COORDINATORS[proxy_type](hass, entry, client)

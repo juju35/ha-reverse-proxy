@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.4.0 - 2026-11-12
+
+### Features
+- Nginx Proxy Manager support (#65): add it with **Settings → Devices & services → Add integration → Reverse Proxy → Nginx Proxy Manager** (address of the admin interface, the email and password of an account without two-factor authentication). Its proxy hosts are the proxy rules (with their on/off button on the card and in `reverse_proxy.toggle_proxy_rule`), its redirection hosts the redirects; access lists, version, and the certificates with their expiry sensors and renewal button (Let's Encrypt certificates) are there too. NPM does not check its upstreams: their health stays unknown. The token is renewed by itself when it expires.
+
 ## 2.3.0 - 2026-11-12
 
 ### Features

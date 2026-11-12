@@ -12,7 +12,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/juju35/ha-reverse-proxy/blob/main/LICENSE)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/julienstep9)
 
-Home Assistant integration and Lovelace cards for your reverse proxy — [Zoraxy](https://github.com/tobychui/zoraxy) or [Traefik](https://traefik.io/traefik/): proxy status, proxy rules and their upstream health, redirects and, where the proxy's API allows it, controls, TLS certificates with ACME renewal and rules you can switch on and off from the dashboard. Formerly *ha-zoraxy*: see [Upgrading from ha-zoraxy](#upgrading-from-ha-zoraxy).
+Home Assistant integration and Lovelace cards for your reverse proxy — [Zoraxy](https://github.com/tobychui/zoraxy), [Traefik](https://traefik.io/traefik/) or [Nginx Proxy Manager](https://nginxproxymanager.com/): proxy status, proxy rules and their upstream health, redirects and, where the proxy's API allows it, controls, TLS certificates with ACME renewal and rules you can switch on and off from the dashboard. Formerly *ha-zoraxy*: see [Upgrading from ha-zoraxy](#upgrading-from-ha-zoraxy).
 
 [![Open your Home Assistant instance and open a repository inside the Marketplace.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=juju35&repository=ha-reverse-proxy&category=integration)
 
@@ -22,41 +22,42 @@ Home Assistant integration and Lovelace cards for your reverse proxy — [Zoraxy
 
 ## Supported reverse proxies
 
-| | Zoraxy (v3.3.2+) | Traefik (v2 / v3) |
-|---|---|---|
-| Proxy status, TLS flag, inbound port | ✓ | ✓ (`/api/overview`, entrypoints) |
-| Proxy rules, active rules | ✓ | ✓ (HTTP routers, Traefik's own `@internal` ones aside) |
-| Upstream health per rule | ✓ Zoraxy's uptime monitor | ✓ service health checks (`serverStatus`), `unknown` without a health check |
-| Redirects | ✓ redirection rules | ✓ `redirectScheme` / `redirectRegex` middlewares |
-| Access rules / middlewares count | access rules | middlewares |
-| Version | — | ✓ |
-| HTTPS redirect, port 80, dev mode switches | ✓ | — (API read-only) |
-| TLS certificates, expiry, ACME renewal | ✓ | — (not exposed by the API: `acme.json`) |
-| Enable / disable a rule | ✓ (`reverse_proxy.toggle_proxy_rule`) | — (API read-only) |
-| Login | Zoraxy account | none, or HTTP basic auth (dashboard behind a `basicAuth` middleware) |
+| | Zoraxy (v3.3.2+) | Traefik (v2 / v3) | Nginx Proxy Manager (v2) |
+|---|---|---|---|
+| Proxy status, TLS flag, inbound port | ✓ | ✓ (`/api/overview`, entrypoints) | ✓ (`/api/`; 443 once a host has a certificate, else 80) |
+| Proxy rules, active rules | ✓ | ✓ (HTTP routers, Traefik's own `@internal` ones aside) | ✓ proxy hosts (first domain name) |
+| Upstream health per rule | ✓ Zoraxy's uptime monitor | ✓ service health checks (`serverStatus`), `unknown` without a health check | — `unknown` (NPM does not check its upstreams) |
+| Redirects | ✓ redirection rules | ✓ `redirectScheme` / `redirectRegex` middlewares | ✓ redirection hosts |
+| Access rules / middlewares count | access rules | middlewares | access lists |
+| Version | — | ✓ | ✓ |
+| HTTPS redirect, port 80, dev mode switches | ✓ | — (API read-only) | — (per host in NPM) |
+| TLS certificates, expiry, ACME renewal | ✓ | — (not exposed by the API: `acme.json`) | ✓ (renewal: Let's Encrypt certificates) |
+| Enable / disable a rule | ✓ (`reverse_proxy.toggle_proxy_rule`) | — (API read-only) | ✓ (`reverse_proxy.toggle_proxy_rule`) |
+| Login | Zoraxy account | none, or HTTP basic auth (dashboard behind a `basicAuth` middleware) | NPM account (email and password, without two-factor authentication) |
 
 The cards only show the controls the proxy has.
 
 ## Features
 
-- Sensors for proxy rules, active rules, the inbound port, and per proxy: TLS certificates and access rules (Zoraxy), middlewares and version (Traefik)
+- Sensors for proxy rules, active rules, the inbound port, and per proxy: TLS certificates and access rules (Zoraxy), middlewares and version (Traefik), TLS certificates, access lists and version (Nginx Proxy Manager)
 - One upstream health binary sensor per proxy rule
 - **Repairs**: an issue when a certificate expires within 30 days (an error once expired), and when every upstream of a rule has been offline for 10 minutes; each goes away by itself once fixed
-- Zoraxy: one expiry sensor, one "expiring soon" binary sensor and one ACME renewal button per certificate (a certificate added later in Zoraxy gets its entities at the next update); switches for the HTTPS redirect, the port 80 listener and the development mode; a `reverse_proxy.toggle_proxy_rule` action (administrators only) to enable or disable a proxy rule from an automation
+- Zoraxy and Nginx Proxy Manager: one expiry sensor, one "expiring soon" binary sensor and one renewal button per certificate (a certificate added later in Zoraxy gets its entities at the next update); a `reverse_proxy.toggle_proxy_rule` action (administrators only) to enable or disable a proxy rule from an automation; Zoraxy: switches for the HTTPS redirect, the port 80 listener and the development mode
 - A Lovelace card, shipped with the integration and registered automatically:
   - proxy status, brand mark and key metrics
   - proxy rules with the rule's state, a *Down* badge when the proxy finds the rule's upstream offline, and redirects
-  - Zoraxy: direct controls (HTTPS redirect, port 80, dev mode; turning port 80 off asks for confirmation first, as it also stops the ACME HTTP challenges), certificates with days left and a renewal button, an on/off button per rule (disabling a rule asks for confirmation first)
+  - Zoraxy: direct controls (HTTPS redirect, port 80, dev mode; turning port 80 off asks for confirmation first, as it also stops the ACME HTTP challenges)
+  - Zoraxy and Nginx Proxy Manager: certificates with days left and a renewal button, an on/off button per rule (disabling a rule asks for confirmation first)
   - an unavailable entity shows as *Unavailable* (its control disabled), never as *Off* or *Inactive*
 - A mini card in the same file: status and key figures on two lines, alerts highlighted, and a detail button showing the full card; at its narrowest (4 columns of a Sections view) the status pill shows its coloured dot only
 - Visual editors for both cards, light and dark mode, English, French, German, Spanish, Serbian (Cyrillic and Latin), Italian, Dutch, European Portuguese, Polish, Romanian, Danish, Swedish, Bulgarian, Russian, Ukrainian, Hungarian, Slovak, Czech, Slovenian, Latvian and Greek
-- Several instances, of either proxy, each with its own device and card
-- Automatic reconnection when the Zoraxy session expires (about one hour)
+- Several instances, of any of these proxies, each with its own device and card
+- Automatic reconnection when the Zoraxy session (about one hour) or the Nginx Proxy Manager token (a day) expires
 
 ## Prerequisites
 
 - Home Assistant **2024.12** or later
-- Zoraxy **v3.3.2** or later and an account on its web interface, or Traefik with its [API](https://doc.traefik.io/traefik/operations/api/) reachable from Home Assistant (`api.insecure: true` on the `traefik` entrypoint, or the dashboard router; with a `basicAuth` middleware, give the integration its credentials)
+- Zoraxy **v3.3.2** or later and an account on its web interface, or Traefik with its [API](https://doc.traefik.io/traefik/operations/api/) reachable from Home Assistant (`api.insecure: true` on the `traefik` entrypoint, or the dashboard router; with a `basicAuth` middleware, give the integration its credentials), or Nginx Proxy Manager v2 and an account on its admin interface (port 81) without two-factor authentication: a dedicated user whose permissions allow managing the proxy hosts and certificates is enough
 
 ## Installation
 
@@ -97,14 +98,14 @@ The new entry takes over the former Zoraxy entry of the same address: its device
 
 ### Integration
 
-**Settings → Devices & services → Add integration → Reverse Proxy**, pick **Zoraxy** or **Traefik**, then fill in:
+**Settings → Devices & services → Add integration → Reverse Proxy**, pick **Zoraxy**, **Traefik** or **Nginx Proxy Manager**, then fill in:
 
-| Field | Zoraxy | Traefik |
-|---|---|---|
-| Address | `http://zoraxy.local:8000` | `http://traefik.local:8080` (the API entrypoint or the dashboard address) |
-| Username / Password | Your Zoraxy credentials | Only when the API or dashboard is behind a `basicAuth` middleware |
-| Refresh interval | `30` seconds (10 minimum) | same |
-| Verify the TLS certificate | On by default; turn it off only for an `https://` address with a self-signed certificate | same |
+| Field | Zoraxy | Traefik | Nginx Proxy Manager |
+|---|---|---|---|
+| Address | `http://zoraxy.local:8000` | `http://traefik.local:8080` (the API entrypoint or the dashboard address) | `http://npm.local:81` (the admin interface) |
+| Username / Password | Your Zoraxy credentials | Only when the API or dashboard is behind a `basicAuth` middleware | The email and password of an NPM account |
+| Refresh interval | `30` seconds (10 minimum) | same | same |
+| Verify the TLS certificate | On by default; turn it off only for an `https://` address with a self-signed certificate | same | same |
 
 The refresh interval and the TLS verification can be changed later with **Configure** on the integration. To change the address, the username or the password without removing the integration, use **⋮ → Reconfigure** on it: the new settings are saved only once the proxy accepts them. When the proxy refuses the credentials, Home Assistant asks for new ones in **Settings → Devices & services**. Zoraxy entries created with version 1.5.0 or earlier keep the TLS verification off, as before; turn it on in the options if your certificate is valid.
 
@@ -244,9 +245,9 @@ data:
 
 ## How it works
 
-The integration polls the proxy's API at the refresh interval. Zoraxy: it logs in to the web API and logs in again when the session expires; the uptime monitor's results (`/api/utm/list`) are read at most once a minute (Zoraxy itself checks each upstream every 5 minutes, every 30 seconds while it is down). Traefik: `/api/overview`, the HTTP routers, services, middlewares and entrypoints are read at each poll, the version once an hour. The entities of a certificate or proxy rule added in the proxy appear at the next update, without reloading the integration, and those of a removed one are deleted.
+The integration polls the proxy's API at the refresh interval. Zoraxy: it logs in to the web API and logs in again when the session expires; the uptime monitor's results (`/api/utm/list`) are read at most once a minute (Zoraxy itself checks each upstream every 5 minutes, every 30 seconds while it is down). Traefik: `/api/overview`, the HTTP routers, services, middlewares and entrypoints are read at each poll, the version once an hour. Nginx Proxy Manager: it asks for a token with the account's email and password (`/api/tokens`), then reads `/api/`, the proxy hosts, redirection hosts, certificates and access lists at each poll, and asks for a new token when it expires. The entities of a certificate or proxy rule added in the proxy appear at the next update, without reloading the integration, and those of a removed one are deleted.
 
-On the card, the button next to each Zoraxy rule calls `reverse_proxy.toggle_proxy_rule` for the card's own instance; for users who are not administrators the button only shows the rule's state and is disabled, and a failed change shows its error in a toast; the button updates at once and the card refreshes when the integration has polled the proxy again. Certificates turn orange under 30 days and red under 7 days.
+On the card, the button next to each Zoraxy or Nginx Proxy Manager rule calls `reverse_proxy.toggle_proxy_rule` for the card's own instance; for users who are not administrators the button only shows the rule's state and is disabled, and a failed change shows its error in a toast; the button updates at once and the card refreshes when the integration has polled the proxy again. Certificates turn orange under 30 days and red under 7 days.
 
 To debug:
 

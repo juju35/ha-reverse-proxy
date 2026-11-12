@@ -1,4 +1,4 @@
-"""Constants for the Reverse Proxy integration (Zoraxy, Traefik)."""
+"""Constants for the Reverse Proxy integration (Zoraxy, Traefik, Nginx Proxy Manager)."""
 
 from __future__ import annotations
 
@@ -20,7 +20,8 @@ CONF_VERIFY_SSL = "verify_ssl"
 
 PROXY_ZORAXY = "zoraxy"
 PROXY_TRAEFIK = "traefik"
-PROXY_TYPES = (PROXY_ZORAXY, PROXY_TRAEFIK)
+PROXY_NPM = "nginx_proxy_manager"
+PROXY_TYPES = (PROXY_ZORAXY, PROXY_TRAEFIK, PROXY_NPM)
 
 # Brand name, default address and device info of each supported reverse proxy.
 PROXIES: dict[str, dict[str, str]] = {
@@ -38,6 +39,13 @@ PROXIES: dict[str, dict[str, str]] = {
         "manufacturer": "Traefik Labs",
         "model": "Traefik",
     },
+    PROXY_NPM: {
+        "name": "Nginx Proxy Manager",
+        "default_host": "http://npm.local:81",
+        "device_name": "Nginx Proxy Manager",
+        "manufacturer": "jc21",
+        "model": "Nginx Proxy Manager",
+    },
 }
 
 SERVICE_TOGGLE_PROXY_RULE = "toggle_proxy_rule"
@@ -50,11 +58,14 @@ EXPIRY_WARNING_DAYS = 30  # days before expiry that trigger the warning
 FEATURES: dict[str, frozenset[str]] = {
     PROXY_ZORAXY: frozenset({"controls", "certificates", "toggle_rules", "redirects", "access_rules"}),
     PROXY_TRAEFIK: frozenset({"redirects", "version", "middlewares"}),
+    # Nginx Proxy Manager: proxy hosts on/off, Let's Encrypt renewal, redirection hosts, access lists; no global
+    # option to switch (the HTTPS redirect is per host) and no upstream health check.
+    PROXY_NPM: frozenset({"certificates", "toggle_rules", "redirects", "access_rules", "version"}),
 }
 
 
 def proxy_name(proxy_type: str) -> str:
-    """Brand name of a proxy type ("Zoraxy", "Traefik")."""
+    """Brand name of a proxy type ("Zoraxy", "Traefik", "Nginx Proxy Manager")."""
     return PROXIES.get(proxy_type, PROXIES[PROXY_ZORAXY])["name"]
 
 

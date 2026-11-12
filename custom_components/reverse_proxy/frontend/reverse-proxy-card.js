@@ -1,4 +1,4 @@
-const REVERSE_PROXY_CARD_VERSION = '2.3.0';
+const REVERSE_PROXY_CARD_VERSION = '2.4.0';
 
 // Escapes a value interpolated into innerHTML, as text or inside a quoted attribute (as parcelEsc in ha-parcel).
 function rpEsc(s) {
@@ -35,7 +35,8 @@ class ReverseProxyCard extends HTMLElement {
   static SERVER_NETWORK = "M13,19H14A1,1 0 0,1 15,20H22V22H15A1,1 0 0,1 14,23H10A1,1 0 0,1 9,22H2V20H9A1,1 0 0,1 10,19H11V17H4A1,1 0 0,1 3,16V12A1,1 0 0,1 4,11H20A1,1 0 0,1 21,12V16A1,1 0 0,1 20,17H13V19M4,3H20A1,1 0 0,1 21,4V8A1,1 0 0,1 20,9H4A1,1 0 0,1 3,8V4A1,1 0 0,1 4,3M9,7H10V5H9V7M9,15H10V13H9V15M5,5V7H7V5H5M5,13V15H7V13H5Z";
 
   // The supported reverse proxies: brand name, and the brand mark shown as a badge on the header icon (the Zoraxy
-  // logo: two dark arcs, a blue disc and its two arrows; the Traefik Proxy logo: its blue node). What the proxy's
+  // logo: two dark arcs, a blue disc and its two arrows; the Traefik Proxy logo: its blue node; an "N" monogram for
+  // Nginx Proxy Manager). What the proxy's
   // API allows (`features` attribute of the running binary sensor) decides which controls the card shows.
   static BRANDS = {
     zoraxy: {
@@ -51,6 +52,12 @@ class ReverseProxyCard extends HTMLElement {
       name: "Traefik",
       mark: `<svg viewBox="2.67 10.17 123.05 110.77" aria-hidden="true"><path fill="#24a1c1" d="M64.188 10.172c5.582 0 10.542 3.937 10.542 8.785s-4.722 8.785-10.543 8.785q-.995 0-2.601-.328a3.5 3.5 0 0 0-2.438.39L21.355 49.298a1.76 1.76 0 0 0 .008 3.062l40.969 22.996a3.52 3.52 0 0 0 3.426.012l41.187-22.898a1.752 1.752 0 0 0 .016-3.063l-12.852-7.293a3.52 3.52 0 0 0-3.441-.02l-13.563 7.524a1.21 1.21 0 0 0-.613.918l-.004.13c0 4.85-4.722 8.784-10.543 8.784-5.816 0-10.539-3.933-10.539-8.785 0-4.848 4.723-8.785 10.54-8.785.218 0 .464.016.745.035l.446.047.492.059c.75.101 1.512-.04 2.176-.407l20.065-11.13a5.27 5.27 0 0 1 4.945-.086l.215.11 28.016 15.906c3.512 1.992 3.55 7.012.144 9.082l-.187.11-18.746 10.417a1.76 1.76 0 0 0-.899 1.559c.012.645.371 1.23.938 1.531l18.562 9.766c3.688 1.937 3.774 7.183.16 9.242L66.642 120.25a5.28 5.28 0 0 1-5.227 0L5.36 88.254c-3.62-2.067-3.52-7.324.176-9.25l18.766-9.79a1.761 1.761 0 0 0 .047-3.093L5.355 55.461c-3.511-1.973-3.585-6.969-.21-9.066l.187-.114 46.645-26.523a3.53 3.53 0 0 0 1.578-1.89l.058-.188c1.64-4.875 5.364-7.508 10.575-7.508m26.027 64.715L67.184 88.129l-.215.117a5.25 5.25 0 0 1-4.98-.094L39.03 75.207a3.5 3.5 0 0 0-3.343-.05l-13.235 6.917a1.759 1.759 0 0 0-.055 3.086l40.434 23.137a3.52 3.52 0 0 0 3.477 0l40.78-23.3c.56-.317.9-.915.891-1.556a1.76 1.76 0 0 0-.94-1.527L93.593 74.82a3.51 3.51 0 0 0-3.38.067Zm0 0"/></svg>`,
       features: ["middlewares", "redirects", "version"],
+    },
+    // Nginx Proxy Manager: a plain monogram until its brand mark is added (brand/nginx_proxy_manager.svg).
+    nginx_proxy_manager: {
+      name: "Nginx Proxy Manager",
+      mark: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#f15833"/><path fill="#fff" d="M7.5 17V7h2.1l4.8 6.6V7h2.1v10h-2.1L9.6 10.4V17z"/></svg>`,
+      features: ["access_rules", "certificates", "redirects", "toggle_rules", "version"],
     },
   };
 
@@ -1253,7 +1260,8 @@ class ReverseProxyCard extends HTMLElement {
     // Rules sensor unavailable or unknown: its lists are not known, not empty.
     const listed        = rulesCount !== "–";
     const sub           = this._url().replace(/^https?:\/\//i, "").replace(/\/$/, "") || "Reverse proxy";
-    // The third key figure: the certificates when the proxy exposes them (Zoraxy), else its middlewares (Traefik).
+    // The third key figure: the certificates when the proxy exposes them (Zoraxy, Nginx Proxy Manager), else its
+    // middlewares (Traefik).
     const third         = this._has("certificates")
       ? metric(certCount, this._t("certs"))
       : this._has("middlewares") ? metric(this._value(this._eid("sensor.middlewares")), this._t("middlewares")) : "";
@@ -1742,7 +1750,7 @@ class ReverseProxyCardEditor extends HTMLElement {
     const lang = ReverseProxyCard.langOfHass(this._hass, this._config);
     if (lang !== this._lang) {
       this._lang = lang;
-      const t = (key) => ReverseProxyCard.I18N[lang][key]?.replaceAll("{proxy}", "Zoraxy / Traefik");
+      const t = (key) => ReverseProxyCard.I18N[lang][key]?.replaceAll("{proxy}", "Zoraxy / Traefik / Nginx Proxy Manager");
       this._form.schema = this.constructor.schema(t);
       this._form.computeLabel = (field) => t(`ed_${field.name}`) || field.name;
       this._form.computeHelper = (field) => t(`ed_${field.name}_helper`);
@@ -1798,10 +1806,10 @@ for (const [tag, cls] of [
 window.customCards = window.customCards || [];
 if (!customElements.get("reverse-proxy-card")) {
   customElements.define("reverse-proxy-card", ReverseProxyCard);
-  window.customCards.push({ type: "reverse-proxy-card", name: "Reverse Proxy Card", description: "Status, controls, certificates and proxy rules of a Zoraxy or Traefik reverse proxy", preview: true, documentationURL: DOC_URL });
+  window.customCards.push({ type: "reverse-proxy-card", name: "Reverse Proxy Card", description: "Status, controls, certificates and proxy rules of a Zoraxy, Traefik or Nginx Proxy Manager reverse proxy", preview: true, documentationURL: DOC_URL });
   console.info(`%c REVERSE-PROXY-CARD %c v${REVERSE_PROXY_CARD_VERSION} `, "color:#bfdbfe;background:#0f172a;font-weight:700", "color:#0f172a;background:#bfdbfe");
 }
 if (!customElements.get("reverse-proxy-mini-card")) {
   customElements.define("reverse-proxy-mini-card", ReverseProxyMiniCard);
-  window.customCards.push({ type: "reverse-proxy-mini-card", name: "Reverse Proxy Mini Card", description: "Zoraxy or Traefik status, rules and alerts on two lines, with a detail button showing the full card", preview: true, documentationURL: DOC_URL });
+  window.customCards.push({ type: "reverse-proxy-mini-card", name: "Reverse Proxy Mini Card", description: "Zoraxy, Traefik or Nginx Proxy Manager status, rules and alerts on two lines, with a detail button showing the full card", preview: true, documentationURL: DOC_URL });
 }

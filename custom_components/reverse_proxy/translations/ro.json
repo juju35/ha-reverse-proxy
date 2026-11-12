@@ -5,7 +5,8 @@
         "title": "Reverse proxy - Configurare",
         "menu_options": {
           "zoraxy": "Zoraxy",
-          "traefik": "Traefik"
+          "traefik": "Traefik",
+          "nginx_proxy_manager": "Nginx Proxy Manager"
         }
       },
       "zoraxy": {
@@ -33,6 +34,20 @@
         "data_description": {
           "verify_ssl": "Dezactivați doar pentru o adresă HTTPS cu un certificat autosemnat.",
           "username": "Doar dacă API-ul sau panoul Traefik se află în spatele unui middleware basicAuth; altfel lăsați gol."
+        }
+      },
+      "nginx_proxy_manager": {
+        "title": "Nginx Proxy Manager - Configurare",
+        "data": {
+          "host": "Adresa Nginx Proxy Manager (URL cu port)",
+          "username": "E-mail",
+          "password": "Parolă",
+          "scan_interval": "Interval de reîmprospătare (secunde)",
+          "verify_ssl": "Verifică certificatul TLS"
+        },
+        "data_description": {
+          "verify_ssl": "Dezactivați doar pentru o adresă HTTPS cu un certificat autosemnat.",
+          "username": "Adresa de e-mail cu care te conectezi la Nginx Proxy Manager (un cont fără autentificare în doi pași)."
         }
       },
       "reauth_confirm": {

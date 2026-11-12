@@ -1,21 +1,21 @@
 # Reverse Proxy Integration — Agent Context
 
 ## Purpose
-Home Assistant custom integration (domain `reverse_proxy`, up to 1.14.x `zoraxy`) for reverse proxies: [Zoraxy](https://github.com/tobychui/zoraxy) (v3.3.2+) and [Traefik](https://doc.traefik.io/traefik/operations/api/) (v2/v3).
-Polls the proxy's REST API and exposes entities for monitoring and, for Zoraxy, control.
+Home Assistant custom integration (domain `reverse_proxy`, up to 1.14.x `zoraxy`) for reverse proxies: [Zoraxy](https://github.com/tobychui/zoraxy) (v3.3.2+), [Traefik](https://doc.traefik.io/traefik/operations/api/) (v2/v3) and [Nginx Proxy Manager](https://nginxproxymanager.com/) (v2).
+Polls the proxy's REST API and exposes entities for monitoring and, for Zoraxy and Nginx Proxy Manager, control.
 
 ## Architecture
 
 ```
 custom_components/reverse_proxy/
 ├── __init__.py          # Setup, migration (1.x → 2.1), take-over of `zoraxy` entries, card registration, toggle_proxy_rule service
-├── api.py               # ProxyClient interface; ZoraxyClient (CSRF login, session expiry); TraefikClient (read-only, optional basic auth)
-├── coordinator.py       # ProxyDataUpdateCoordinator interface; ZoraxyDataUpdateCoordinator; TraefikDataUpdateCoordinator
+├── api.py               # ProxyClient interface; ZoraxyClient (CSRF login, session expiry); TraefikClient (read-only, optional basic auth); NpmClient (bearer token)
+├── coordinator.py       # ProxyDataUpdateCoordinator interface; ZoraxyDataUpdateCoordinator; TraefikDataUpdateCoordinator; NpmDataUpdateCoordinator
 ├── sensor.py            # Sensor entities (counts, port, version, expiry dates)
 ├── binary_sensor.py     # Binary sensors (running, TLS, option flags, cert expiry alerts, upstream health)
 ├── switch.py            # Switches (Zoraxy: HTTPS redirect, port 80, dev mode)
 ├── button.py            # Buttons (Zoraxy: ACME certificate renewal per domain)
-├── config_flow.py       # Menu (zoraxy / traefik) → per-proxy step, reauth, reconfigure, options
+├── config_flow.py       # Menu (zoraxy / traefik / nginx_proxy_manager) → per-proxy step, reauth, reconfigure, options
 ├── diagnostics.py       # Config entry diagnostics, credentials redacted (TO_REDACT)
 ├── const.py             # Constants, PROXIES (brand, defaults, device info), FEATURES per proxy, safe_domain()
 ├── entity.py            # ProxyEntity base: device, translated name, Zoraxy entity ids kept from 1.4.x
@@ -33,7 +33,7 @@ custom_components/reverse_proxy/
 `ProxyDataUpdateCoordinator` (coordinator.py) is what the entities and the service use; each proxy's coordinator keeps the raw API answers in `data` (diagnostics) and implements: `running`, `tls_enabled`, `port`, `version`, `flag(key)`, `rules()` → `[{domain, target, enabled, tls}]`, `rule_domains()`, `rule_enabled(domain)`, `redirects()` → `[{RedirectURL, TargetURL, StatusCode}]` (keys the card has read since 1.0), `access_rules_count`, `middlewares_count`, `cert_list`, `cert_expiry`, `upstream_checks(domain)` → `[{url, online, status_code, latency_ms, checked}]`, and the actions `set_flag`, `toggle_rule`, `renew_certificate` (raise `HomeAssistantError(not_supported)` by default). `FEATURES[proxy_type]` (const.py) decides which entities each platform creates: `controls`, `certificates`, `toggle_rules`, `redirects`, `access_rules`, `version`, `middlewares`. The *Proxy running* binary sensor exposes `proxy_type` and `features` for the card. Error messages take a `{proxy}` placeholder (brand name).
 
 ### Config entry
-- Version 2.1: `proxy_type` in the data (`zoraxy` / `traefik`); 1.x entries are migrated by `async_migrate_entry` (1.1 → verify_ssl False as before). Unique id = `normalize_host(host)`.
+- Version 2.1: `proxy_type` in the data (`zoraxy` / `traefik` / `nginx_proxy_manager`); 1.x entries are migrated by `async_migrate_entry` (1.1 → verify_ssl False as before). Unique id = `normalize_host(host)`.
 - `_async_adopt_legacy_entry` (async_setup_entry, Zoraxy entries): a `zoraxy` config entry (the integration up to 1.14.x) with the same host, once `custom_components/zoraxy` is gone, has its entities moved (`async_update_entity_platform`, unique ids rebuilt on the new entry id) then its device (identifiers, config entry — add and remove in two calls, one call loses the addition) to the new entry, and is removed. While the old integration is still installed nothing is moved and a warning says to remove it.
 - Config flow: `user` is a menu (`async_show_menu`) → steps `zoraxy` / `traefik`; the duplicate check is by hand so that the abort message names the proxy (`description_placeholders`) on older Home Assistant versions.
 
@@ -42,6 +42,13 @@ custom_components/reverse_proxy/
 - `/api/overview` is required (UpdateFailed otherwise); `/api/http/routers`, `/api/http/services`, `/api/http/middlewares`, `/api/entrypoints` are optional (previous value kept); `/api/version` is read at most once an hour.
 - Routers/services/middlewares of the `internal` provider (`api@internal`, `dashboard@internal`…) are left out. A rule's domain is the first `Host(`…`)` of the router rule (`router_hosts`), else the router name; its target the first server of its service (service name as given or `<name>@<provider>`); `tls` is the presence of the router's `tls` key (`{}` for a TLS router without options). Upstream health comes from the service's `serverStatus` (`UP`/`DOWN`, health checks on); none → unknown.
 - Redirects: `redirectScheme` (name, `scheme://…[:port]`, 301 if permanent) and `redirectRegex` (regex, replacement) middlewares. Port: the `websecure` entrypoint, else the first with `http.tls`, else the first not named `traefik`/`metrics`.
+
+## Nginx Proxy Manager (NpmClient, NpmDataUpdateCoordinator)
+- `login()` POSTs `{identity, secret}` (the entry's `username` is the account's email) to `/api/tokens`; 400/401/403 → `ProxyAuthError`, `requires_2fa` in the answer → `ProxyAuthError` (an account with two-factor authentication cannot be polled), no JSON → `ProxyError` (not an NPM). The token (a day by default) goes in `Authorization: Bearer`; a 401 logs in again once (lock + generation counter, as for Zoraxy), a second one raises `ProxyAuthError` (reauth).
+- `/api/` (status and version, `{status: "OK", version: {major, minor, revision}}`) is required; `/api/nginx/proxy-hosts`, `/api/nginx/redirection-hosts`, `/api/nginx/certificates`, `/api/nginx/access-lists` are optional (previous value kept).
+- A rule is a proxy host: domain = first `domain_names`, target `forward_scheme://forward_host:forward_port`, `enabled`, `tls` = a `certificate_id`. No upstream health check in NPM: upstream sensors stay unknown. Port: 443 once a host has a certificate, else 80.
+- Certificates are named after their first domain name (an imported one without any: its `nice_name`); `expires_on` (`YYYY-MM-DD HH:mm:ss`, UTC) → aware ISO by `npm_expiry`. Renewal: POST `/api/nginx/certificates/{id}/renew`, Let's Encrypt only (`provider == "letsencrypt"`). Toggle: POST `/api/nginx/proxy-hosts/{id}/enable|disable`.
+- The card's brand mark is an "N" monogram until the official logo is added.
 
 ## Zoraxy authentication
 
@@ -152,7 +159,7 @@ proxy_url: http://zoraxy.local:8000
 - `/api/acme/obtainCert` is a GET (not POST) despite being a mutation
 - All POST API calls require `X-CSRF-Token` header (same token as login)
 - `CookieJar(unsafe=True)` is mandatory for local IP addresses
-- Tests: `pip install -r requirements_test.txt && pytest` (tests/test_init.py: Zoraxy and the take-over of `zoraxy` entries; tests/test_traefik.py: Traefik); `node --test test/*.test.mjs` for the card. Job `tests` runs on Python 3.14, i.e. the latest Home Assistant (2026.3+ needs Python 3.14; 3.13 would silently resolve to 2026.2) and prints its version as an annotation; job `pytest-min-ha` runs the suite on HA 2024.12.0. An autouse fixture (`tests/conftest.py`, `no_deprecated_calls`) fails any test during which Home Assistant reports a deprecated call naming `reverse_proxy`, and CI turns those reports into annotations. Never look a device up with `DeviceRegistry.async_get_device` (deprecated in 2026.8; `async_get_device_by_identifier` doesn't exist on 2024.12): go through the entities' `device_id`. The http fixture patch only applies where `start_http_server_and_save_config` still exists (gone in 2026.10).
+- Tests: `pip install -r requirements_test.txt && pytest` (tests/test_init.py: Zoraxy and the take-over of `zoraxy` entries; tests/test_traefik.py: Traefik; tests/test_npm.py: Nginx Proxy Manager); `node --test test/*.test.mjs` for the card. Job `tests` runs on Python 3.14, i.e. the latest Home Assistant (2026.3+ needs Python 3.14; 3.13 would silently resolve to 2026.2) and prints its version as an annotation; job `pytest-min-ha` runs the suite on HA 2024.12.0. An autouse fixture (`tests/conftest.py`, `no_deprecated_calls`) fails any test during which Home Assistant reports a deprecated call naming `reverse_proxy`, and CI turns those reports into annotations. Never look a device up with `DeviceRegistry.async_get_device` (deprecated in 2026.8; `async_get_device_by_identifier` doesn't exist on 2024.12): go through the entities' `device_id`. The http fixture patch only applies where `start_http_server_and_save_config` still exists (gone in 2026.10).
 - `asyncio.timeout` is used (Python 3.11+ native); no `async_timeout` dependency
 
 ## Translations

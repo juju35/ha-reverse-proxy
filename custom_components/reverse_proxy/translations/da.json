@@ -5,7 +5,8 @@
         "title": "Reverse proxy - Konfiguration",
         "menu_options": {
           "zoraxy": "Zoraxy",
-          "traefik": "Traefik"
+          "traefik": "Traefik",
+          "nginx_proxy_manager": "Nginx Proxy Manager"
         }
       },
       "zoraxy": {
@@ -33,6 +34,20 @@
         "data_description": {
           "verify_ssl": "Slå kun fra for en HTTPS-adresse med et selvsigneret certifikat.",
           "username": "Kun hvis Traefik-API'et eller dashboardet ligger bag en basicAuth-middleware; ellers lad stå tomt."
+        }
+      },
+      "nginx_proxy_manager": {
+        "title": "Nginx Proxy Manager - Konfiguration",
+        "data": {
+          "host": "Nginx Proxy Manager-adresse (URL med port)",
+          "username": "E-mail",
+          "password": "Adgangskode",
+          "scan_interval": "Opdateringsinterval (sekunder)",
+          "verify_ssl": "Bekræft TLS-certifikatet"
+        },
+        "data_description": {
+          "verify_ssl": "Slå kun fra for en HTTPS-adresse med et selvsigneret certifikat.",
+          "username": "Den e-mailadresse, du logger ind i Nginx Proxy Manager med (en konto uden totrinsbekræftelse)."
         }
       },
       "reauth_confirm": {

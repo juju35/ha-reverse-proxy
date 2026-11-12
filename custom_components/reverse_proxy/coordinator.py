@@ -19,7 +19,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import ProxyAuthError, ProxyClient, ProxyError, TraefikClient, ZoraxyClient
+from .api import NpmClient, ProxyAuthError, ProxyClient, ProxyError, TraefikClient, ZoraxyClient
 from .const import (
     ACME_POLL_SECONDS,
     CONF_PROXY_TYPE,
@@ -28,6 +28,7 @@ from .const import (
     DOMAIN,
     FEATURES,
     MIN_SCAN_INTERVAL,
+    PROXY_NPM,
     PROXY_TRAEFIK,
     PROXY_ZORAXY,
     UPTIME_POLL_SECONDS,
@@ -154,7 +155,7 @@ class ProxyDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Last health check of each upstream of a rule: {url, online, status_code, latency_ms, checked}."""
         return []
 
-    # ── Actions (Zoraxy only) ─────────────────────────────────────────────────
+    # ── Actions (Zoraxy, Nginx Proxy Manager) ─────────────────────────────────────────────────
 
     async def set_flag(self, key: str, enable: bool) -> None:
         raise self._error("not_supported")
@@ -667,7 +668,182 @@ class TraefikDataUpdateCoordinator(ProxyDataUpdateCoordinator):
         }
 
 
+# ── Nginx Proxy Manager ───────────────────────────────────────────────────────
+
+
+def npm_expiry(value: Any) -> str | None:
+    """An NPM date ("2026-02-10 12:00:00", UTC, or ISO) as an aware ISO timestamp."""
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace(" ", "T", 1))  # Python 3.11+ reads a trailing Z
+    except ValueError:
+        return None
+    return (parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)).isoformat()
+
+
+class NpmDataUpdateCoordinator(ProxyDataUpdateCoordinator):
+    """Nginx Proxy Manager coordinator.
+
+    /api/ (status and version) is required: when it can't be read the update fails and the entities become
+    unavailable. The proxy hosts, redirection hosts, certificates and access lists are optional: on failure the
+    previous value is kept. A proxy host is a rule (its first domain name); NPM does not check the upstreams, so
+    their health stays unknown.
+    """
+
+    proxy_type = PROXY_NPM
+    client: NpmClient
+
+    @staticmethod
+    def _items(value: Any) -> list[dict]:
+        return [item for item in (value if isinstance(value, list) else []) if isinstance(item, dict)]
+
+    @staticmethod
+    def _name(item: dict) -> str | None:
+        """First domain name of a host or a certificate (its nice name for a certificate without one)."""
+        names = [n for n in item.get("domain_names") or [] if isinstance(n, str) and n]
+        if names:
+            return names[0]
+        nice = item.get("nice_name")
+        return nice if isinstance(nice, str) and nice else None
+
+    def _hosts(self) -> list[dict]:
+        return self._items(self._previous("proxy_hosts"))
+
+    def _certificates(self) -> list[dict]:
+        return [c for c in self._items(self._previous("certificates")) if self._name(c)]
+
+    @property
+    def running(self) -> bool:
+        status = self._data().get("status")
+        return isinstance(status, dict) and str(status.get("status", "")).upper() == "OK"
+
+    @property
+    def tls_enabled(self) -> bool:
+        return any(host.get("certificate_id") for host in self._hosts())
+
+    @property
+    def port(self) -> int | None:
+        # NPM listens on 80 and 443 (its admin UI on 81): the HTTPS port once a host has a certificate.
+        return 443 if self.tls_enabled else 80
+
+    @property
+    def version(self) -> str | None:
+        version = (self._data().get("status") or {}).get("version")
+        if not isinstance(version, dict) or version.get("major") is None:
+            return None
+        return ".".join(str(version.get(part, 0)) for part in ("major", "minor", "revision"))
+
+    def rules(self) -> list[dict[str, Any]]:
+        rules = []
+        for host in self._hosts():
+            if not (domain := self._name(host)):
+                continue
+            scheme = host.get("forward_scheme") or "http"
+            target, port = host.get("forward_host"), host.get("forward_port")
+            rules.append(
+                {
+                    "domain": domain,
+                    "target": f"{scheme}://{target}:{port}" if target and port else (target or "?"),
+                    "enabled": bool(host.get("enabled", True)),
+                    "tls": bool(host.get("certificate_id")),
+                }
+            )
+        return rules
+
+    def redirects(self) -> list[dict[str, Any]]:
+        redirects = []
+        for host in self._items(self._previous("redirection_hosts")):
+            target = host.get("forward_domain_name") or "?"
+            scheme = host.get("forward_scheme")
+            redirects.append(
+                {
+                    "RedirectURL": self._name(host) or "?",
+                    # "auto" keeps the request's scheme: the target is then shown without one.
+                    "TargetURL": f"{scheme}://{target}" if scheme in ("http", "https") else target,
+                    "StatusCode": host.get("forward_http_code") or 301,
+                }
+            )
+        return redirects
+
+    @property
+    def access_rules_count(self) -> int:
+        return len(self._items(self._previous("access_lists")))
+
+    @property
+    def cert_list(self) -> list[str]:
+        return list(dict.fromkeys(name for c in self._certificates() if (name := self._name(c))))
+
+    @property
+    def cert_expiry(self) -> dict[str, str]:
+        result: dict[str, str] = {}
+        for cert in self._certificates():
+            if (name := self._name(cert)) and (expiry := npm_expiry(cert.get("expires_on"))):
+                result.setdefault(name, expiry)
+        return result
+
+    # ── Actions ───────────────────────────────────────────────────────────────
+
+    async def toggle_rule(self, domain: str, enable: bool) -> None:
+        host = next((h for h in self._hosts() if domain in (h.get("domain_names") or [])), None)
+        if host is None or host.get("id") is None:
+            raise self._error("rule_change_failed", domain=domain, error="no proxy host with this domain")
+        action = "enable" if enable else "disable"
+        try:
+            await self.client.command(f"/api/nginx/proxy-hosts/{host['id']}/{action}")
+        except ProxyError as err:
+            raise self._error("rule_change_failed", domain=domain, error=str(err)) from err
+        _LOGGER.debug("Nginx Proxy Manager: proxy host %s (%s) %sd", host["id"], domain, action)
+        await self.async_request_refresh()
+
+    async def renew_certificate(self, domain: str) -> None:
+        """Renew a Let's Encrypt certificate (NPM cannot renew an imported one)."""
+        cert = next((c for c in self._certificates() if self._name(c) == domain), None)
+        if cert is None or cert.get("id") is None:
+            raise self._error("renewal_failed", domain=domain, error="no certificate with this name")
+        if cert.get("provider") != "letsencrypt":
+            raise self._error("renewal_failed", domain=domain, error="only Let's Encrypt certificates can be renewed")
+        try:
+            await self.client.command(f"/api/nginx/certificates/{cert['id']}/renew", timeout=120)
+        except ProxyError as err:
+            raise self._error("renewal_failed", domain=domain, error=str(err)) from err
+        _LOGGER.info("Nginx Proxy Manager: certificate %s renewed", domain)
+        await self.async_request_refresh()
+
+    # ── Polling ───────────────────────────────────────────────────────────────
+
+    async def _async_update_data(self) -> dict[str, Any]:
+        try:
+            status = await self.client.fetch_json("/api/")
+            if not isinstance(status, dict):
+                raise UpdateFailed("Unexpected status from Nginx Proxy Manager")
+            proxy_hosts, redirection_hosts, certificates, access_lists = await asyncio.gather(
+                self._optional("/api/nginx/proxy-hosts"),
+                self._optional("/api/nginx/redirection-hosts"),
+                self._optional("/api/nginx/certificates"),
+                self._optional("/api/nginx/access-lists"),
+            )
+        except ProxyAuthError as err:
+            raise ConfigEntryAuthFailed(str(err)) from err
+        except ProxyError as err:
+            raise UpdateFailed(str(err)) from err
+
+        # Only a list actually returned removes the entities of a rule or a certificate.
+        self.proxy_list_loaded = isinstance(proxy_hosts, list)
+        self.cert_list_loaded = isinstance(certificates, list)
+        return {
+            "status": status,
+            "proxy_hosts": proxy_hosts if self.proxy_list_loaded else self._previous("proxy_hosts"),
+            "redirection_hosts": (
+                redirection_hosts if isinstance(redirection_hosts, list) else self._previous("redirection_hosts")
+            ),
+            "certificates": certificates if self.cert_list_loaded else self._previous("certificates"),
+            "access_lists": access_lists if isinstance(access_lists, list) else self._previous("access_lists"),
+        }
+
+
 COORDINATORS: dict[str, type[ProxyDataUpdateCoordinator]] = {
     PROXY_ZORAXY: ZoraxyDataUpdateCoordinator,
     PROXY_TRAEFIK: TraefikDataUpdateCoordinator,
+    PROXY_NPM: NpmDataUpdateCoordinator,
 }
