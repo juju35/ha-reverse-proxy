@@ -121,6 +121,8 @@ proxy_url: http://zoraxy.local:8000
 |---|---|---|
 | `device` | — | Device id of the proxy instance to show, picked in the visual editor; left out, the instance whose entity ids start with `entity_prefix`, else the first one |
 | `proxy_url` | — | The proxy's web interface (`http://` or `https://`), opened from the header icon and shown under the title (`zoraxy_url`, the option's name up to 1.14.x, is still read) |
+| `show_title` | `true` | Show the title in the header (e.g. `false` under a section heading of your own) |
+| `show_subtitle` | `true` | Show the subtitle under the title |
 | `entity_prefix` | `zoraxy_reverse_proxy_zoraxy` | Common part of the entity ids of a Zoraxy install of 1.x: picks the instance when `device` is left out, and finds the entities when the entity registry is not available |
 | `language` | Auto | Force the card language: `en`, `fr`, `de`, `es`, `sr`, `sr-Latn`, `it`, `nl`, `pt`, `pl`, `ro`, `da`, `sv`, `bg`, `ru`, `uk`, `hu`, `sk`, `cs`, `sl`, `lv` or `el` (by default, the Home Assistant language) |
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3.0 - 2026-11-12
+
+### Features
+- `show_title` and `show_subtitle` options (also in the visual editor) hide the header's title (the proxy's name) and its subtitle (its web address), separately, for a card placed under a section heading of its own (asked in juju35/ha-vehicle-card#72).
+
 ## 2.2.1 - 2026-11-09
 
 ### Maintenance
