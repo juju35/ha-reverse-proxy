@@ -697,6 +697,34 @@ test('a click outside the card closes the confirmation without acting', () => {
   assert.deepEqual(card.calls, []);
 });
 
+test('folding: a tap elsewhere (pointer), not a drag that ends outside; leaving the page folds back too', () => {
+  const card = controlCard();
+  card.connectedCallback();
+  card._onCtrl('ctrl-port80');
+  // Pressed in the card and released outside of it (a slider dragged out): nothing closes.
+  card._outside.tap({ composedPath: () => [card] });
+  assert.ok(card._confirm);
+  // A tap on a spot that sends no click (iOS): the pointer alone closes it, without acting.
+  card._outside.tap({ composedPath: () => [] });
+  assert.equal(card._confirm, null);
+  assert.deepEqual(card.calls, []);
+  // A section left unfolded comes back folded once the card is back on the page.
+  card._setSection('certs', true);
+  card.disconnectedCallback();
+  card.connectedCallback();
+  assert.equal(card._sectionOpen.certs, false);
+  card.disconnectedCallback();
+  // The mini card goes back to its compact view, on a tap elsewhere and when it leaves the page.
+  const mini = makeCard(card._hass.states, ReverseProxyMiniCard);
+  mini.connectedCallback();
+  mini._zoomed = true;
+  mini._unzoom.tap({ composedPath: () => [] });
+  assert.equal(mini._zoomed, false);
+  mini._zoomed = true;
+  mini.disconnectedCallback();
+  assert.equal(mini._zoomed, false);
+});
+
 test('disabling a proxy rule asks first; enabling it acts at once', async () => {
   const card = controlCard();
   const btn = (domain, enabled) => ({ dataset: { ruleDomain: domain, ruleEnabled: String(enabled) }, disabled: false, focus() {} });

@@ -1,4 +1,4 @@
-const REVERSE_PROXY_CARD_VERSION = '2.4.1';
+const REVERSE_PROXY_CARD_VERSION = '2.4.2';
 
 // Escapes a value interpolated into innerHTML, as text or inside a quoted attribute (as parcelEsc in ha-parcel).
 function rpEsc(s) {
@@ -10,6 +10,42 @@ function rpSafeUrl(url) {
   const value = String(url || "").trim();
   return /^https?:\/\//i.test(value) ? value : "";
 }
+
+// "A click elsewhere" is caught on the pointer, not only on the click event: on iOS (Safari and the companion app)
+// a tap on something that is not clickable (the background, an empty spot, a card with no action) sends no click to
+// the page. The handler runs when the press and the release are both outside the card (a slider dragged out of the
+// card does not count), and a scroll does not count (the browser cancels the pointer); keyboard clicks still go
+// through the click event. The handler keeps its own checks (outside of the card, not in a dialog).
+const watchOutside = (card, handler) => {
+  let downOutside = false;
+  const onDown = (ev) => {
+    downOutside = !ev.composedPath().includes(card);
+  };
+  const onUp = (ev) => {
+    if (downOutside) handler(ev);
+    downOutside = false;
+  };
+  const onClick = (ev) => {
+    if (ev.detail === 0) handler(ev);
+  };
+  return {
+    on() {
+      document.addEventListener("pointerdown", onDown, true);
+      document.addEventListener("pointerup", onUp, true);
+      document.addEventListener("click", onClick, true);
+    },
+    off() {
+      document.removeEventListener("pointerdown", onDown, true);
+      document.removeEventListener("pointerup", onUp, true);
+      document.removeEventListener("click", onClick, true);
+    },
+    // A tap (press and release at the same spot), for the tests.
+    tap(ev) {
+      onDown(ev);
+      onUp(ev);
+    },
+  };
+};
 
 class ReverseProxyCard extends HTMLElement {
 
@@ -805,7 +841,8 @@ class ReverseProxyCard extends HTMLElement {
   static SECTION_DEFAULTS = { controls: true, certs: false, rules: false, redirects: false };
 
   // A click elsewhere on the page folds the sections back to their defaults (as in ha-carburants-france).
-  // A click, not a pointerdown: folding on press would shift the layout under the pointer before the click.
+  // On the release, not the press: folding on press would shift the layout under the pointer before the release
+  // (the target of the click is settled by then).
   connectedCallback() {
     this._onOutside ??= (ev) => {
       if (ev.composedPath().includes(this)) return;
@@ -815,11 +852,15 @@ class ReverseProxyCard extends HTMLElement {
         if (this._sectionOpen[id] !== open) this._setSection(id, open);
       }
     };
-    document.addEventListener("click", this._onOutside, true);
+    this._outside ??= watchOutside(this, (ev) => this._onOutside(ev));
+    this._outside.on();
   }
 
   disconnectedCallback() {
-    document.removeEventListener("click", this._onOutside, true);
+    this._outside?.off();
+    // Left (another dashboard view, a conditional card hidden): folded back as by a click elsewhere, so that the card
+    // does not come back unfolded or with its popup open.
+    this._onOutside?.({ composedPath: () => [] });
     if (this._onConfirmKey) document.removeEventListener("keydown", this._onConfirmKey, true);
     clearTimeout(this._refreshTimer);
   }
@@ -1558,12 +1599,15 @@ class ReverseProxyMiniCard extends ReverseProxyCard {
 
   connectedCallback() {
     super.connectedCallback();
-    document.addEventListener("click", this._onUnzoom, true);
+    this._unzoom ??= watchOutside(this, this._onUnzoom);
+    this._unzoom.on();
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    document.removeEventListener("click", this._onUnzoom, true);
+    this._unzoom?.off();
+    // Back to the compact view once off the screen.
+    this._onUnzoom({ composedPath: () => [] });
   }
 
   setConfig(config) {
