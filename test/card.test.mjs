@@ -16,14 +16,17 @@ const context = {
         querySelector: () => null,
         querySelectorAll: () => [],
         getElementById: () => null,
-        addEventListener() {},
+        listeners: {},
+        addEventListener(type, fn) {
+          this.listeners[type] = fn;
+        },
       };
       return this.shadowRoot;
     }
   },
   // get() returning true: the define() calls at the bottom of the file are skipped.
   customElements: { get: () => true, define() {} },
-  window: { customCards: [] },
+  window: { customCards: [], addEventListener() {}, removeEventListener() {} },
   document: { createElement: () => ({}), addEventListener() {}, removeEventListener() {} },
   navigator: { language: 'en' },
   CustomEvent: class {
@@ -723,6 +726,31 @@ test('folding: a tap elsewhere (pointer), not a drag that ends outside; leaving 
   mini._zoomed = true;
   mini.disconnectedCallback();
   assert.equal(mini._zoomed, false);
+});
+
+test('no rewrite under a press: drawn once released; focus kept for the keyboard only', async () => {
+  const card = controlCard();
+  let renders = 0;
+  card._render = () => renders++;
+  card.hass = { ...card._hass };
+  assert.equal(renders, 1);
+  card._onPressStart();
+  card.hass = { ...card._hass, states: { ...card._hass.states, [`switch.${PREFIX}_mode_developpement`]: { state: 'on', attributes: {} } } };
+  assert.equal(renders, 1, 'no rewrite under the pointer');
+  card._onPressEnd();
+  await new Promise((r) => setTimeout(r, 5));
+  assert.equal(renders, 2, 'drawn once released');
+  assert.equal(card._pressing, false);
+  // After a pointer press no focus is put back on a rewrite; after a key it is.
+  delete card._render;
+  let spots = 0;
+  card._focusKey = () => (spots++, null);
+  card._draw = () => {};
+  card._render();
+  assert.equal(spots, 0, 'pointer: focus not kept');
+  card.shadowRoot.listeners.keydown({ key: 'Tab' });
+  card._render();
+  assert.equal(spots, 1, 'keyboard: focus kept');
 });
 
 test('disabling a proxy rule asks first; enabling it acts at once', async () => {

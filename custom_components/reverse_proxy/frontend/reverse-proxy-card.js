@@ -836,6 +836,35 @@ class ReverseProxyCard extends HTMLElement {
     this._sectionOpen = { ...ReverseProxyCard.SECTION_DEFAULTS };
     this._states = null;
     this._renderKey = null;
+    // No rewrite of the card between a press and the end of its click: Home Assistant updates the card several times
+    // a second, and a rewrite under the pointer replaces the element pressed, so that the click lands on the card
+    // itself and does nothing. The pending update is drawn once released (after the click).
+    this._onPressStart = () => {
+      this._byPointer = true;
+      this._pressing = true;
+      window.addEventListener("pointerup", this._onPressEnd, true);
+      window.addEventListener("pointercancel", this._onPressEnd, true);
+    };
+    this._onPressEnd = () => {
+      window.removeEventListener("pointerup", this._onPressEnd, true);
+      window.removeEventListener("pointercancel", this._onPressEnd, true);
+      setTimeout(() => {
+        this._pressing = false;
+        if (!this._dirty) return;
+        this._dirty = false;
+        this._render();
+      }, 0);
+    };
+    this.shadowRoot.addEventListener("pointerdown", this._onPressStart);
+    // The focus is kept across rewrites for the keyboard only (no focus ring after a mouse click or a tap).
+    this.shadowRoot.addEventListener("keydown", () => {
+      this._byPointer = false;
+    });
+    // The click ends the press (after the element's own listeners, which draw what they change at once).
+    this.shadowRoot.addEventListener("click", (ev) => {
+      this._pressing = false;
+      if (ev.detail === 0) this._byPointer = false;
+    });
   }
 
   static SECTION_DEFAULTS = { controls: true, certs: false, rules: false, redirects: false };
@@ -858,6 +887,9 @@ class ReverseProxyCard extends HTMLElement {
 
   disconnectedCallback() {
     this._outside?.off();
+    this._pressing = false;
+    window.removeEventListener("pointerup", this._onPressEnd, true);
+    window.removeEventListener("pointercancel", this._onPressEnd, true);
     // Left (another dashboard view, a conditional card hidden): folded back as by a click elsewhere, so that the card
     // does not come back unfolded or with its popup open.
     this._onOutside?.({ composedPath: () => [] });
@@ -895,6 +927,11 @@ class ReverseProxyCard extends HTMLElement {
     const states = this._entityIds().map((id) => hass.states[id]);
     const key = this._key();
     if (this._states && key === this._renderKey && states.length === this._states.length && states.every((st, i) => st === this._states[i])) return;
+    // A press in progress: drawn once released (see the constructor).
+    if (this._pressing) {
+      this._dirty = true;
+      return;
+    }
     this._render();
   }
 
@@ -1262,7 +1299,7 @@ class ReverseProxyCard extends HTMLElement {
 
   _render() {
     if (!this._hass || !this._config) return;
-    const focus = this._focusKey();
+    const focus = this._byPointer ? null : this._focusKey();
     this._draw();
     this._restoreFocus(focus);
   }
@@ -1676,7 +1713,7 @@ class ReverseProxyMiniCard extends ReverseProxyCard {
 
   _render() {
     if (!this._hass || !this._config) return;
-    const focus = this._focusKey();
+    const focus = this._byPointer ? null : this._focusKey();
     if (this._zoomed) this._draw();
     else this._renderMini();
     this._addZoom();
