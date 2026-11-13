@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/custom_components/reverse_proxy/brand/logo@2x.png" alt="Reverse Proxy" height="96">
-</p>
-
 # ha-reverse-proxy
 
 [![Marketplace](https://img.shields.io/badge/Marketplace-Custom-41BDF5.svg)](https://www.home-assistant.io/integrations/marketplace/)
@@ -11,6 +7,8 @@
 [![Release](https://img.shields.io/github/v/release/juju35/ha-reverse-proxy)](https://github.com/juju35/ha-reverse-proxy/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/juju35/ha-reverse-proxy/blob/main/LICENSE)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/julienstep9)
+
+<p align="center"><img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/custom_components/reverse_proxy/brand/icon.png" alt="Reverse Proxy (Zoraxy, Traefik, Nginx Proxy Manager)" width="120"></p>
 
 Home Assistant integration and Lovelace cards for your reverse proxy — [Zoraxy](https://github.com/tobychui/zoraxy), [Traefik](https://traefik.io/traefik/) or [Nginx Proxy Manager](https://nginxproxymanager.com/): proxy status, proxy rules and their upstream health, redirects and, where the proxy's API allows it, controls, TLS certificates with ACME renewal and rules you can switch on and off from the dashboard. Formerly *ha-zoraxy*: see [Upgrading from ha-zoraxy](#upgrading-from-ha-zoraxy).
 
