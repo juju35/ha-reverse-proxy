@@ -1,4 +1,4 @@
-const REVERSE_PROXY_CARD_VERSION = '2.4.1';
+const REVERSE_PROXY_CARD_VERSION = '2.4.2';
 
 // Escapes a value interpolated into innerHTML, as text or inside a quoted attribute (as parcelEsc in ha-parcel).
 function rpEsc(s) {
@@ -10,6 +10,42 @@ function rpSafeUrl(url) {
   const value = String(url || "").trim();
   return /^https?:\/\//i.test(value) ? value : "";
 }
+
+// "A click elsewhere" is caught on the pointer, not only on the click event: on iOS (Safari and the companion app)
+// a tap on something that is not clickable (the background, an empty spot, a card with no action) sends no click to
+// the page. The handler runs when the press and the release are both outside the card (a slider dragged out of the
+// card does not count), and a scroll does not count (the browser cancels the pointer); keyboard clicks still go
+// through the click event. The handler keeps its own checks (outside of the card, not in a dialog).
+const watchOutside = (card, handler) => {
+  let downOutside = false;
+  const onDown = (ev) => {
+    downOutside = !ev.composedPath().includes(card);
+  };
+  const onUp = (ev) => {
+    if (downOutside) handler(ev);
+    downOutside = false;
+  };
+  const onClick = (ev) => {
+    if (ev.detail === 0) handler(ev);
+  };
+  return {
+    on() {
+      document.addEventListener("pointerdown", onDown, true);
+      document.addEventListener("pointerup", onUp, true);
+      document.addEventListener("click", onClick, true);
+    },
+    off() {
+      document.removeEventListener("pointerdown", onDown, true);
+      document.removeEventListener("pointerup", onUp, true);
+      document.removeEventListener("click", onClick, true);
+    },
+    // A tap (press and release at the same spot), for the tests.
+    tap(ev) {
+      onDown(ev);
+      onUp(ev);
+    },
+  };
+};
 
 class ReverseProxyCard extends HTMLElement {
 
@@ -800,12 +836,42 @@ class ReverseProxyCard extends HTMLElement {
     this._sectionOpen = { ...ReverseProxyCard.SECTION_DEFAULTS };
     this._states = null;
     this._renderKey = null;
+    // No rewrite of the card between a press and the end of its click: Home Assistant updates the card several times
+    // a second, and a rewrite under the pointer replaces the element pressed, so that the click lands on the card
+    // itself and does nothing. The pending update is drawn once released (after the click).
+    this._onPressStart = () => {
+      this._byPointer = true;
+      this._pressing = true;
+      window.addEventListener("pointerup", this._onPressEnd, true);
+      window.addEventListener("pointercancel", this._onPressEnd, true);
+    };
+    this._onPressEnd = () => {
+      window.removeEventListener("pointerup", this._onPressEnd, true);
+      window.removeEventListener("pointercancel", this._onPressEnd, true);
+      setTimeout(() => {
+        this._pressing = false;
+        if (!this._dirty) return;
+        this._dirty = false;
+        this._render();
+      }, 0);
+    };
+    this.shadowRoot.addEventListener("pointerdown", this._onPressStart);
+    // The focus is kept across rewrites for the keyboard only (no focus ring after a mouse click or a tap).
+    this.shadowRoot.addEventListener("keydown", () => {
+      this._byPointer = false;
+    });
+    // The click ends the press (after the element's own listeners, which draw what they change at once).
+    this.shadowRoot.addEventListener("click", (ev) => {
+      this._pressing = false;
+      if (ev.detail === 0) this._byPointer = false;
+    });
   }
 
   static SECTION_DEFAULTS = { controls: true, certs: false, rules: false, redirects: false };
 
   // A click elsewhere on the page folds the sections back to their defaults (as in ha-carburants-france).
-  // A click, not a pointerdown: folding on press would shift the layout under the pointer before the click.
+  // On the release, not the press: folding on press would shift the layout under the pointer before the release
+  // (the target of the click is settled by then).
   connectedCallback() {
     this._onOutside ??= (ev) => {
       if (ev.composedPath().includes(this)) return;
@@ -815,11 +881,18 @@ class ReverseProxyCard extends HTMLElement {
         if (this._sectionOpen[id] !== open) this._setSection(id, open);
       }
     };
-    document.addEventListener("click", this._onOutside, true);
+    this._outside ??= watchOutside(this, (ev) => this._onOutside(ev));
+    this._outside.on();
   }
 
   disconnectedCallback() {
-    document.removeEventListener("click", this._onOutside, true);
+    this._outside?.off();
+    this._pressing = false;
+    window.removeEventListener("pointerup", this._onPressEnd, true);
+    window.removeEventListener("pointercancel", this._onPressEnd, true);
+    // Left (another dashboard view, a conditional card hidden): folded back as by a click elsewhere, so that the card
+    // does not come back unfolded or with its popup open.
+    this._onOutside?.({ composedPath: () => [] });
     if (this._onConfirmKey) document.removeEventListener("keydown", this._onConfirmKey, true);
     clearTimeout(this._refreshTimer);
   }
@@ -854,6 +927,11 @@ class ReverseProxyCard extends HTMLElement {
     const states = this._entityIds().map((id) => hass.states[id]);
     const key = this._key();
     if (this._states && key === this._renderKey && states.length === this._states.length && states.every((st, i) => st === this._states[i])) return;
+    // A press in progress: drawn once released (see the constructor).
+    if (this._pressing) {
+      this._dirty = true;
+      return;
+    }
     this._render();
   }
 
@@ -1221,7 +1299,7 @@ class ReverseProxyCard extends HTMLElement {
 
   _render() {
     if (!this._hass || !this._config) return;
-    const focus = this._focusKey();
+    const focus = this._byPointer ? null : this._focusKey();
     this._draw();
     this._restoreFocus(focus);
   }
@@ -1558,12 +1636,15 @@ class ReverseProxyMiniCard extends ReverseProxyCard {
 
   connectedCallback() {
     super.connectedCallback();
-    document.addEventListener("click", this._onUnzoom, true);
+    this._unzoom ??= watchOutside(this, this._onUnzoom);
+    this._unzoom.on();
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    document.removeEventListener("click", this._onUnzoom, true);
+    this._unzoom?.off();
+    // Back to the compact view once off the screen.
+    this._onUnzoom({ composedPath: () => [] });
   }
 
   setConfig(config) {
@@ -1632,7 +1713,7 @@ class ReverseProxyMiniCard extends ReverseProxyCard {
 
   _render() {
     if (!this._hass || !this._config) return;
-    const focus = this._focusKey();
+    const focus = this._byPointer ? null : this._focusKey();
     if (this._zoomed) this._draw();
     else this._renderMini();
     this._addZoom();
