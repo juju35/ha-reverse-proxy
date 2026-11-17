@@ -1303,8 +1303,20 @@ test('illustrated header: night from illustration_theme, sun.sun or dark mode; i
   card._config = {};
   card._hass = { ...card._hass, states: { ...card._hass.states, 'sun.sun': { state: 'unavailable' } }, themes: { darkMode: true } };
   assert.equal(card._night(), true);
-  const key = card._key();
+  // The dark theme takes the night picture even while the sun is up; a light theme keeps the day; forced themes win.
+  card._hass = { ...card._hass, states: { ...card._hass.states, 'sun.sun': { state: 'above_horizon' } }, themes: { darkMode: true } };
+  assert.equal(card._night(), true);
   card._hass = { ...card._hass, themes: { darkMode: false } };
+  assert.equal(card._night(), false);
+  card._config = { illustration_theme: 'day' };
+  card._hass = { ...card._hass, themes: { darkMode: true } };
+  assert.equal(card._night(), false);
+  card._config = { illustration_theme: 'night' };
+  card._hass = { ...card._hass, themes: { darkMode: false } };
+  assert.equal(card._night(), true);
+  card._config = {};
+  const key = card._key();
+  card._hass = { ...card._hass, themes: { darkMode: true } };
   assert.notEqual(card._key(), key, 'the theme re-renders');
   card._config = { illustration: false };
   card._render();
