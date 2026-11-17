@@ -76,16 +76,32 @@ const RP_BANNER_CSS = `
   .banner .name { color: inherit; }
   .banner .sub { color: #3b5b78; }
   .banner.night .sub { color: rgba(255,255,255,.78); }
-  .sub-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
-  .sub-row .sub { flex: 1 1 0; min-width: 0; }
   .banner .logo { background: rgba(255,255,255,.62); box-shadow: inset 0 0 0 1px rgba(47,128,237,.18); }
   .banner.night .logo { background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); }
   .banner .logo .badge { box-shadow: 0 0 0 1px rgba(13,42,69,.16), 0 1px 3px rgba(13,42,69,.18); }
-  .banner .chip { background: rgba(255,255,255,.62); color: color-mix(in srgb, var(--c, var(--zx-ok)) 60%, #0d2a45); }
-  .banner.night .chip { background: rgba(10,20,40,.5); color: color-mix(in srgb, var(--c, var(--zx-ok)) 45%, #fff); }
   .banner .chip .dot { background: var(--c, var(--zx-ok)); }
-  .banner .zoom { position: absolute; top: 6px; right: 6px; margin: 0; color: #0d2a45; background: rgba(255,255,255,.55); }
-  .banner.night .zoom { color: #fff; background: rgba(10,20,40,.45); }
+  /* The status pill (#status) on the title row, right after the title, in the colour of the icon. */
+  .banner .trow { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .banner .trow .name { flex: 0 100 auto; min-width: 4.5ch; }
+  .banner .trow #status { flex: 0 1 auto; min-width: 0; max-width: 51%; }
+  .banner #status .chip { min-width: 0; max-width: 100%; box-sizing: border-box; overflow: hidden; }
+  .banner #status .ct { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .banner .chip { background: color-mix(in srgb, var(--c, var(--zx-ok)) 18%, rgba(255,255,255,.78)); color: color-mix(in srgb, var(--c, var(--zx-ok)) 45%, #0d2a45); }
+  .banner.night .chip { background: color-mix(in srgb, var(--c, var(--zx-ok)) 30%, rgba(8,18,38,.55)); color: color-mix(in srgb, var(--c, var(--zx-ok)) 35%, #ffffff); }
+  /* The mini card's detail button: a 24 px frosted round in the banner's top right corner. */
+  .banner .zoom { position: absolute; z-index: 2; top: 5px; right: 5px; margin: 0; color: #33506b; background: rgba(255,255,255,.55);
+                  box-shadow: inset 0 0 0 1px rgba(255,255,255,.7); backdrop-filter: blur(4px); }
+  .banner .zoom:hover { background: rgba(255,255,255,.75); color: #33506b; }
+  .banner.night .zoom { color: #fff; background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
+  .banner.night .zoom:hover { background: rgba(255,255,255,.22); color: #fff; }
+  /* Not enough room beside the title (measured by the card: the pill would be cut), or a narrow card: the pill on
+     its own line under the subtitle; under 200 px only its dot shows (its text stays in its title). */
+  .banner[data-wrap] .titles { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; }
+  .banner[data-wrap] .trow { display: contents; } .banner[data-wrap] .trow .name { max-width: 100%; }
+  .banner[data-wrap] .titles > .sub { justify-self: stretch; } .banner[data-wrap] .trow #status { order: 9; max-width: 100%; }
+  @container (max-width: 260px) { .banner .titles { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; }
+    .banner .trow { display: contents; } .banner .trow .name { max-width: 100%; }
+    .banner .titles > .sub { justify-self: stretch; } .banner .trow #status { order: 9; max-width: 100%; } }
   .banner + .content { padding-top: 12px; }
   .rp-globe { fill: #dbeafe; stroke: #2f80ed; } .night .rp-globe { fill: #1d3a5e; }
   .rp-meridian { fill: none; stroke: #2f80ed; stroke-width: 1; }
@@ -244,8 +260,13 @@ class ReverseProxyCard extends HTMLElement {
   }
 
   // The header's state and status pill, for both cards.
+  // The banner's pill takes the icon's colour: amber with the upstreams down while the proxy runs.
   _headParts() {
-    return { head: this._headerState(), status: this._statusChip(this._state(this._eid("binary_sensor.proxy_running"))) };
+    const head = this._headerState();
+    const status = this._illustrated() && head.cls === "warn"
+      ? this._statusChip("on", "warn", this._t("upstreamsDown").replace("{n}", head.down))
+      : this._statusChip(this._state(this._eid("binary_sensor.proxy_running")));
+    return { head, status };
   }
 
   _illustrated() { return this._config?.illustration !== false; }
@@ -1071,10 +1092,22 @@ class ReverseProxyCard extends HTMLElement {
     };
     this._outside ??= watchOutside(this, (ev) => this._onOutside(ev));
     this._outside.on();
+    // A new width: the status pill is fitted again (in the next frame, and only for a new width).
+    if (typeof ResizeObserver !== "function") return;
+    this._resize ??= new ResizeObserver((entries) => {
+      const w = Math.round(entries.at(-1).contentRect.width);
+      if (w === this._fitWidth) return;
+      this._fitWidth = w;
+      cancelAnimationFrame(this._fitFrame);
+      this._fitFrame = requestAnimationFrame(() => this._fitPill());
+    });
+    this._resize.observe(this);
   }
 
   disconnectedCallback() {
     this._outside?.off();
+    this._resize?.disconnect();
+    this._fitWidth = undefined;
     this._pressing = false;
     window.removeEventListener("pointerup", this._onPressEnd, true);
     window.removeEventListener("pointercancel", this._onPressEnd, true);
@@ -1343,10 +1376,8 @@ class ReverseProxyCard extends HTMLElement {
     return state === "on" ? "ok" : state === "off" ? "crit" : "idle";
   }
 
-  _statusChip(state) {
-    const cls = this._statusCls(state);
-    const label = state === "on" ? this._t("active") : state === "off" ? this._t("inactive") : this._t("unavailable");
-    const text = rpEsc(label);
+  _statusChip(state, cls = this._statusCls(state), label = null) {
+    const text = rpEsc(label ?? (state === "on" ? this._t("active") : state === "off" ? this._t("inactive") : this._t("unavailable")));
     return `<span class="chip ${cls}" title="${text}"><span class="dot"></span><span class="ct">${text}</span></span>`;
   }
 
@@ -1493,7 +1524,25 @@ class ReverseProxyCard extends HTMLElement {
     if (!this._hass || !this._config) return;
     const focus = this._byPointer ? null : this._focusKey();
     this._draw();
+    this._fitPill();
     this._restoreFocus(focus);
+  }
+
+  // The banner's status pill goes on its own line under the subtitle when it would be cut next to the title
+  // (fractional widths: scrollWidth / clientWidth are rounded).
+  _fitPill() {
+    const pill = this.shadowRoot.querySelector(".banner .trow #status .chip");
+    const banner = pill?.closest(".banner");
+    if (!banner || !pill.getBoundingClientRect) return;
+    banner.removeAttribute("data-wrap");
+    const have = pill.getBoundingClientRect().width;
+    const box = pill.parentElement;
+    box.style.maxWidth = "none";
+    box.style.flex = "none";
+    const need = pill.getBoundingClientRect().width;
+    box.style.maxWidth = "";
+    box.style.flex = "";
+    if (need > have + 0.01) banner.setAttribute("data-wrap", "");
   }
 
   // The card is redrawn with innerHTML: the focused control (a tile, a section header, a popup button…) is
@@ -1553,7 +1602,7 @@ class ReverseProxyCard extends HTMLElement {
       <style>${this.constructor.CSS}</style>
       <ha-card lang="${this._lang()}">
         ${this._illustrated()
-          ? this._banner(head, `${this._nameLink()}<div class="sub-row"><span id="status">${status}</span><div class="sub">${rpEsc(sub)}</div></div>`)
+          ? this._banner(head, `<div class="trow">${this._nameLink()}<span id="status">${status}</span></div><div class="sub">${rpEsc(sub)}</div>`)
           : `<div class="header">
           ${this._headerIcon(head.cls)}
           <div class="titles">
@@ -1916,6 +1965,7 @@ class ReverseProxyMiniCard extends ReverseProxyCard {
     if (this._zoomed) this._draw();
     else this._renderMini();
     this._addZoom();
+    this._fitPill();
     this._restoreFocus(focus);
   }
 
@@ -1926,7 +1976,7 @@ class ReverseProxyMiniCard extends ReverseProxyCard {
       <style>${this.constructor.CSS}</style>
       <ha-card lang="${this._lang()}">
         ${this._illustrated()
-          ? `${this._banner(head, `${this._nameLink()}<div class="sub-row"><span id="status">${status}</span></div>`)}
+          ? `${this._banner(head, `<div class="trow">${this._nameLink()}<span id="status">${status}</span></div>`)}
         <div class="rs-wrap"><div class="rs">${this._miniChips()}</div></div>`
           : `<div class="mini">
           ${this._headerIcon(head.cls)}

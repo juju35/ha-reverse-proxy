@@ -1267,6 +1267,8 @@ test('illustrated header: the picture and the icon follow the proxy state, the b
   assert.match(html(), /class="rp-link crit"/);
   assert.match(html(), /rp-lock crit/);
   assert.match(html(), /<span class="logo warn"[^>]*>[\s\S]*?<span class="badge"><svg viewBox="0 0 512 512"/);
+  // The status pill right after the title, in the icon's colour: the upstreams down while the proxy runs.
+  assert.match(html(), /<div class="trow"><span class="name">[^<]*<\/span><span id="status"><span class="chip warn" title="Upstreams down: \d+">/);
   assert.match(html(), /class="rp-ground"/);
   // All routes up: green, packets flowing.
   set('binary_sensor.proxy_one_up_app', 'off');
