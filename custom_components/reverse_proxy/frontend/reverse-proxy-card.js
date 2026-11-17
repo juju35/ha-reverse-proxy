@@ -1550,7 +1550,7 @@ class ReverseProxyCard extends HTMLElement {
       const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
       const title = name?.getClientRects().length ? textWidth(name) + gap : 0;
       const pill = chip.getBoundingClientRect().width;
-      if (title + pill <= row.getBoundingClientRect().width + 0.5) continue;
+      if (title + pill <= row.getBoundingClientRect().width) continue;
       t.classList.add("below");
       const r = t.getBoundingClientRect();
       const banner = t.closest(".banner");
