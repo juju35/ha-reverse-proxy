@@ -1288,13 +1288,18 @@ test('illustrated header: the picture and the icon follow the proxy state, the b
   assert.match(html(), /<span class="logo idle"/);
 });
 
-test('illustrated header: night from illustration_theme, sun.sun or dark mode; illustration: false keeps the classic header', () => {
+test('illustrated header: night from illustration_theme, else the dark mode alone; illustration: false keeps the classic header', () => {
   const card = registryCard();
   card._render();
   assert.match(card.shadowRoot.innerHTML, /<div class="banner">/);
+  // A light theme keeps the day picture after sunset; a dark theme takes the night one.
   card._hass = { ...card._hass, states: { ...card._hass.states, 'sun.sun': { state: 'below_horizon' } } };
   card._render();
+  assert.match(card.shadowRoot.innerHTML, /<div class="banner">/);
+  card._hass = { ...card._hass, themes: { darkMode: true } };
+  card._render();
   assert.match(card.shadowRoot.innerHTML, /<div class="banner night">/);
+  card._hass = { ...card._hass, themes: { darkMode: false } };
   card._config = { illustration_theme: 'day' };
   assert.equal(card._night(), false);
   card._config = { illustration_theme: 'night' };

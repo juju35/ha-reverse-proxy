@@ -1,4 +1,4 @@
-const REVERSE_PROXY_CARD_VERSION = '2.5.0';
+const REVERSE_PROXY_CARD_VERSION = '2.5.1';
 
 // Escapes a value interpolated into innerHTML, as text or inside a quoted attribute (as parcelEsc in ha-parcel).
 function rpEsc(s) {
@@ -11,13 +11,13 @@ function rpSafeUrl(url) {
   return /^https?:\/\//i.test(value) ? value : "";
 }
 
-// Night picture: forced by `illustration_theme`, else the sun below the horizon or Home Assistant's dark mode (a
-// dark theme takes the night picture even while the sun is up; an unknown sun leaves the dark mode alone to decide).
+// Night picture: forced by `illustration_theme`, else Home Assistant's dark mode alone (a light theme keeps the day
+// picture after sunset).
 function rpIsNight(hass, config) {
   const theme = config?.illustration_theme;
   if (theme === "night") return true;
   if (theme === "day") return false;
-  return hass?.states?.["sun.sun"]?.state === "below_horizon" || !!hass?.themes?.darkMode;
+  return !!hass?.themes?.darkMode;
 }
 
 // The header's illustration, on the right of the banner: the Internet (a globe) → the reverse proxy (with its
@@ -295,7 +295,7 @@ class ReverseProxyCard extends HTMLElement {
       ed_show_title: "Afficher le titre",
       ed_show_subtitle: "Afficher le sous-titre",
       ed_illustration: "Illustration animée", ed_illustration_theme: "Thème de l’illustration",
-      theme_auto: "Automatique (nuit si le soleil est couché ou le thème sombre)", theme_day: "Jour", theme_night: "Nuit",
+      theme_auto: "Automatique (nuit avec un thème sombre, jour avec un thème clair)", theme_day: "Jour", theme_night: "Nuit",
       ed_language: "Langue", lang_auto: "Auto (langue de Home Assistant)",
       unavailable: "Indisponible", cancel: "Annuler",
       confirmPort80Off: "Arrêter l'écoute du port 80 ? Les requêtes HTTP et les challenges ACME HTTP n'atteindront plus {proxy}.",
@@ -322,7 +322,7 @@ class ReverseProxyCard extends HTMLElement {
       ed_show_title: "Show title",
       ed_show_subtitle: "Show subtitle",
       ed_illustration: "Animated illustration", ed_illustration_theme: "Illustration theme",
-      theme_auto: "Automatic (night when the sun is down or the theme is dark)", theme_day: "Day", theme_night: "Night",
+      theme_auto: "Automatic (night with a dark theme, day with a light theme)", theme_day: "Day", theme_night: "Night",
       ed_language: "Language", lang_auto: "Auto (Home Assistant language)",
       unavailable: "Unavailable", cancel: "Cancel",
       confirmPort80Off: "Stop listening on port 80? Plain HTTP requests and ACME HTTP challenges will no longer reach {proxy}.",
@@ -349,7 +349,7 @@ class ReverseProxyCard extends HTMLElement {
       ed_show_title: "Titel anzeigen",
       ed_show_subtitle: "Untertitel anzeigen",
       ed_illustration: "Animierte Illustration", ed_illustration_theme: "Thema der Illustration",
-      theme_auto: "Automatisch (Nacht bei untergegangener Sonne oder dunklem Design)", theme_day: "Tag", theme_night: "Nacht",
+      theme_auto: "Automatisch (Nacht bei dunklem Thema, Tag bei hellem Thema)", theme_day: "Tag", theme_night: "Nacht",
       ed_language: "Sprache", lang_auto: "Auto (Sprache von Home Assistant)",
       unavailable: "Nicht verfügbar", cancel: "Abbrechen",
       confirmPort80Off: "Port 80 nicht mehr abhören? HTTP-Anfragen und ACME-HTTP-Challenges erreichen {proxy} dann nicht mehr.",
@@ -376,7 +376,7 @@ class ReverseProxyCard extends HTMLElement {
       ed_show_title: "Mostrar el título",
       ed_show_subtitle: "Mostrar el subtítulo",
       ed_illustration: "Ilustración animada", ed_illustration_theme: "Tema de la ilustración",
-      theme_auto: "Automático (noche si el sol se ha puesto o el tema es oscuro)", theme_day: "Día", theme_night: "Noche",
+      theme_auto: "Automático (noche con un tema oscuro, día con un tema claro)", theme_day: "Día", theme_night: "Noche",
       ed_language: "Idioma", lang_auto: "Auto (idioma de Home Assistant)",
       unavailable: "No disponible", cancel: "Cancelar",
       confirmPort80Off: "¿Dejar de escuchar en el puerto 80? Las peticiones HTTP y los desafíos ACME HTTP ya no llegarán a {proxy}.",
@@ -403,7 +403,7 @@ class ReverseProxyCard extends HTMLElement {
       ed_show_title: "Прикажи наслов",
       ed_show_subtitle: "Прикажи поднаслов",
       ed_illustration: "Анимирана илустрација", ed_illustration_theme: "Тема илустрације",
-      theme_auto: "Аутоматски (ноћ када је сунце зашло или је тема тамна)", theme_day: "Дан", theme_night: "Ноћ",
+      theme_auto: "Аутоматски (ноћ уз тамну тему, дан уз светлу тему)", theme_day: "Дан", theme_night: "Ноћ",
       ed_language: "Језик", lang_auto: "Аутоматски (језик Home Assistant-а)",
       unavailable: "Недоступно", cancel: "Откажи",
       confirmPort80Off: "Престати са ослушкивањем порта 80? HTTP захтеви и ACME HTTP провере више неће стизати до {proxy}-ја.",
@@ -430,7 +430,7 @@ class ReverseProxyCard extends HTMLElement {
       ed_show_title: "Prikaži naslov",
       ed_show_subtitle: "Prikaži podnaslov",
       ed_illustration: "Animirana ilustracija", ed_illustration_theme: "Tema ilustracije",
-      theme_auto: "Automatski (noć kada je sunce zašlo ili je tema tamna)", theme_day: "Dan", theme_night: "Noć",
+      theme_auto: "Automatski (noć uz tamnu temu, dan uz svetlu temu)", theme_day: "Dan", theme_night: "Noć",
       ed_language: "Jezik", lang_auto: "Automatski (jezik Home Assistant-a)",
       unavailable: "Nedostupno", cancel: "Otkaži",
       confirmPort80Off: "Prestati sa osluškivanjem porta 80? HTTP zahtevi i ACME HTTP provere više neće stizati do {proxy}-ja.",
@@ -457,7 +457,7 @@ class ReverseProxyCard extends HTMLElement {
       ed_show_title: "Mostra il titolo",
       ed_show_subtitle: "Mostra il sottotitolo",
       ed_illustration: "Illustrazione animata", ed_illustration_theme: "Tema dell’illustrazione",
-      theme_auto: "Automatico (notte se il sole è tramontato o il tema è scuro)", theme_day: "Giorno", theme_night: "Notte",
+      theme_auto: "Automatico (notte con un tema scuro, giorno con un tema chiaro)", theme_day: "Giorno", theme_night: "Notte",
       ed_language: "Lingua", lang_auto: "Auto (lingua di Home Assistant)",
       unavailable: "Non disponibile", cancel: "Annulla",
       confirmPort80Off: "Smettere di ascoltare sulla porta 80? Le richieste HTTP e le verifiche ACME HTTP non raggiungeranno più {proxy}.",
@@ -484,7 +484,7 @@ class ReverseProxyCard extends HTMLElement {
       ed_show_title: "Titel tonen",
       ed_show_subtitle: "Ondertitel tonen",
       ed_illustration: "Geanimeerde illustratie", ed_illustration_theme: "Thema van de illustratie",
-      theme_auto: "Automatisch (nacht als de zon onder is of het thema donker is)", theme_day: "Dag", theme_night: "Nacht",
+      theme_auto: "Automatisch (nacht met een donker thema, dag met een licht thema)", theme_day: "Dag", theme_night: "Nacht",
       ed_language: "Taal", lang_auto: "Auto (taal van Home Assistant)",
       unavailable: "Niet beschikbaar", cancel: "Annuleren",
       confirmPort80Off: "Niet meer luisteren op poort 80? HTTP-verzoeken en ACME HTTP-challenges bereiken {proxy} dan niet meer.",
@@ -511,7 +511,7 @@ class ReverseProxyCard extends HTMLElement {
       ed_show_title: "Mostrar o título",
       ed_show_subtitle: "Mostrar o subtítulo",
       ed_illustration: "Ilustração animada", ed_illustration_theme: "Tema da ilustração",
-      theme_auto: "Automático (noite se o sol se pôs ou o tema é escuro)", theme_day: "Dia", theme_night: "Noite",
+      theme_auto: "Automático (noite com um tema escuro, dia com um tema claro)", theme_day: "Dia", theme_night: "Noite",
       ed_language: "Idioma", lang_auto: "Auto (idioma do Home Assistant)",
       unavailable: "Indisponível", cancel: "Cancelar",
       confirmPort80Off: "Deixar de escutar na porta 80? Os pedidos HTTP e os desafios ACME HTTP deixarão de chegar ao {proxy}.",
@@ -538,7 +538,7 @@ class ReverseProxyCard extends HTMLElement {
       ed_show_title: "Pokaż tytuł",
       ed_show_subtitle: "Pokaż podtytuł",
       ed_illustration: "Animowana ilustracja", ed_illustration_theme: "Motyw ilustracji",
-      theme_auto: "Automatycznie (noc, gdy słońce zaszło lub motyw jest ciemny)", theme_day: "Dzień", theme_night: "Noc",
+      theme_auto: "Automatycznie (noc przy ciemnym motywie, dzień przy jasnym motywie)", theme_day: "Dzień", theme_night: "Noc",
       ed_language: "Język", lang_auto: "Auto (język Home Assistant)",
       unavailable: "Niedostępny", cancel: "Anuluj",
       confirmPort80Off: "Przestać nasłuchiwać na porcie 80? Żądania HTTP i wyzwania ACME HTTP nie będą już docierać do {proxy}.",
@@ -565,7 +565,7 @@ class ReverseProxyCard extends HTMLElement {
       ed_show_title: "Afișează titlul",
       ed_show_subtitle: "Afișează subtitlul",
       ed_illustration: "Ilustrație animată", ed_illustration_theme: "Tema ilustrației",
-      theme_auto: "Automat (noapte când soarele a apus sau tema e întunecată)", theme_day: "Zi", theme_night: "Noapte",
+      theme_auto: "Automat (noapte cu o temă întunecată, zi cu o temă luminoasă)", theme_day: "Zi", theme_night: "Noapte",
       ed_language: "Limbă", lang_auto: "Automat (limba Home Assistant)",
       unavailable: "Indisponibil", cancel: "Anulează",
       confirmPort80Off: "Opriți ascultarea pe portul 80? Cererile HTTP și verificările ACME HTTP nu vor mai ajunge la {proxy}.",
@@ -592,7 +592,7 @@ class ReverseProxyCard extends HTMLElement {
       ed_show_title: "Vis titel",
       ed_show_subtitle: "Vis undertitel",
       ed_illustration: "Animeret illustration", ed_illustration_theme: "Illustrationens tema",
-      theme_auto: "Automatisk (nat når solen er nede eller temaet er mørkt)", theme_day: "Dag", theme_night: "Nat",
+      theme_auto: "Automatisk (nat med et mørkt tema, dag med et lyst tema)", theme_day: "Dag", theme_night: "Nat",
       ed_language: "Sprog", lang_auto: "Auto (Home Assistant-sprog)",
       unavailable: "Utilgængelig", cancel: "Annuller",
       confirmPort80Off: "Stop med at lytte på port 80? HTTP-anmodninger og ACME HTTP-udfordringer når ikke længere frem til {proxy}.",
@@ -619,7 +619,7 @@ class ReverseProxyCard extends HTMLElement {
       ed_show_title: "Visa rubrik",
       ed_show_subtitle: "Visa underrubrik",
       ed_illustration: "Animerad illustration", ed_illustration_theme: "Illustrationens tema",
-      theme_auto: "Automatiskt (natt när solen har gått ned eller temat är mörkt)", theme_day: "Dag", theme_night: "Natt",
+      theme_auto: "Automatiskt (natt med ett mörkt tema, dag med ett ljust tema)", theme_day: "Dag", theme_night: "Natt",
       ed_language: "Språk", lang_auto: "Auto (Home Assistant-språk)",
       unavailable: "Ej tillgänglig", cancel: "Avbryt",
       confirmPort80Off: "Sluta lyssna på port 80? HTTP-förfrågningar och ACME HTTP-utmaningar når inte längre {proxy}.",
@@ -646,7 +646,7 @@ class ReverseProxyCard extends HTMLElement {
       ed_show_title: "Показване на заглавието",
       ed_show_subtitle: "Показване на подзаглавието",
       ed_illustration: "Анимирана илюстрация", ed_illustration_theme: "Тема на илюстрацията",
-      theme_auto: "Автоматично (нощ, когато слънцето е залязло или темата е тъмна)", theme_day: "Ден", theme_night: "Нощ",
+      theme_auto: "Автоматично (нощ с тъмна тема, ден със светла тема)", theme_day: "Ден", theme_night: "Нощ",
       ed_language: "Език", lang_auto: "Автоматично (езикът на Home Assistant)",
       unavailable: "Недостъпно", cancel: "Отказ",
       confirmPort80Off: "Да се спре ли слушането на порт 80? HTTP заявките и ACME HTTP проверките вече няма да достигат до {proxy}.",
@@ -673,7 +673,7 @@ class ReverseProxyCard extends HTMLElement {
       ed_show_title: "Показывать заголовок",
       ed_show_subtitle: "Показывать подзаголовок",
       ed_illustration: "Анимированная иллюстрация", ed_illustration_theme: "Тема иллюстрации",
-      theme_auto: "Автоматически (ночь, когда солнце зашло или тема тёмная)", theme_day: "День", theme_night: "Ночь",
+      theme_auto: "Автоматически (ночь при тёмной теме, день при светлой теме)", theme_day: "День", theme_night: "Ночь",
       ed_language: "Язык", lang_auto: "Авто (язык Home Assistant)",
       unavailable: "Недоступно", cancel: "Отмена",
       confirmPort80Off: "Прекратить прослушивание порта 80? HTTP-запросы и проверки ACME HTTP больше не будут доходить до {proxy}.",
@@ -700,7 +700,7 @@ class ReverseProxyCard extends HTMLElement {
       ed_show_title: "Показувати заголовок",
       ed_show_subtitle: "Показувати підзаголовок",
       ed_illustration: "Анімована ілюстрація", ed_illustration_theme: "Тема ілюстрації",
-      theme_auto: "Автоматично (ніч, коли сонце зайшло або тема темна)", theme_day: "День", theme_night: "Ніч",
+      theme_auto: "Автоматично (ніч з темною темою, день зі світлою темою)", theme_day: "День", theme_night: "Ніч",
       ed_language: "Мова", lang_auto: "Авто (мова Home Assistant)",
       unavailable: "Недоступно", cancel: "Скасувати",
       confirmPort80Off: "Припинити прослуховування порту 80? HTTP-запити та перевірки ACME HTTP більше не надходитимуть до {proxy}.",
@@ -727,7 +727,7 @@ class ReverseProxyCard extends HTMLElement {
       ed_show_title: "Cím megjelenítése",
       ed_show_subtitle: "Alcím megjelenítése",
       ed_illustration: "Animált illusztráció", ed_illustration_theme: "Az illusztráció témája",
-      theme_auto: "Automatikus (éjszaka, ha lement a nap vagy sötét a téma)", theme_day: "Nappal", theme_night: "Éjszaka",
+      theme_auto: "Automatikus (éjszaka sötét témával, nappal világos témával)", theme_day: "Nappal", theme_night: "Éjszaka",
       ed_language: "Nyelv", lang_auto: "Automatikus (Home Assistant nyelve)",
       unavailable: "Nem elérhető", cancel: "Mégse",
       confirmPort80Off: "Leállítja a figyelést a 80-as porton? A HTTP-kérések és az ACME HTTP-kihívások többé nem jutnak el a {proxy}hoz.",
@@ -754,7 +754,7 @@ class ReverseProxyCard extends HTMLElement {
       ed_show_title: "Zobraziť názov",
       ed_show_subtitle: "Zobraziť podnázov",
       ed_illustration: "Animovaná ilustrácia", ed_illustration_theme: "Téma ilustrácie",
-      theme_auto: "Automaticky (noc, keď slnko zapadlo alebo je téma tmavá)", theme_day: "Deň", theme_night: "Noc",
+      theme_auto: "Automaticky (noc s tmavou témou, deň so svetlou témou)", theme_day: "Deň", theme_night: "Noc",
       ed_language: "Jazyk", lang_auto: "Automaticky (jazyk Home Assistant)",
       unavailable: "Nedostupné", cancel: "Zrušiť",
       confirmPort80Off: "Prestať počúvať na porte 80? Požiadavky HTTP a overenia ACME HTTP sa už nedostanú k {proxy}.",
@@ -781,7 +781,7 @@ class ReverseProxyCard extends HTMLElement {
       ed_show_title: "Zobrazit název",
       ed_show_subtitle: "Zobrazit podnázev",
       ed_illustration: "Animovaná ilustrace", ed_illustration_theme: "Motiv ilustrace",
-      theme_auto: "Automaticky (noc, když slunce zapadlo nebo je motiv tmavý)", theme_day: "Den", theme_night: "Noc",
+      theme_auto: "Automaticky (noc s tmavým motivem, den se světlým motivem)", theme_day: "Den", theme_night: "Noc",
       ed_language: "Jazyk", lang_auto: "Automaticky (jazyk Home Assistant)",
       unavailable: "Nedostupné", cancel: "Zrušit",
       confirmPort80Off: "Přestat naslouchat na portu 80? Požadavky HTTP a ověření ACME HTTP se už k {proxy} nedostanou.",
@@ -808,7 +808,7 @@ class ReverseProxyCard extends HTMLElement {
       ed_show_title: "Prikaži naslov",
       ed_show_subtitle: "Prikaži podnaslov",
       ed_illustration: "Animirana ilustracija", ed_illustration_theme: "Tema ilustracije",
-      theme_auto: "Samodejno (noč, ko sonce zaide ali je tema temna)", theme_day: "Dan", theme_night: "Noč",
+      theme_auto: "Samodejno (noč s temno temo, dan s svetlo temo)", theme_day: "Dan", theme_night: "Noč",
       ed_language: "Jezik", lang_auto: "Samodejno (jezik Home Assistanta)",
       unavailable: "Ni na voljo", cancel: "Prekliči",
       confirmPort80Off: "Prenehati poslušati na vratih 80? Zahteve HTTP in preverjanja ACME HTTP ne bodo več dosegla {proxy}ja.",
@@ -835,7 +835,7 @@ class ReverseProxyCard extends HTMLElement {
       ed_show_title: "Rādīt virsrakstu",
       ed_show_subtitle: "Rādīt apakšvirsrakstu",
       ed_illustration: "Animēta ilustrācija", ed_illustration_theme: "Ilustrācijas motīvs",
-      theme_auto: "Automātiski (nakts, kad saule norietējusi vai motīvs ir tumšs)", theme_day: "Diena", theme_night: "Nakts",
+      theme_auto: "Automātiski (nakts ar tumšu tēmu, diena ar gaišu tēmu)", theme_day: "Diena", theme_night: "Nakts",
       ed_language: "Valoda", lang_auto: "Automātiski (Home Assistant valoda)",
       unavailable: "Nav pieejams", cancel: "Atcelt",
       confirmPort80Off: "Pārtraukt klausīšanos portā 80? HTTP pieprasījumi un ACME HTTP pārbaudes vairs nesasniegs {proxy}.",
@@ -862,7 +862,7 @@ class ReverseProxyCard extends HTMLElement {
       ed_show_title: "Εμφάνιση τίτλου",
       ed_show_subtitle: "Εμφάνιση υπότιτλου",
       ed_illustration: "Κινούμενη εικονογράφηση", ed_illustration_theme: "Θέμα εικονογράφησης",
-      theme_auto: "Αυτόματα (νύχτα όταν ο ήλιος έχει δύσει ή το θέμα είναι σκοτεινό)", theme_day: "Ημέρα", theme_night: "Νύχτα",
+      theme_auto: "Αυτόματο (νύχτα με σκούρο θέμα, μέρα με ανοιχτό θέμα)", theme_day: "Ημέρα", theme_night: "Νύχτα",
       ed_language: "Γλώσσα", lang_auto: "Αυτόματα (γλώσσα του Home Assistant)",
       unavailable: "Μη διαθέσιμο", cancel: "Ακύρωση",
       confirmPort80Off: "Διακοπή ακρόασης στη θύρα 80; Τα αιτήματα HTTP και οι έλεγχοι ACME HTTP δεν θα φτάνουν πλέον στο {proxy}.",
@@ -2037,7 +2037,7 @@ class ReverseProxyCardEditor extends HTMLElement {
     { name: "entity_prefix", selector: { text: {} } },
     { name: "show_title", selector: { boolean: {} } },
     { name: "show_subtitle", selector: { boolean: {} } },
-    // The illustrated header (false: the classic header) and its day / night picture (auto: sun.sun, else dark mode).
+    // The illustrated header (false: the classic header) and its day / night picture (auto: the dark mode).
     { name: "illustration", selector: { boolean: {} } },
     { name: "illustration_theme", selector: { select: { mode: "dropdown", options: ["auto", "day", "night"] } } },
   ];
