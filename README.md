@@ -123,7 +123,7 @@ proxy_url: http://zoraxy.local:8000
 | `show_title` | `true` | Show the title in the header (e.g. `false` under a section heading of your own) |
 | `show_subtitle` | `true` | Show the subtitle under the title |
 | `illustration` | `true` | Illustrated header: the status icon (with the proxy's logo as a badge) and the title on the left, a picture of the Internet → proxy → servers on the right (green links with traffic flowing when every route is up, the routes whose upstream is down dashed in red, a red proxy when it is stopped, all grey when unavailable; the padlock follows the closest certificate expiry), over a network strip. `false` keeps the classic header |
-| `illustration_theme` | `auto` | Day or night picture: `auto` takes the night picture when `sun.sun` is below the horizon or the theme is dark (even while the sun is up), `day` or `night` force it |
+| `illustration_theme` | `auto` | Day or night picture: `auto` (follows the Home Assistant theme: night with a dark theme, day with a light theme), `day` or `night` force it |
 | `entity_prefix` | `zoraxy_reverse_proxy_zoraxy` | Common part of the entity ids of a Zoraxy install of 1.x: picks the instance when `device` is left out, and finds the entities when the entity registry is not available |
 | `language` | Auto | Force the card language: `en`, `fr`, `de`, `es`, `sr`, `sr-Latn`, `it`, `nl`, `pt`, `pl`, `ro`, `da`, `sv`, `bg`, `ru`, `uk`, `hu`, `sk`, `cs`, `sl`, `lv` or `el` (by default, the Home Assistant language) |
 
