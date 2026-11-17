@@ -235,6 +235,24 @@ data:
 
 ## Screenshots
 
+### Animated captures
+
+The header of the full card in its states, in a loop of 6 seconds (with `prefers-reduced-motion`, everything stays still).
+
+| Running, every route up: packets flow from the Internet through the proxy to the servers | Running, every route up: packets flow from the Internet through the proxy to the servers, dark |
+|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/anim-running.gif" alt="running animation" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/anim-running-dark.gif" alt="running animation, dark theme" width="400"> |
+
+| Running, a route down: its link dashed red, its LED red | Running, a route down: its link dashed red, its LED red, dark |
+|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/anim-upstream-down.gif" alt="upstream down animation" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/anim-upstream-down-dark.gif" alt="upstream down animation, dark theme" width="400"> |
+
+| Night picture | Night picture, dark |
+|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/anim-night.gif" alt="night animation" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/anim-night-dark.gif" alt="night animation, dark theme" width="400"> |
+
+### Stills
+
 | Full card, Zoraxy (certificates and proxy rules open) | Full card, Zoraxy, dark |
 |---|---|
 | <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/card.png" alt="card" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/screenshots/card-dark.png" alt="card dark" width="400"> |
@@ -283,7 +301,7 @@ logger:
 
 ```bash
 pip install playwright pillow && playwright install chromium
-python scripts/screenshots.py   # renders both cards, for Zoraxy, Traefik and Nginx Proxy Manager, with mock entities into screenshots/ (CHROMIUM_PATH: an installed Chromium)
+python scripts/screenshots.py   # renders both cards, for Zoraxy, Traefik and Nginx Proxy Manager, with mock entities into screenshots/, and the animated GIFs (needs ffmpeg; CHROMIUM_PATH: an installed Chromium)
 ```
 
 ### Releasing

@@ -4,10 +4,13 @@ Usage: python scripts/screenshots.py  (needs `pip install playwright pillow` and
 The clock is frozen so certificate countdowns stay the same. A file is rewritten only when its decoded pixels
 change (PNG bytes can differ for the same picture), so an unchanged render commits nothing. Every shot is in English, with 16 px of
 theme background around the card (full card 460 px wide, mini card 380 px, 460 px zoomed in).
+Then the header animations are recorded into screenshots/*.gif, light and dark (needs ffmpeg).
 """
 
 import io
 import os
+import subprocess
+import tempfile
 from pathlib import Path
 
 from PIL import Image
@@ -288,6 +291,120 @@ def save_if_changed(png: bytes, path: Path) -> bool:
     return True
 
 
+# The upstreams all up (the uptime monitor's problem sensors off), for the animated capture of the healthy proxy.
+STATES_OK = {k: ({**v, "state": "off"} if "_upstream_" in k and v["state"] == "on" else v) for k, v in STATES.items()}
+
+# Animated captures: the full card's header, one GIF per state, light and dark.
+GIFS = [
+    # Running, every upstream up: packets flow from the Internet through the proxy to the three servers, LEDs blink.
+    {"name": "anim-running", "states": STATES_OK, "theme": "day"},
+    # Running with an upstream down: its link dashed red and still, its LED red; the others keep flowing.
+    {"name": "anim-upstream-down", "states": STATES, "theme": "day"},
+    # Night picture.
+    {"name": "anim-night", "states": STATES_OK, "theme": "night"},
+]
+FPS = 15
+# The CSS animations are paused and stepped frame by frame over a 6 s loop, in which every animation of the header
+# runs a whole number of its cycles, so every GIF loops seamlessly whatever the machine's speed.
+LOOP = 6000
+FREEZE = """({f, loop}) => {
+  const walk = (node) => [...node.querySelectorAll("*")].flatMap((el) => [...el.getAnimations(), ...(el.shadowRoot ? walk(el.shadowRoot) : [])]);
+  for (const a of walk(document)) {
+    const d = a.effect.getTiming().duration;
+    a.pause();
+    a.currentTime = (10 + f * Math.max(1, Math.round(loop / d))) * d;
+  }
+}"""
+
+
+def gif_frames(path: Path) -> bytes:
+    """ffmpeg's per-frame MD5 list of a GIF's decoded RGBA frames: equal lists, same animation."""
+    return subprocess.run(
+        ["ffmpeg", "-loglevel", "error", "-i", str(path), "-pix_fmt", "rgba", "-f", "framemd5", "-"],
+        check=True,
+        capture_output=True,
+    ).stdout
+
+
+def encode_gif(frames_dir: Path, width: int, path: Path) -> bool:
+    """A deterministic GIF of the frames (palette from the frames only, ordered dithering, bit-exact muxing), written
+    to path only when its decoded frames differ from the file there; True when written."""
+    gif = frames_dir / "out.gif"
+    palette = "split[a][b];[a]palettegen=max_colors=128[p];[b][p]paletteuse=dither=bayer:bayer_scale=4"
+    subprocess.run(
+        ["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(FPS), "-i", str(frames_dir / "f%03d.png"),
+         "-vf", f"scale={width + 32}:-1:flags=lanczos,{palette}",
+         "-fflags", "+bitexact", "-flags", "+bitexact", "-loop", "0", str(gif)],
+        check=True,
+    )  # fmt: skip
+    if path.exists() and gif_frames(path) == gif_frames(gif):
+        return False
+    path.write_bytes(gif.read_bytes())
+    return True
+
+
+def open_card(context, shot):
+    """A new page with the card of `shot` mounted (a reused page would clash on the card's top-level declarations)."""
+    page = context.new_page()
+    page.on("pageerror", lambda err: print(f"page error: {err}"))
+    page.clock.set_fixed_time(NOW)
+    page.set_content(page_html(shot["theme"], shot.get("width", WIDTH)))
+    page.add_script_tag(content=HA_CARD)
+    page.add_script_tag(content=CARD_JS)
+    page.evaluate(
+        """({states, entities, dark, open, tag, zoom, url, illustration}) => {
+          const el = document.createElement(tag);
+          el.setConfig({type: `custom:${tag}`, proxy_url: url, ...(illustration ? {illustration_theme: illustration} : {})});
+          el.hass = {states, entities, language: "en", locale: {language: "en"}, themes: {darkMode: dark}, callService: () => Promise.resolve()};
+          document.getElementById("root").appendChild(el);
+          // A mouse click (detail: 1), so that no focus ring shows on the new button.
+          const click = (node) => node.dispatchEvent(new MouseEvent("click", {bubbles: true, composed: true, detail: 1}));
+          if (zoom) click(el.shadowRoot.querySelector(".zoom"));
+          for (const id of open) click(el.shadowRoot.querySelector(`.sec-header[data-id="${id}"]`));
+        }""",
+        {
+            "states": shot.get("states", STATES),
+            # The Zoraxy shots use the prefix fallback (no registry), as a 1.x dashboard did.
+            "entities": registry(shot["states"]) if "states" in shot else None,
+            "dark": shot["theme"] == "dark",
+            "open": shot.get("open", []),
+            "tag": shot.get("tag", "reverse-proxy-card"),
+            "zoom": shot.get("zoom", False),
+            "url": shot.get("url", "https://proxy.example.org"),
+            "illustration": shot.get("illustration"),
+        },
+    )
+    page.wait_for_timeout(300)
+    return page
+
+
+def record_gifs(context, out_dir):
+    """Steps the header's animations frame by frame and encodes one GIF per state and theme."""
+    for gif in GIFS:
+        for theme, suffix in (("light", ""), ("dark", "-dark")):
+            # The Zoraxy states without a registry (prefix fallback), as for the stills
+            page = open_card(context, {"theme": theme, "illustration": gif["theme"]})
+            page.evaluate(
+                "(s) => { const el = document.querySelector('#root > *'); el.hass = {...el.hass, states: s}; }",
+                gif["states"],
+            )
+            page.wait_for_timeout(300)
+            # The header with the 16 px of theme background around the card
+            bottom = page.evaluate(
+                "() => document.querySelector('#root > *').shadowRoot.querySelector('.banner').getBoundingClientRect().bottom"
+            )
+            clip = {"x": 0, "y": 0, "width": WIDTH + 32, "height": int(bottom + 0.999)}
+            frames = round(FPS * LOOP / 1000)
+            with tempfile.TemporaryDirectory() as tmp:
+                for i in range(frames):
+                    page.evaluate(FREEZE, {"f": i / frames, "loop": LOOP})
+                    page.screenshot(path=f"{tmp}/f{i:03d}.png", clip=clip)
+                name = f"{gif['name']}{suffix}.gif"
+                written = encode_gif(Path(tmp), WIDTH, out_dir / name)
+            print(f"screenshots/{name}{'' if written else ' (unchanged)'}")
+            page.close()
+
+
 def main():
     from playwright.sync_api import sync_playwright  # noqa: PLC0415 - the pixel helpers above import without it
 
@@ -302,37 +419,8 @@ def main():
             timezone_id="Europe/Paris",
         )
         for shot in SHOTS:
-            # A new page per capture: the card's top-level declarations would clash in a reused page.
-            page = context.new_page()
-            page.on("pageerror", lambda err: print(f"page error: {err}"))
-            page.clock.set_fixed_time(NOW)
+            page = open_card(context, shot)
             width = shot.get("width", WIDTH)
-            page.set_content(page_html(shot["theme"], width))
-            page.add_script_tag(content=HA_CARD)
-            page.add_script_tag(content=CARD_JS)
-            page.evaluate(
-                """({states, entities, dark, open, tag, zoom, url}) => {
-                  const el = document.createElement(tag);
-                  el.setConfig({type: `custom:${tag}`, proxy_url: url});
-                  el.hass = {states, entities, language: "en", locale: {language: "en"}, themes: {darkMode: dark}, callService: () => Promise.resolve()};
-                  document.getElementById("root").appendChild(el);
-                  // A mouse click (detail: 1), so that no focus ring shows on the new button.
-                  const click = (node) => node.dispatchEvent(new MouseEvent("click", {bubbles: true, composed: true, detail: 1}));
-                  if (zoom) click(el.shadowRoot.querySelector(".zoom"));
-                  for (const id of open) click(el.shadowRoot.querySelector(`.sec-header[data-id="${id}"]`));
-                }""",
-                {
-                    "states": shot.get("states", STATES),
-                    # The Zoraxy shots use the prefix fallback (no registry), as a 1.x dashboard did.
-                    "entities": registry(shot["states"]) if "states" in shot else None,
-                    "dark": shot["theme"] == "dark",
-                    "open": shot.get("open", []),
-                    "tag": shot.get("tag", "reverse-proxy-card"),
-                    "zoom": shot.get("zoom", False),
-                    "url": shot.get("url", "https://proxy.example.org"),
-                },
-            )
-            page.wait_for_timeout(300)
             # The card with 16 px of theme background around it
             box = page.locator("#root").bounding_box()
             png = page.screenshot(
@@ -342,6 +430,7 @@ def main():
             written = save_if_changed(png, out_dir / f"{shot['file']}.png")
             print(f"screenshots/{shot['file']}.png{'' if written else ' (unchanged)'}")
             page.close()
+        record_gifs(context, out_dir)
         browser.close()
 
 

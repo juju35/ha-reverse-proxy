@@ -6,6 +6,7 @@
 - Illustrated header on the card and the mini card (90 px): the status icon, with the logo of the proxy (Zoraxy, Traefik, Nginx Proxy Manager) as a badge, and the title on the left; on the right, an animated picture of the Internet → the reverse proxy → its servers, over a 10 px network strip edge to edge. All routes up: green links with traffic flowing; some routes down: their links dashed in red and their server's LED red; proxy stopped: a red proxy and no traffic; unavailable: all grey. The padlock over the proxy follows the closest certificate expiry.
 - The header icon is always tinted with the status: green running with every route up, orange with routes down, red stopped, grey unavailable.
 - Night picture after sunset (`sun.sun`, else the theme's dark mode), forced with `illustration_theme: day | night`; `illustration: false` keeps the classic header. Both options are in the visual editor of both cards. The animation stops when the system asks for reduced motion.
+- README: **animated captures** (GIF, light and dark) of the header: running, a route down and night.
 
 ## 2.4.2 - 2026-11-13
 
