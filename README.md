@@ -122,14 +122,18 @@ proxy_url: http://zoraxy.local:8000
 | `proxy_url` | — | The proxy's web interface (`http://` or `https://`), opened from the header icon and shown under the title (`zoraxy_url`, the option's name up to 1.14.x, is still read) |
 | `show_title` | `true` | Show the title in the header (e.g. `false` under a section heading of your own) |
 | `show_subtitle` | `true` | Show the subtitle under the title |
+| `illustration` | `true` | Illustrated header: the status icon (with the proxy's logo as a badge) and the title on the left, a picture of the Internet → proxy → servers on the right (green links with traffic flowing when every route is up, the routes whose upstream is down dashed in red, a red proxy when it is stopped, all grey when unavailable; the padlock follows the closest certificate expiry), over a network strip. `false` keeps the classic header |
+| `illustration_theme` | `auto` | Day or night picture: `auto` follows `sun.sun` (else the dark mode of the theme), `day` or `night` force it |
 | `entity_prefix` | `zoraxy_reverse_proxy_zoraxy` | Common part of the entity ids of a Zoraxy install of 1.x: picks the instance when `device` is left out, and finds the entities when the entity registry is not available |
 | `language` | Auto | Force the card language: `en`, `fr`, `de`, `es`, `sr`, `sr-Latn`, `it`, `nl`, `pt`, `pl`, `ro`, `da`, `sv`, `bg`, `ru`, `uk`, `hu`, `sk`, `cs`, `sl`, `lv` or `el` (by default, the Home Assistant language) |
+
+The header icon is always tinted with the proxy's status: green when it runs and every route is up, orange when some routes are down, red when it is stopped, grey when unavailable. The picture is animated (traffic, LEDs) unless the system asks for reduced motion, and is hidden on a card narrower than 300 px.
 
 The card finds its entities in the entity registry, by their device and their kind, so renamed entity ids keep working, and reads which proxy the device is (and what its API allows) from the *Proxy running* binary sensor: a Traefik card has no controls, certificates or rule buttons, a Nginx Proxy Manager card no controls (its certificates and rule buttons are there). With several instances, pick the device of each card in the visual editor (or set `device`).
 
 ### Mini card
 
-`custom:reverse-proxy-mini-card` shows the full card's essentials on two lines, for a compact dashboard: the header icon, title and status pill, then a chip per key figure:
+`custom:reverse-proxy-mini-card` shows the full card's essentials for a compact dashboard: the same illustrated header (or, with `illustration: false`, the header icon, title and status pill on one line), then a chip per key figure:
 
 - active / total proxy rules
 - the number of rules whose upstream is down, in red, only when there are some

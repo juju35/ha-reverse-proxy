@@ -1122,7 +1122,8 @@ test('the header icon links to the Zoraxy web interface, tinted with the status;
   card._render();
   let html = card.shadowRoot.innerHTML;
   assert.match(html, /<a class="brand-link" href="http:\/\/zoraxy\.local:8000" target="_blank" rel="noopener noreferrer" title="Open the Zoraxy web interface"/);
-  assert.match(html, /<span class="logo ok" aria-hidden="true"><svg viewBox="0 0 24 24">/);
+  // Running, with one upstream down (registryCard): amber.
+  assert.match(html, /<span class="logo warn" aria-hidden="true"><svg viewBox="0 0 24 24">/);
   assert.match(html, /<span class="badge"><svg viewBox="0 0 512 512"/);
   assert.match(html, /<span class="name">Zoraxy<\/span>/);
   assert.doesNotMatch(html, /<a class="name"/);
@@ -1248,4 +1249,80 @@ test('the former card names are aliases of the new cards', () => {
   assert.deepEqual(context.window.customCards.map((c) => c.type), []);
   assert.match(source, /type: "reverse-proxy-card"/);
   assert.doesNotMatch(source, /type: "zoraxy-card"/);
+});
+
+// ── Illustrated header ────────────────────────────────────────────────────────
+
+test('illustrated header: the picture and the icon follow the proxy state, the brand badge stays', () => {
+  const card = registryCard();
+  const states = card._hass.states;
+  const set = (id, state) => {
+    card._hass = { ...card._hass, states: { ...card._hass.states, [id]: { ...states[id], state } } };
+  };
+  const html = () => card.shadowRoot.innerHTML.split('</style>')[1];
+  card._render();
+  // Some routes down: amber icon, red dashed link, the Zoraxy badge on the icon; the expiring certificate turns the padlock red.
+  assert.match(html(), /<div class="banner">/);
+  assert.match(html(), /<svg class="rp-scene down"/);
+  assert.match(html(), /class="rp-link crit"/);
+  assert.match(html(), /rp-lock crit/);
+  assert.match(html(), /<span class="logo warn"[^>]*>[\s\S]*?<span class="badge"><svg viewBox="0 0 512 512"/);
+  assert.match(html(), /class="rp-ground"/);
+  // All routes up: green, packets flowing.
+  set('binary_sensor.proxy_one_up_app', 'off');
+  card._render();
+  assert.match(html(), /<svg class="rp-scene ok"/);
+  assert.doesNotMatch(html(), /rp-link crit/);
+  assert.match(html(), /class="rp-pk"/);
+  assert.match(html(), /<span class="logo ok"/);
+  // Stopped: red, no traffic. Unavailable: grey.
+  set('binary_sensor.proxy_one_running', 'off');
+  card._render();
+  assert.match(html(), /<svg class="rp-scene off"/);
+  assert.doesNotMatch(html(), /rp-pk/);
+  assert.match(html(), /<span class="logo crit"/);
+  set('binary_sensor.proxy_one_running', 'unavailable');
+  card._render();
+  assert.match(html(), /<svg class="rp-scene idle"/);
+  assert.match(html(), /<span class="logo idle"/);
+});
+
+test('illustrated header: night from illustration_theme, sun.sun or dark mode; illustration: false keeps the classic header', () => {
+  const card = registryCard();
+  card._render();
+  assert.match(card.shadowRoot.innerHTML, /<div class="banner">/);
+  card._hass = { ...card._hass, states: { ...card._hass.states, 'sun.sun': { state: 'below_horizon' } } };
+  card._render();
+  assert.match(card.shadowRoot.innerHTML, /<div class="banner night">/);
+  card._config = { illustration_theme: 'day' };
+  assert.equal(card._night(), false);
+  card._config = { illustration_theme: 'night' };
+  assert.equal(card._night(), true);
+  card._config = {};
+  card._hass = { ...card._hass, states: { ...card._hass.states, 'sun.sun': { state: 'unavailable' } }, themes: { darkMode: true } };
+  assert.equal(card._night(), true);
+  const key = card._key();
+  card._hass = { ...card._hass, themes: { darkMode: false } };
+  assert.notEqual(card._key(), key, 'the theme re-renders');
+  card._config = { illustration: false };
+  card._render();
+  assert.doesNotMatch(card.shadowRoot.innerHTML.split("</style>")[1], /class="banner|rp-scene/);
+  assert.match(card.shadowRoot.innerHTML, /<div class="header">/);
+  assert.throws(() => card.setConfig({ illustration: 'yes' }), /illustration/);
+  assert.throws(() => card.setConfig({ illustration_theme: 'dusk' }), /illustration_theme/);
+});
+
+test('illustrated mini card: banner with room for the detail button, the chips under it', () => {
+  const mini = registryCard({}, ReverseProxyMiniCard);
+  mini._render();
+  const html = mini.shadowRoot.innerHTML;
+  assert.match(html, /<div class="banner zoomable">/);
+  assert.match(html, /<div class="rs-wrap"><div class="rs">/);
+  mini._config = { zoom: false };
+  mini._render();
+  assert.match(mini.shadowRoot.innerHTML, /<div class="banner">/);
+  for (const E of [ReverseProxyCardEditor, ReverseProxyMiniCardEditor]) {
+    const names = E.schema((k) => k).map((f) => f.name);
+    assert.ok(names.includes('illustration') && names.includes('illustration_theme'));
+  }
 });
