@@ -543,10 +543,9 @@ test('narrow header: the title keeps about four letters, the status pill gives w
     assert.notEqual(narrow.display, 'none');
   }
   const mini = ReverseProxyMiniCard.CSS;
-  const name = rules(mini, '.mini .name');
-  assert.equal(name.flex, '1 1 0');
-  assert.match(name['min-width'], /^[4-6](\.\d+)?ch$/);
-  assert.equal(rules(mini, '.head #status').flex, undefined, 'the mini pill keeps the shrinkable flex of #status');
+  // The title row: the whole title, the pill right after it at its natural width (placed by _fitPill).
+  assert.equal(rules(mini, '.trow .name').flex, '0 1 auto');
+  assert.equal(rules(mini, '.trow #status').flex, 'none');
   assert.match(rules(mini, '.zoom').flex, /^none$/);
 });
 
@@ -1122,7 +1121,8 @@ test('the header icon links to the Zoraxy web interface, tinted with the status;
   card._render();
   let html = card.shadowRoot.innerHTML;
   assert.match(html, /<a class="brand-link" href="http:\/\/zoraxy\.local:8000" target="_blank" rel="noopener noreferrer" title="Open the Zoraxy web interface"/);
-  assert.match(html, /<span class="logo ok" aria-hidden="true"><svg viewBox="0 0 24 24">/);
+  // Running, with one upstream down (registryCard): amber.
+  assert.match(html, /<span class="logo warn" aria-hidden="true"><svg viewBox="0 0 24 24">/);
   assert.match(html, /<span class="badge"><svg viewBox="0 0 512 512"/);
   assert.match(html, /<span class="name">Zoraxy<\/span>/);
   assert.doesNotMatch(html, /<a class="name"/);
@@ -1248,4 +1248,155 @@ test('the former card names are aliases of the new cards', () => {
   assert.deepEqual(context.window.customCards.map((c) => c.type), []);
   assert.match(source, /type: "reverse-proxy-card"/);
   assert.doesNotMatch(source, /type: "zoraxy-card"/);
+});
+
+// ── Illustrated header ────────────────────────────────────────────────────────
+
+test('illustrated header: the picture and the icon follow the proxy state, the brand badge stays', () => {
+  const card = registryCard();
+  const states = card._hass.states;
+  const set = (id, state) => {
+    card._hass = { ...card._hass, states: { ...card._hass.states, [id]: { ...states[id], state } } };
+  };
+  const html = () => card.shadowRoot.innerHTML.split('</style>')[1];
+  card._render();
+  // Some routes down: amber icon, red dashed link, the Zoraxy badge on the icon; the expiring certificate turns the padlock red.
+  assert.match(html(), /<div class="banner">/);
+  assert.match(html(), /<svg class="rp-scene down"/);
+  assert.match(html(), /class="rp-link crit"/);
+  assert.match(html(), /rp-lock crit/);
+  assert.match(html(), /<span class="logo warn"[^>]*>[\s\S]*?<span class="badge"><svg viewBox="0 0 512 512"/);
+  // The status pill right after the title, in the icon's colour: the upstreams down while the proxy runs.
+  assert.match(html(), /<div class="trow"><span class="name">[^<]*<\/span><span id="status"><span class="chip warn" title="Upstreams down: \d+">/);
+  assert.match(html(), /class="rp-ground"/);
+  // All routes up: green, packets flowing.
+  set('binary_sensor.proxy_one_up_app', 'off');
+  card._render();
+  assert.match(html(), /<svg class="rp-scene ok"/);
+  assert.doesNotMatch(html(), /rp-link crit/);
+  assert.match(html(), /class="rp-pk"/);
+  assert.match(html(), /<span class="logo ok"/);
+  // Stopped: red, no traffic. Unavailable: grey.
+  set('binary_sensor.proxy_one_running', 'off');
+  card._render();
+  assert.match(html(), /<svg class="rp-scene off"/);
+  assert.doesNotMatch(html(), /rp-pk/);
+  assert.match(html(), /<span class="logo crit"/);
+  set('binary_sensor.proxy_one_running', 'unavailable');
+  card._render();
+  assert.match(html(), /<svg class="rp-scene idle"/);
+  assert.match(html(), /<span class="logo idle"/);
+});
+
+test('illustrated header: night from illustration_theme, sun.sun or dark mode; illustration: false keeps the classic header', () => {
+  const card = registryCard();
+  card._render();
+  assert.match(card.shadowRoot.innerHTML, /<div class="banner">/);
+  card._hass = { ...card._hass, states: { ...card._hass.states, 'sun.sun': { state: 'below_horizon' } } };
+  card._render();
+  assert.match(card.shadowRoot.innerHTML, /<div class="banner night">/);
+  card._config = { illustration_theme: 'day' };
+  assert.equal(card._night(), false);
+  card._config = { illustration_theme: 'night' };
+  assert.equal(card._night(), true);
+  card._config = {};
+  card._hass = { ...card._hass, states: { ...card._hass.states, 'sun.sun': { state: 'unavailable' } }, themes: { darkMode: true } };
+  assert.equal(card._night(), true);
+  // The dark theme takes the night picture even while the sun is up; a light theme keeps the day; forced themes win.
+  card._hass = { ...card._hass, states: { ...card._hass.states, 'sun.sun': { state: 'above_horizon' } }, themes: { darkMode: true } };
+  assert.equal(card._night(), true);
+  card._hass = { ...card._hass, themes: { darkMode: false } };
+  assert.equal(card._night(), false);
+  card._config = { illustration_theme: 'day' };
+  card._hass = { ...card._hass, themes: { darkMode: true } };
+  assert.equal(card._night(), false);
+  card._config = { illustration_theme: 'night' };
+  card._hass = { ...card._hass, themes: { darkMode: false } };
+  assert.equal(card._night(), true);
+  card._config = {};
+  const key = card._key();
+  card._hass = { ...card._hass, themes: { darkMode: true } };
+  assert.notEqual(card._key(), key, 'the theme re-renders');
+  card._config = { illustration: false };
+  card._render();
+  assert.doesNotMatch(card.shadowRoot.innerHTML.split("</style>")[1], /class="banner|rp-scene/);
+  assert.match(card.shadowRoot.innerHTML, /<div class="header">/);
+  assert.throws(() => card.setConfig({ illustration: 'yes' }), /illustration/);
+  assert.throws(() => card.setConfig({ illustration_theme: 'dusk' }), /illustration_theme/);
+});
+
+test('illustrated mini card: banner with room for the detail button, the chips under it', () => {
+  const mini = registryCard({}, ReverseProxyMiniCard);
+  mini._render();
+  const html = mini.shadowRoot.innerHTML;
+  assert.match(html, /<div class="banner zoomable">/);
+  assert.match(html, /<div class="rs-wrap"><div class="rs">/);
+  mini._config = { zoom: false };
+  mini._render();
+  assert.match(mini.shadowRoot.innerHTML, /<div class="banner">/);
+  for (const E of [ReverseProxyCardEditor, ReverseProxyMiniCardEditor]) {
+    const names = E.schema((k) => k).map((f) => f.name);
+    assert.ok(names.includes('illustration') && names.includes('illustration_theme'));
+  }
+});
+
+// A measured layout stand-in for _fitPill: the title block (.titles) with its row (title + pill) in a banner whose
+// ground strip starts at 80 px. Widths in px; `tall` makes the block run past the strip once the pill drops.
+const fitLayout = ({ title, pill, row, tall = false, banner = true }) => {
+  const rect = (o) => ({ top: 0, bottom: 0, left: 0, right: 0, width: 0, height: 0, ...o });
+  const classes = new Set();
+  const name = { textContent: "x", width: title, getClientRects: () => [1] };
+  const chip = { getBoundingClientRect: () => rect({ width: classes.has("pill-dot") ? 14 : pill }) };
+  const trow = { querySelector: (s) => (s.includes(".name") ? name : chip), getBoundingClientRect: () => rect({ width: row }) };
+  const ground = { getBoundingClientRect: () => rect({ top: 80 }) };
+  const box = { getBoundingClientRect: () => rect({ top: 0, bottom: 90 }), querySelector: () => ground };
+  const t = {
+    classList: {
+      add: (c) => classes.add(c),
+      remove: (...c) => {
+        for (const x of c) classes.delete(x);
+      },
+    },
+    querySelector: () => trow,
+    closest: () => (banner ? box : null),
+    getBoundingClientRect: () => rect({ top: 10, bottom: classes.has("below") && tall ? 86 : 70, width: row }),
+  };
+  return { t, classes };
+};
+
+test("the status pill stays beside a whole title, else drops under the subtitle, else keeps its dot (measured)", () => {
+  const w = ({ window: context }).window;
+  w.getComputedStyle = () => ({ columnGap: "8px" });
+  w.document.createRange = () => {
+    let el;
+    return { selectNodeContents: (e) => (el = e), getBoundingClientRect: () => ({ width: el.width }) };
+  };
+  const fit = (opts) => {
+    const card = makeCard();
+    const l = fitLayout(opts);
+    card.shadowRoot.querySelectorAll = () => [l.t];
+    card._fitPill();
+    return [...l.classes].sort().join(" ");
+  };
+  // Whole title + gap + whole pill fit on the row: the pill stays beside the title.
+  assert.equal(fit({ title: 60, pill: 70, row: 140 }), "");
+  // One pixel short: never an ellipsised title beside the pill, the pill goes under the subtitle.
+  assert.equal(fit({ title: 63, pill: 70, row: 140 }), "below");
+  // Long Greek/Cyrillic/German labels: decided by the measure, not by a fixed width.
+  assert.equal(fit({ title: 40, pill: 130, row: 160 }), "below");
+  assert.equal(fit({ title: 40, pill: 112, row: 160 }), "");
+  // Under the subtitle but the block would run into the ground strip, or the label is wider than the line: dot only.
+  assert.equal(fit({ title: 90, pill: 70, row: 140, tall: true }), "below pill-dot");
+  assert.equal(fit({ title: 90, pill: 150, row: 140 }), "below pill-dot");
+  // The classic header (no banner) follows the same rule.
+  assert.equal(fit({ title: 90, pill: 70, row: 140, banner: false }), "below");
+  delete w.getComputedStyle;
+  delete w.document.createRange;
+});
+
+test("no fixed width decides the pill's place: only the dot-only rule at 200 px is a width rule", () => {
+  const css = ReverseProxyCard.CSS + ReverseProxyMiniCard.CSS;
+  assert.doesNotMatch(css, /data-wrap|max-width: 51%/);
+  assert.match(css, /\.titles\.below \.trow \{ display: contents; \}/);
+  assert.match(css, /\.titles\.pill-dot #status \.ct \{ position: absolute;/);
 });

@@ -1,4 +1,4 @@
-const REVERSE_PROXY_CARD_VERSION = '2.4.2';
+const REVERSE_PROXY_CARD_VERSION = '2.5.0';
 
 // Escapes a value interpolated into innerHTML, as text or inside a quoted attribute (as parcelEsc in ha-parcel).
 function rpEsc(s) {
@@ -11,11 +11,123 @@ function rpSafeUrl(url) {
   return /^https?:\/\//i.test(value) ? value : "";
 }
 
+// Night picture: forced by `illustration_theme`, else the sun below the horizon or Home Assistant's dark mode (a
+// dark theme takes the night picture even while the sun is up; an unknown sun leaves the dark mode alone to decide).
+function rpIsNight(hass, config) {
+  const theme = config?.illustration_theme;
+  if (theme === "night") return true;
+  if (theme === "day") return false;
+  return hass?.states?.["sun.sun"]?.state === "below_horizon" || !!hass?.themes?.darkMode;
+}
+
+// The header's illustration, on the right of the banner: the Internet (a globe) → the reverse proxy (with its
+// certificate padlock) → three backend servers. `st` is the proxy's state: "ok" (running, every upstream up: green
+// links with packets flowing), "down" (running, `down` upstreams down: their links dashed red, their LED red),
+// "off" (stopped: red proxy, no traffic) or "idle" (unavailable: all grey). `cert` tints the padlock (ok, warn, crit).
+// The picture has no ids, so several cards on a page never clash.
+const RP_SERVERS = [
+  [184, 18],
+  [184, 40],
+  [184, 62],
+];
+function rpSceneSvg({ st, down = 0, cert = "ok" }) {
+  const live = st === "ok" || st === "down";
+  const bad = st === "down" ? Math.min(Math.max(down, 1), 2) : 0;
+  const gw = st === "off" ? "crit" : live ? "ok" : "idle";
+  const servers = RP_SERVERS.map(([x, y], i) => {
+    const up = live && i < RP_SERVERS.length - bad;
+    const cls = !live ? "off" : up ? "ok" : "crit";
+    const d = `M148 40 Q164 40 ${x - 10} ${y}`;
+    const packet = up ? `<circle class="rp-pk" r="1.6" style="offset-path:path('${d}');animation-delay:-${(i * 0.6).toFixed(1)}s"/>` : "";
+    return `<path class="rp-link ${cls}" d="${d}"/>${packet}<rect class="rp-srv" x="${x - 10}" y="${y - 7}" width="20" height="14" rx="2"/><circle class="rp-led ${cls}" cx="${x - 5}" cy="${y}" r="1.3"/><path class="rp-slot" d="M${x - 1} ${y}h6"/>`;
+  }).join("");
+  return `<svg class="rp-scene ${st}" viewBox="89 6 110 68" preserveAspectRatio="xMaxYMax meet" aria-hidden="true">
+    <g transform="translate(104 40)"><circle class="rp-globe" r="12"/><path class="rp-meridian" d="M-12 0H12M0-12Q8 0 0 12Q-8 0 0-12"/></g>
+    <path class="rp-in${live ? "" : " off"}" d="M116 40H132"/>${live ? `<circle class="rp-pk in" r="1.6" style="offset-path:path('M116 40 H132')"/>` : ""}
+    ${servers}
+    <g transform="translate(140 40)"><rect class="rp-gw ${gw}" x="-8" y="-16" width="16" height="32" rx="3"/><path class="rp-vent" d="M-4 -6h8M-4 0h8M-4 6h8"/></g>
+    <g class="rp-lock ${live ? cert : "idle"}" transform="translate(140 18)"><rect x="-4" y="-2" width="8" height="6" rx="1"/><path d="M-2.6 -2v-2a2.6 2.6 0 0 1 5.2 0v2"/></g>
+  </svg>`;
+}
+
+// The banner: a server-room background, the illustration on the right and a 10 px "network" strip edge to edge at
+// the bottom (a patch panel: ports and link LEDs), day and night.
+const RP_BANNER_CSS = `
+  .banner { position: relative; overflow: hidden; height: 90px; --rp-scene-w: 129px; --rp-scene-r: 0px;
+            background: #e3e8ef; color: #0d2a45; }
+  .banner.night { background: #161c28; color: #fff; }
+  .banner.zoomable { --rp-scene-r: 30px; }
+  .rp-scene { position: absolute; right: var(--rp-scene-r); bottom: 10px; height: 80px; width: var(--rp-scene-w); overflow: visible; }
+  .rp-ground { position: absolute; left: 0; right: 0; bottom: 0; height: 10px; box-shadow: inset 0 2px 0 #b5bbc2;
+               background:
+                 repeating-linear-gradient(90deg, transparent 0 7px, #43c463 7px 8px, transparent 8px 54px) 0 3px / 100% 1px no-repeat,
+                 repeating-linear-gradient(90deg, transparent 0 6px, #6f7780 6px 12px, transparent 12px 18px) 0 4px / 100% 4px no-repeat,
+                 #9aa1a9; }
+  .night .rp-ground { box-shadow: inset 0 2px 0 #3a414c;
+                      background:
+                        repeating-linear-gradient(90deg, transparent 0 7px, #2fa24f 7px 8px, transparent 8px 54px) 0 3px / 100% 1px no-repeat,
+                        repeating-linear-gradient(90deg, transparent 0 6px, #1c2027 6px 12px, transparent 12px 18px) 0 4px / 100% 4px no-repeat,
+                        #2c323b; }
+  .banner .header { position: absolute; left: 0; top: 0; bottom: 10px; right: calc(var(--rp-scene-w) + var(--rp-scene-r) + 4px);
+                    padding: 0 4px 0 12px; box-sizing: border-box; }
+  .banner .titles { gap: 2px; }
+  .banner .name { color: inherit; }
+  .banner .sub { color: #3b5b78; }
+  .banner.night .sub { color: rgba(255,255,255,.78); }
+  .banner .logo { background: rgba(255,255,255,.62); box-shadow: inset 0 0 0 1px rgba(47,128,237,.18); }
+  .banner.night .logo { background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); }
+  .banner .logo .badge { box-shadow: 0 0 0 1px rgba(13,42,69,.16), 0 1px 3px rgba(13,42,69,.18); }
+  .banner .chip .dot { background: var(--c, var(--zx-ok)); }
+  /* The status pill (#status) on the title row, right after the title, in the colour of the icon (see .trow). */
+  .banner #status .chip { min-width: 0; max-width: 100%; box-sizing: border-box; overflow: hidden; }
+  .banner #status .ct { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .banner .chip { background: color-mix(in srgb, var(--c, var(--zx-ok)) 18%, rgba(255,255,255,.78)); color: color-mix(in srgb, var(--c, var(--zx-ok)) 45%, #0d2a45); }
+  .banner.night .chip { background: color-mix(in srgb, var(--c, var(--zx-ok)) 30%, rgba(8,18,38,.55)); color: color-mix(in srgb, var(--c, var(--zx-ok)) 35%, #ffffff); }
+  /* The mini card's detail button: a 24 px frosted round in the banner's top right corner. */
+  .banner .zoom { position: absolute; z-index: 2; top: 5px; right: 5px; margin: 0; color: #33506b; background: rgba(255,255,255,.55);
+                  box-shadow: inset 0 0 0 1px rgba(255,255,255,.7); backdrop-filter: blur(4px); }
+  .banner .zoom:hover { background: rgba(255,255,255,.75); color: #33506b; }
+  .banner.night .zoom { color: #fff; background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
+  .banner.night .zoom:hover { background: rgba(255,255,255,.22); color: #fff; }
+  .banner + .content { padding-top: 12px; }
+  .rp-globe { fill: #dbeafe; stroke: #2f80ed; } .night .rp-globe { fill: #1d3a5e; }
+  .rp-meridian { fill: none; stroke: #2f80ed; stroke-width: 1; }
+  .rp-scene.idle .rp-globe, .rp-scene.idle .rp-meridian { stroke: #9aa3ae; } .rp-scene.idle .rp-globe { fill: #eef1f4; }
+  .night .rp-scene.idle .rp-globe { fill: #2a3038; }
+  .rp-gw { fill: #fff; stroke-width: 1.6; } .night .rp-gw { fill: #3d475c; }
+  .rp-gw.ok { stroke: #43a047; } .rp-gw.crit { stroke: #e5484d; } .rp-gw.idle { stroke: #9aa3ae; }
+  .rp-vent { stroke: #9aa3ae; }
+  .rp-in { stroke: #2f80ed; stroke-width: 1.4; } .rp-in.off { stroke: #9aa3ae; stroke-dasharray: 2 2; }
+  .rp-link { fill: none; stroke-width: 1.2; } .rp-link.ok { stroke: #43a047; }
+  .rp-link.crit { stroke: #e5484d; stroke-dasharray: 2 2; } .rp-link.off { stroke: #9aa3ae; stroke-dasharray: 2 2; }
+  .rp-srv { fill: #2a3038; } .night .rp-srv { stroke: #3d4757; stroke-width: .6; }
+  .rp-slot { stroke: #5c6678; stroke-width: 1.4; stroke-linecap: round; }
+  .rp-led.ok { fill: #43c463; } .rp-led.crit { fill: #e5484d; } .rp-led.off { fill: #5c6678; }
+  .rp-led.ok, .rp-led.crit { animation: rp-blink 1.2s steps(2) infinite; }
+  .rp-pk { fill: #43a047; animation: rp-pk 2s linear infinite; } .rp-pk.in { fill: #2f80ed; animation-duration: 1.2s; }
+  .rp-lock { --lc: #43a047; } .rp-lock.warn { --lc: #f5a623; } .rp-lock.crit { --lc: #e5484d; } .rp-lock.idle { --lc: #9aa3ae; }
+  .rp-lock rect { fill: var(--lc); } .rp-lock path { fill: none; stroke: var(--lc); }
+  @keyframes rp-pk { from { offset-distance: 0%; opacity: 0; } 15%, 85% { opacity: 1; } to { offset-distance: 100%; opacity: 0; } }
+  @keyframes rp-blink { 50% { opacity: .25; } }
+  /* Narrow card: no room for the picture beside the title, the background and the strip stay. */
+  @container (max-width: 300px) {
+    .rp-scene { display: none; }
+    .banner .header { right: var(--rp-scene-r); }
+  }
+`;
+
 // "A click elsewhere" is caught on the pointer, not only on the click event: on iOS (Safari and the companion app)
 // a tap on something that is not clickable (the background, an empty spot, a card with no action) sends no click to
 // the page. The handler runs when the press and the release are both outside the card (a slider dragged out of the
 // card does not count), and a scroll does not count (the browser cancels the pointer); keyboard clicks still go
 // through the click event. The handler keeps its own checks (outside of the card, not in a dialog).
+// The whole width of an element's text in its own font, an ellipsised one included.
+const textWidth = (el) => {
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  return range.getBoundingClientRect().width;
+};
+
 const watchOutside = (card, handler) => {
   let downOutside = false;
   const onDown = (ev) => {
@@ -120,6 +232,49 @@ class ReverseProxyCard extends HTMLElement {
       : icon;
   }
 
+  // The proxy's state for the header: its icon colour (`cls`) and its picture (`st`). Running with every upstream up
+  // is green, running with upstreams down amber, stopped red, unavailable grey.
+  _headerState() {
+    const state = this._state(this._eid("binary_sensor.proxy_running"));
+    if (state === "off") return { st: "off", cls: "crit", down: 0 };
+    if (state !== "on") return { st: "idle", cls: "idle", down: 0 };
+    const down = this._many("binary_sensor.upstream_problem").filter((id) => this._isOn(id)).length;
+    return down ? { st: "down", cls: "warn", down } : { st: "ok", cls: "ok", down: 0 };
+  }
+
+  // The padlock over the proxy: the closest certificate expiry (red under 7 days, amber under 30 or flagged expiring).
+  _certLevel() {
+    if (!this._has("certificates")) return "ok";
+    let level = "ok";
+    for (const { expiring, days } of this._certSensors()) {
+      if (days !== null && days < 7) return "crit";
+      if ((days !== null && days < 30) || this._isOn(expiring)) level = "warn";
+    }
+    return level;
+  }
+
+  // The header's state and status pill, for both cards.
+  // The banner's pill takes the icon's colour: amber with the upstreams down while the proxy runs.
+  _headParts() {
+    const head = this._headerState();
+    const status = this._illustrated() && head.cls === "warn"
+      ? this._statusChip("on", "warn", this._t("upstreamsDown").replace("{n}", head.down))
+      : this._statusChip(this._state(this._eid("binary_sensor.proxy_running")));
+    return { head, status };
+  }
+
+  _illustrated() { return this._config?.illustration !== false; }
+  _night() { return this._illustrated() && rpIsNight(this._hass, this._config); }
+  // The mini card's detail button sits at the banner's top right: the picture moves left to leave it room.
+  _hasZoom() { return false; }
+
+  // The illustrated header: the round status icon (brand badge) and `titles` on the background at the left, the
+  // picture on the right, the network strip at the bottom.
+  _banner(head, titles) {
+    const cls = `banner${this._night() ? " night" : ""}${this._hasZoom() ? " zoomable" : ""}`;
+    return `<div class="${cls}">${rpSceneSvg({ ...head, cert: this._certLevel() })}<div class="rp-ground"></div><div class="header">${this._headerIcon(head.cls)}<div class="titles">${titles}</div></div></div>`;
+  }
+
   static I18N = {
     fr: {
       active: "Actif", inactive: "Inactif",
@@ -139,6 +294,8 @@ class ReverseProxyCard extends HTMLElement {
       ed_zoom: "Bouton détail", ed_zoom_helper: "Bascule vers la carte complète et revient",
       ed_show_title: "Afficher le titre",
       ed_show_subtitle: "Afficher le sous-titre",
+      ed_illustration: "Illustration animée", ed_illustration_theme: "Thème de l’illustration",
+      theme_auto: "Automatique (nuit si le soleil est couché ou le thème sombre)", theme_day: "Jour", theme_night: "Nuit",
       ed_language: "Langue", lang_auto: "Auto (langue de Home Assistant)",
       unavailable: "Indisponible", cancel: "Annuler",
       confirmPort80Off: "Arrêter l'écoute du port 80 ? Les requêtes HTTP et les challenges ACME HTTP n'atteindront plus {proxy}.",
@@ -164,6 +321,8 @@ class ReverseProxyCard extends HTMLElement {
       ed_zoom: "Detail button", ed_zoom_helper: "Switches to the full card and back",
       ed_show_title: "Show title",
       ed_show_subtitle: "Show subtitle",
+      ed_illustration: "Animated illustration", ed_illustration_theme: "Illustration theme",
+      theme_auto: "Automatic (night when the sun is down or the theme is dark)", theme_day: "Day", theme_night: "Night",
       ed_language: "Language", lang_auto: "Auto (Home Assistant language)",
       unavailable: "Unavailable", cancel: "Cancel",
       confirmPort80Off: "Stop listening on port 80? Plain HTTP requests and ACME HTTP challenges will no longer reach {proxy}.",
@@ -189,6 +348,8 @@ class ReverseProxyCard extends HTMLElement {
       ed_zoom: "Detail-Schaltfläche", ed_zoom_helper: "Wechselt zur vollständigen Karte und zurück",
       ed_show_title: "Titel anzeigen",
       ed_show_subtitle: "Untertitel anzeigen",
+      ed_illustration: "Animierte Illustration", ed_illustration_theme: "Thema der Illustration",
+      theme_auto: "Automatisch (Nacht bei untergegangener Sonne oder dunklem Design)", theme_day: "Tag", theme_night: "Nacht",
       ed_language: "Sprache", lang_auto: "Auto (Sprache von Home Assistant)",
       unavailable: "Nicht verfügbar", cancel: "Abbrechen",
       confirmPort80Off: "Port 80 nicht mehr abhören? HTTP-Anfragen und ACME-HTTP-Challenges erreichen {proxy} dann nicht mehr.",
@@ -214,6 +375,8 @@ class ReverseProxyCard extends HTMLElement {
       ed_zoom: "Botón de detalle", ed_zoom_helper: "Cambia a la tarjeta completa y vuelve",
       ed_show_title: "Mostrar el título",
       ed_show_subtitle: "Mostrar el subtítulo",
+      ed_illustration: "Ilustración animada", ed_illustration_theme: "Tema de la ilustración",
+      theme_auto: "Automático (noche si el sol se ha puesto o el tema es oscuro)", theme_day: "Día", theme_night: "Noche",
       ed_language: "Idioma", lang_auto: "Auto (idioma de Home Assistant)",
       unavailable: "No disponible", cancel: "Cancelar",
       confirmPort80Off: "¿Dejar de escuchar en el puerto 80? Las peticiones HTTP y los desafíos ACME HTTP ya no llegarán a {proxy}.",
@@ -239,6 +402,8 @@ class ReverseProxyCard extends HTMLElement {
       ed_zoom: "Дугме за детаље", ed_zoom_helper: "Пребацује картицу на пун приказ и назад",
       ed_show_title: "Прикажи наслов",
       ed_show_subtitle: "Прикажи поднаслов",
+      ed_illustration: "Анимирана илустрација", ed_illustration_theme: "Тема илустрације",
+      theme_auto: "Аутоматски (ноћ када је сунце зашло или је тема тамна)", theme_day: "Дан", theme_night: "Ноћ",
       ed_language: "Језик", lang_auto: "Аутоматски (језик Home Assistant-а)",
       unavailable: "Недоступно", cancel: "Откажи",
       confirmPort80Off: "Престати са ослушкивањем порта 80? HTTP захтеви и ACME HTTP провере више неће стизати до {proxy}-ја.",
@@ -264,6 +429,8 @@ class ReverseProxyCard extends HTMLElement {
       ed_zoom: "Dugme za detalje", ed_zoom_helper: "Prebacuje karticu na pun prikaz i nazad",
       ed_show_title: "Prikaži naslov",
       ed_show_subtitle: "Prikaži podnaslov",
+      ed_illustration: "Animirana ilustracija", ed_illustration_theme: "Tema ilustracije",
+      theme_auto: "Automatski (noć kada je sunce zašlo ili je tema tamna)", theme_day: "Dan", theme_night: "Noć",
       ed_language: "Jezik", lang_auto: "Automatski (jezik Home Assistant-a)",
       unavailable: "Nedostupno", cancel: "Otkaži",
       confirmPort80Off: "Prestati sa osluškivanjem porta 80? HTTP zahtevi i ACME HTTP provere više neće stizati do {proxy}-ja.",
@@ -289,6 +456,8 @@ class ReverseProxyCard extends HTMLElement {
       ed_zoom: "Pulsante dettagli", ed_zoom_helper: "Passa alla scheda completa e ritorna",
       ed_show_title: "Mostra il titolo",
       ed_show_subtitle: "Mostra il sottotitolo",
+      ed_illustration: "Illustrazione animata", ed_illustration_theme: "Tema dell’illustrazione",
+      theme_auto: "Automatico (notte se il sole è tramontato o il tema è scuro)", theme_day: "Giorno", theme_night: "Notte",
       ed_language: "Lingua", lang_auto: "Auto (lingua di Home Assistant)",
       unavailable: "Non disponibile", cancel: "Annulla",
       confirmPort80Off: "Smettere di ascoltare sulla porta 80? Le richieste HTTP e le verifiche ACME HTTP non raggiungeranno più {proxy}.",
@@ -314,6 +483,8 @@ class ReverseProxyCard extends HTMLElement {
       ed_zoom: "Detailknop", ed_zoom_helper: "Schakelt naar de volledige kaart en terug",
       ed_show_title: "Titel tonen",
       ed_show_subtitle: "Ondertitel tonen",
+      ed_illustration: "Geanimeerde illustratie", ed_illustration_theme: "Thema van de illustratie",
+      theme_auto: "Automatisch (nacht als de zon onder is of het thema donker is)", theme_day: "Dag", theme_night: "Nacht",
       ed_language: "Taal", lang_auto: "Auto (taal van Home Assistant)",
       unavailable: "Niet beschikbaar", cancel: "Annuleren",
       confirmPort80Off: "Niet meer luisteren op poort 80? HTTP-verzoeken en ACME HTTP-challenges bereiken {proxy} dan niet meer.",
@@ -339,6 +510,8 @@ class ReverseProxyCard extends HTMLElement {
       ed_zoom: "Botão de detalhe", ed_zoom_helper: "Muda para o cartão completo e volta",
       ed_show_title: "Mostrar o título",
       ed_show_subtitle: "Mostrar o subtítulo",
+      ed_illustration: "Ilustração animada", ed_illustration_theme: "Tema da ilustração",
+      theme_auto: "Automático (noite se o sol se pôs ou o tema é escuro)", theme_day: "Dia", theme_night: "Noite",
       ed_language: "Idioma", lang_auto: "Auto (idioma do Home Assistant)",
       unavailable: "Indisponível", cancel: "Cancelar",
       confirmPort80Off: "Deixar de escutar na porta 80? Os pedidos HTTP e os desafios ACME HTTP deixarão de chegar ao {proxy}.",
@@ -364,6 +537,8 @@ class ReverseProxyCard extends HTMLElement {
       ed_zoom: "Przycisk szczegółów", ed_zoom_helper: "Przełącza na pełną kartę i z powrotem",
       ed_show_title: "Pokaż tytuł",
       ed_show_subtitle: "Pokaż podtytuł",
+      ed_illustration: "Animowana ilustracja", ed_illustration_theme: "Motyw ilustracji",
+      theme_auto: "Automatycznie (noc, gdy słońce zaszło lub motyw jest ciemny)", theme_day: "Dzień", theme_night: "Noc",
       ed_language: "Język", lang_auto: "Auto (język Home Assistant)",
       unavailable: "Niedostępny", cancel: "Anuluj",
       confirmPort80Off: "Przestać nasłuchiwać na porcie 80? Żądania HTTP i wyzwania ACME HTTP nie będą już docierać do {proxy}.",
@@ -389,6 +564,8 @@ class ReverseProxyCard extends HTMLElement {
       ed_zoom: "Buton de detalii", ed_zoom_helper: "Comută la cardul complet și înapoi",
       ed_show_title: "Afișează titlul",
       ed_show_subtitle: "Afișează subtitlul",
+      ed_illustration: "Ilustrație animată", ed_illustration_theme: "Tema ilustrației",
+      theme_auto: "Automat (noapte când soarele a apus sau tema e întunecată)", theme_day: "Zi", theme_night: "Noapte",
       ed_language: "Limbă", lang_auto: "Automat (limba Home Assistant)",
       unavailable: "Indisponibil", cancel: "Anulează",
       confirmPort80Off: "Opriți ascultarea pe portul 80? Cererile HTTP și verificările ACME HTTP nu vor mai ajunge la {proxy}.",
@@ -414,6 +591,8 @@ class ReverseProxyCard extends HTMLElement {
       ed_zoom: "Detaljeknap", ed_zoom_helper: "Skifter til hele kortet og tilbage",
       ed_show_title: "Vis titel",
       ed_show_subtitle: "Vis undertitel",
+      ed_illustration: "Animeret illustration", ed_illustration_theme: "Illustrationens tema",
+      theme_auto: "Automatisk (nat når solen er nede eller temaet er mørkt)", theme_day: "Dag", theme_night: "Nat",
       ed_language: "Sprog", lang_auto: "Auto (Home Assistant-sprog)",
       unavailable: "Utilgængelig", cancel: "Annuller",
       confirmPort80Off: "Stop med at lytte på port 80? HTTP-anmodninger og ACME HTTP-udfordringer når ikke længere frem til {proxy}.",
@@ -439,6 +618,8 @@ class ReverseProxyCard extends HTMLElement {
       ed_zoom: "Detaljknapp", ed_zoom_helper: "Växlar till hela kortet och tillbaka",
       ed_show_title: "Visa rubrik",
       ed_show_subtitle: "Visa underrubrik",
+      ed_illustration: "Animerad illustration", ed_illustration_theme: "Illustrationens tema",
+      theme_auto: "Automatiskt (natt när solen har gått ned eller temat är mörkt)", theme_day: "Dag", theme_night: "Natt",
       ed_language: "Språk", lang_auto: "Auto (Home Assistant-språk)",
       unavailable: "Ej tillgänglig", cancel: "Avbryt",
       confirmPort80Off: "Sluta lyssna på port 80? HTTP-förfrågningar och ACME HTTP-utmaningar når inte längre {proxy}.",
@@ -464,6 +645,8 @@ class ReverseProxyCard extends HTMLElement {
       ed_zoom: "Бутон за детайли", ed_zoom_helper: "Превключва към цялата карта и обратно",
       ed_show_title: "Показване на заглавието",
       ed_show_subtitle: "Показване на подзаглавието",
+      ed_illustration: "Анимирана илюстрация", ed_illustration_theme: "Тема на илюстрацията",
+      theme_auto: "Автоматично (нощ, когато слънцето е залязло или темата е тъмна)", theme_day: "Ден", theme_night: "Нощ",
       ed_language: "Език", lang_auto: "Автоматично (езикът на Home Assistant)",
       unavailable: "Недостъпно", cancel: "Отказ",
       confirmPort80Off: "Да се спре ли слушането на порт 80? HTTP заявките и ACME HTTP проверките вече няма да достигат до {proxy}.",
@@ -489,6 +672,8 @@ class ReverseProxyCard extends HTMLElement {
       ed_zoom: "Кнопка подробностей", ed_zoom_helper: "Переключает на полную карточку и обратно",
       ed_show_title: "Показывать заголовок",
       ed_show_subtitle: "Показывать подзаголовок",
+      ed_illustration: "Анимированная иллюстрация", ed_illustration_theme: "Тема иллюстрации",
+      theme_auto: "Автоматически (ночь, когда солнце зашло или тема тёмная)", theme_day: "День", theme_night: "Ночь",
       ed_language: "Язык", lang_auto: "Авто (язык Home Assistant)",
       unavailable: "Недоступно", cancel: "Отмена",
       confirmPort80Off: "Прекратить прослушивание порта 80? HTTP-запросы и проверки ACME HTTP больше не будут доходить до {proxy}.",
@@ -514,6 +699,8 @@ class ReverseProxyCard extends HTMLElement {
       ed_zoom: "Кнопка деталей", ed_zoom_helper: "Перемикає на повну картку і назад",
       ed_show_title: "Показувати заголовок",
       ed_show_subtitle: "Показувати підзаголовок",
+      ed_illustration: "Анімована ілюстрація", ed_illustration_theme: "Тема ілюстрації",
+      theme_auto: "Автоматично (ніч, коли сонце зайшло або тема темна)", theme_day: "День", theme_night: "Ніч",
       ed_language: "Мова", lang_auto: "Авто (мова Home Assistant)",
       unavailable: "Недоступно", cancel: "Скасувати",
       confirmPort80Off: "Припинити прослуховування порту 80? HTTP-запити та перевірки ACME HTTP більше не надходитимуть до {proxy}.",
@@ -539,6 +726,8 @@ class ReverseProxyCard extends HTMLElement {
       ed_zoom: "Részletek gomb", ed_zoom_helper: "Átvált a teljes kártyára és vissza",
       ed_show_title: "Cím megjelenítése",
       ed_show_subtitle: "Alcím megjelenítése",
+      ed_illustration: "Animált illusztráció", ed_illustration_theme: "Az illusztráció témája",
+      theme_auto: "Automatikus (éjszaka, ha lement a nap vagy sötét a téma)", theme_day: "Nappal", theme_night: "Éjszaka",
       ed_language: "Nyelv", lang_auto: "Automatikus (Home Assistant nyelve)",
       unavailable: "Nem elérhető", cancel: "Mégse",
       confirmPort80Off: "Leállítja a figyelést a 80-as porton? A HTTP-kérések és az ACME HTTP-kihívások többé nem jutnak el a {proxy}hoz.",
@@ -564,6 +753,8 @@ class ReverseProxyCard extends HTMLElement {
       ed_zoom: "Tlačidlo podrobností", ed_zoom_helper: "Prepne na celú kartu a späť",
       ed_show_title: "Zobraziť názov",
       ed_show_subtitle: "Zobraziť podnázov",
+      ed_illustration: "Animovaná ilustrácia", ed_illustration_theme: "Téma ilustrácie",
+      theme_auto: "Automaticky (noc, keď slnko zapadlo alebo je téma tmavá)", theme_day: "Deň", theme_night: "Noc",
       ed_language: "Jazyk", lang_auto: "Automaticky (jazyk Home Assistant)",
       unavailable: "Nedostupné", cancel: "Zrušiť",
       confirmPort80Off: "Prestať počúvať na porte 80? Požiadavky HTTP a overenia ACME HTTP sa už nedostanú k {proxy}.",
@@ -589,6 +780,8 @@ class ReverseProxyCard extends HTMLElement {
       ed_zoom: "Tlačítko podrobností", ed_zoom_helper: "Přepne na celou kartu a zpět",
       ed_show_title: "Zobrazit název",
       ed_show_subtitle: "Zobrazit podnázev",
+      ed_illustration: "Animovaná ilustrace", ed_illustration_theme: "Motiv ilustrace",
+      theme_auto: "Automaticky (noc, když slunce zapadlo nebo je motiv tmavý)", theme_day: "Den", theme_night: "Noc",
       ed_language: "Jazyk", lang_auto: "Automaticky (jazyk Home Assistant)",
       unavailable: "Nedostupné", cancel: "Zrušit",
       confirmPort80Off: "Přestat naslouchat na portu 80? Požadavky HTTP a ověření ACME HTTP se už k {proxy} nedostanou.",
@@ -614,6 +807,8 @@ class ReverseProxyCard extends HTMLElement {
       ed_zoom: "Gumb za podrobnosti", ed_zoom_helper: "Preklopi na celotno kartico in nazaj",
       ed_show_title: "Prikaži naslov",
       ed_show_subtitle: "Prikaži podnaslov",
+      ed_illustration: "Animirana ilustracija", ed_illustration_theme: "Tema ilustracije",
+      theme_auto: "Samodejno (noč, ko sonce zaide ali je tema temna)", theme_day: "Dan", theme_night: "Noč",
       ed_language: "Jezik", lang_auto: "Samodejno (jezik Home Assistanta)",
       unavailable: "Ni na voljo", cancel: "Prekliči",
       confirmPort80Off: "Prenehati poslušati na vratih 80? Zahteve HTTP in preverjanja ACME HTTP ne bodo več dosegla {proxy}ja.",
@@ -639,6 +834,8 @@ class ReverseProxyCard extends HTMLElement {
       ed_zoom: "Detaļu poga", ed_zoom_helper: "Pārslēdz uz pilno kartīti un atpakaļ",
       ed_show_title: "Rādīt virsrakstu",
       ed_show_subtitle: "Rādīt apakšvirsrakstu",
+      ed_illustration: "Animēta ilustrācija", ed_illustration_theme: "Ilustrācijas motīvs",
+      theme_auto: "Automātiski (nakts, kad saule norietējusi vai motīvs ir tumšs)", theme_day: "Diena", theme_night: "Nakts",
       ed_language: "Valoda", lang_auto: "Automātiski (Home Assistant valoda)",
       unavailable: "Nav pieejams", cancel: "Atcelt",
       confirmPort80Off: "Pārtraukt klausīšanos portā 80? HTTP pieprasījumi un ACME HTTP pārbaudes vairs nesasniegs {proxy}.",
@@ -664,6 +861,8 @@ class ReverseProxyCard extends HTMLElement {
       ed_zoom: "Κουμπί λεπτομερειών", ed_zoom_helper: "Εναλλάσσει στην πλήρη κάρτα και πίσω",
       ed_show_title: "Εμφάνιση τίτλου",
       ed_show_subtitle: "Εμφάνιση υπότιτλου",
+      ed_illustration: "Κινούμενη εικονογράφηση", ed_illustration_theme: "Θέμα εικονογράφησης",
+      theme_auto: "Αυτόματα (νύχτα όταν ο ήλιος έχει δύσει ή το θέμα είναι σκοτεινό)", theme_day: "Ημέρα", theme_night: "Νύχτα",
       ed_language: "Γλώσσα", lang_auto: "Αυτόματα (γλώσσα του Home Assistant)",
       unavailable: "Μη διαθέσιμο", cancel: "Ακύρωση",
       confirmPort80Off: "Διακοπή ακρόασης στη θύρα 80; Τα αιτήματα HTTP και οι έλεγχοι ACME HTTP δεν θα φτάνουν πλέον στο {proxy}.",
@@ -713,8 +912,21 @@ class ReverseProxyCard extends HTMLElement {
        letters (5ch of the 16 px title); the pill keeps its whole text and only gives way (ellipsis) when even
        that minimum title does not fit; the icon buttons never shrink. */
     .titles { flex: 1 1 0; min-width: 5ch; font-size: 16px; }
-    :host([hide-title]) .titles > .name, :host([hide-subtitle]) .titles > .sub { display: none; }
+    :host([hide-title]) .titles .name, :host([hide-subtitle]) .titles > .sub { display: none; }
     #status { display: flex; flex: 0 1 auto; min-width: 0; }
+    /* The status pill right after the title, centred on it, while the title stays whole and the pill's whole label fits
+       beside it; otherwise (measured by the card, see _fitPill) the pill on its own line under a one-line subtitle, and
+       if even that would not fit in the header, its dot alone (the label stays in title and aria-label). */
+    .titles { display: flex; flex-direction: column; }
+    .trow { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .trow .name { flex: 0 1 auto; min-width: 0; }
+    .trow #status { flex: none; max-width: none; }
+    .titles.below { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; }
+    .titles.below .trow { display: contents; }
+    .titles.below .name { max-width: 100%; }
+    .titles.below > .sub { justify-self: stretch; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .titles.below #status { grid-row: 3; max-width: 100%; }
+    .titles.pill-dot #status .ct { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
     .name { font-size: 16px; font-weight: 500; line-height: 1.25; color: var(--primary-text-color); text-decoration: none;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
     .sub { font-size: 12px; color: var(--secondary-text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -825,7 +1037,11 @@ class ReverseProxyCard extends HTMLElement {
     }
     @media (prefers-reduced-motion: reduce) {
       .sec-arrow, .ctrl, .icon-btn { transition: none; }
+      /* The header's picture stands still: no packets, steady LEDs. */
+      .rp-pk, .rp-led.ok, .rp-led.crit { animation: none; transition: none; }
+      .rp-pk { display: none; }
     }
+    ${RP_BANNER_CSS}
   `;
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
@@ -883,10 +1099,23 @@ class ReverseProxyCard extends HTMLElement {
     };
     this._outside ??= watchOutside(this, (ev) => this._onOutside(ev));
     this._outside.on();
+    // A new width (or the web font loaded): the status pill is fitted again (in the next frame, and only for a new width).
+    document.fonts?.ready?.then(() => this._fitPill());
+    if (typeof ResizeObserver !== "function") return;
+    this._resize ??= new ResizeObserver((entries) => {
+      const w = Math.round(entries.at(-1).contentRect.width);
+      if (w === this._fitWidth) return;
+      this._fitWidth = w;
+      cancelAnimationFrame(this._fitFrame);
+      this._fitFrame = requestAnimationFrame(() => this._fitPill());
+    });
+    this._resize.observe(this);
   }
 
   disconnectedCallback() {
     this._outside?.off();
+    this._resize?.disconnect();
+    this._fitWidth = undefined;
     this._pressing = false;
     window.removeEventListener("pointerup", this._onPressEnd, true);
     window.removeEventListener("pointercancel", this._onPressEnd, true);
@@ -911,6 +1140,10 @@ class ReverseProxyCard extends HTMLElement {
     if (!config || typeof config !== "object") throw new Error("Invalid configuration");
     for (const key of ["proxy_url", "zoraxy_url", "entity_prefix", "language", "device"]) {
       if (config[key] != null && typeof config[key] !== "string") throw new Error(`${key} must be a string`);
+    }
+    if (config.illustration != null && typeof config.illustration !== "boolean") throw new Error("illustration must be true or false");
+    if (config.illustration_theme != null && !["auto", "day", "night"].includes(config.illustration_theme)) {
+      throw new Error("illustration_theme must be auto, day or night");
     }
     this._config = config;
     // show_title / show_subtitle: the header's title / subtitle, hidden by the stylesheet
@@ -937,7 +1170,7 @@ class ReverseProxyCard extends HTMLElement {
 
   // What else re-renders the card: the language, the hour (certificate countdowns) and the user's admin flag.
   _key() {
-    return `${this._lang()}|${Math.floor(Date.now() / 3600000)}|${this._isAdmin()}`;
+    return `${this._lang()}|${Math.floor(Date.now() / 3600000)}|${this._isAdmin()}|${this._night()}`;
   }
 
   // Enabling or disabling a proxy rule is an admin-only action: other users see the rules' state, not the toggles.
@@ -1151,10 +1384,8 @@ class ReverseProxyCard extends HTMLElement {
     return state === "on" ? "ok" : state === "off" ? "crit" : "idle";
   }
 
-  _statusChip(state) {
-    const cls = this._statusCls(state);
-    const label = state === "on" ? this._t("active") : state === "off" ? this._t("inactive") : this._t("unavailable");
-    const text = rpEsc(label);
+  _statusChip(state, cls = this._statusCls(state), label = null) {
+    const text = rpEsc(label ?? (state === "on" ? this._t("active") : state === "off" ? this._t("inactive") : this._t("unavailable")));
     return `<span class="chip ${cls}" title="${text}"><span class="dot"></span><span class="ct">${text}</span></span>`;
   }
 
@@ -1301,7 +1532,33 @@ class ReverseProxyCard extends HTMLElement {
     if (!this._hass || !this._config) return;
     const focus = this._byPointer ? null : this._focusKey();
     this._draw();
+    this._fitPill();
     this._restoreFocus(focus);
+  }
+
+  // The status pill stays right after the title only while the whole title and the pill's whole label fit on that
+  // row; otherwise it takes a line of its own under the subtitle (.below), and when even then the title, the subtitle
+  // and the pill would not fit above the banner's network strip, it keeps its dot alone (.pill-dot). Measured in the
+  // real fonts, so that every language and title length gets its own answer.
+  _fitPill() {
+    for (const t of this.shadowRoot?.querySelectorAll?.(".titles") || []) {
+      const row = t.querySelector(":scope > .trow");
+      const chip = row?.querySelector(":scope > #status");
+      if (!chip?.getBoundingClientRect) continue;
+      t.classList.remove("below", "pill-dot");
+      const name = row.querySelector(":scope > .name");
+      const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
+      const title = name?.getClientRects().length ? textWidth(name) + gap : 0;
+      const pill = chip.getBoundingClientRect().width;
+      if (title + pill <= row.getBoundingClientRect().width) continue;
+      t.classList.add("below");
+      const r = t.getBoundingClientRect();
+      const banner = t.closest(".banner");
+      const box = banner?.getBoundingClientRect();
+      const floor = banner?.querySelector(".rp-ground")?.getBoundingClientRect().top ?? box?.bottom;
+      const tall = box && (r.bottom > floor + 0.5 || r.top < box.top - 0.5);
+      if (tall || pill > r.width + 0.5) t.classList.add("pill-dot");
+    }
   }
 
   // The card is redrawn with innerHTML: the focused control (a tile, a section header, a popup button…) is
@@ -1356,17 +1613,19 @@ class ReverseProxyCard extends HTMLElement {
       </button>`;
     };
 
+    const { head, status } = this._headParts();
     this.shadowRoot.innerHTML = `
       <style>${this.constructor.CSS}</style>
       <ha-card lang="${this._lang()}">
-        <div class="header">
-          ${this._headerIcon(this._statusCls(this._state(this._eid("binary_sensor.proxy_running"))))}
+        ${this._illustrated()
+          ? this._banner(head, `<div class="trow">${this._nameLink()}<span id="status">${status}</span></div><div class="sub" title="${rpEsc(sub)}">${rpEsc(sub)}</div>`)
+          : `<div class="header">
+          ${this._headerIcon(head.cls)}
           <div class="titles">
-            ${this._nameLink()}
-            <div class="sub">${rpEsc(sub)}</div>
+            <div class="trow">${this._nameLink()}<span id="status">${status}</span></div>
+            <div class="sub" title="${rpEsc(sub)}">${rpEsc(sub)}</div>
           </div>
-          <span id="status">${this._statusChip(this._state(this._eid("binary_sensor.proxy_running")))}</span>
-        </div>
+        </div>`}
 
         <div class="content">
           <div class="metrics">
@@ -1584,11 +1843,8 @@ class ReverseProxyMiniCard extends ReverseProxyCard {
     .mini .logo, .mini .brand-link { align-self: flex-start; }
     .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
     .head { display: flex; align-items: center; gap: 8px; min-width: 0; }
-    /* The title gives way but keeps about four letters; the link stays the size of its text. */
-    .mini .name { flex: 1 1 0; min-width: 5ch; max-width: max-content; }
     /* Natural width in a parent that sizes to its content (see :host::before in the full card). */
     :host { --zx-natural-width: 300px; }
-    .head #status { margin-left: auto; }
     .rs { display: flex; flex-wrap: wrap; gap: 2px 4px; margin-left: -4px; }
     .rs:empty { display: none; }
     .r { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; padding: 0 6px 0 4px; border-radius: 999px;
@@ -1618,6 +1874,9 @@ class ReverseProxyMiniCard extends ReverseProxyCard {
     @container (max-width: 150px) {
       .mini .logo, .mini .brand-link { display: none; }
     }
+    /* Illustrated mini card: the banner, then the chips under it. */
+    .rs-wrap { padding: 8px 12px 12px; }
+    .rs-wrap:has(> .rs:empty) { display: none; }
   `;
 
   static getConfigElement() { return document.createElement("reverse-proxy-mini-card-editor"); }
@@ -1652,7 +1911,8 @@ class ReverseProxyMiniCard extends ReverseProxyCard {
     super.setConfig(config);
   }
 
-  getCardSize() { return this._zoomed ? super.getCardSize() : 2; }
+  getCardSize() { return this._zoomed ? super.getCardSize() : this._illustrated() ? 3 : 2; }
+  _hasZoom() { return this._config?.zoom !== false; }
   getGridOptions() { return { columns: 12, min_columns: 4, rows: "auto" }; }
 
   // A chip: plain (tinted icon) while all is well, a tinted pill when it needs a look. It opens the entity's more-info.
@@ -1717,24 +1977,26 @@ class ReverseProxyMiniCard extends ReverseProxyCard {
     if (this._zoomed) this._draw();
     else this._renderMini();
     this._addZoom();
+    this._fitPill();
     this._restoreFocus(focus);
   }
 
   _renderMini() {
     this._snapshot();
+    const { head, status } = this._headParts();
     this.shadowRoot.innerHTML = `
       <style>${this.constructor.CSS}</style>
       <ha-card lang="${this._lang()}">
-        <div class="mini">
-          ${this._headerIcon(this._statusCls(this._state(this._eid("binary_sensor.proxy_running"))))}
+        ${this._illustrated()
+          ? `${this._banner(head, `<div class="trow">${this._nameLink()}<span id="status">${status}</span></div>`)}
+        <div class="rs-wrap"><div class="rs">${this._miniChips()}</div></div>`
+          : `<div class="mini">
+          ${this._headerIcon(head.cls)}
           <div class="body">
-            <div class="head">
-              ${this._nameLink()}
-              <span id="status">${this._statusChip(this._state(this._eid("binary_sensor.proxy_running")))}</span>
-            </div>
+            <div class="titles"><div class="trow head">${this._nameLink()}<span id="status">${status}</span></div></div>
             <div class="rs">${this._miniChips()}</div>
           </div>
-        </div>
+        </div>`}
       </ha-card>`;
     this.shadowRoot.querySelectorAll(".r").forEach((el) => {
       el.addEventListener("click", () => {
@@ -1745,7 +2007,8 @@ class ReverseProxyMiniCard extends ReverseProxyCard {
 
   // Detail button at the end of the header, top right in both views.
   _addZoom() {
-    const head = this._config.zoom !== false && this.shadowRoot.querySelector(".head, .header");
+    // On the illustrated header the button sits at the banner's top right (the picture leaves it room).
+    const head = this._config.zoom !== false && (this.shadowRoot.querySelector(".banner") || this.shadowRoot.querySelector(".head, .header"));
     if (!head) return;
     const button = document.createElement("button");
     button.className = "zoom";
@@ -1774,6 +2037,9 @@ class ReverseProxyCardEditor extends HTMLElement {
     { name: "entity_prefix", selector: { text: {} } },
     { name: "show_title", selector: { boolean: {} } },
     { name: "show_subtitle", selector: { boolean: {} } },
+    // The illustrated header (false: the classic header) and its day / night picture (auto: sun.sun, else dark mode).
+    { name: "illustration", selector: { boolean: {} } },
+    { name: "illustration_theme", selector: { select: { mode: "dropdown", options: ["auto", "day", "night"] } } },
   ];
 
   // The fields, then the language picker (its "Auto" label in the editor's language).
@@ -1803,10 +2069,16 @@ class ReverseProxyCardEditor extends HTMLElement {
       { value: "lv", label: "Latviešu" },
       { value: "el", label: "Ελληνικά" },
     ];
-    return [...this.SCHEMA, { name: "language", selector: { select: { mode: "dropdown", options } } }];
+    const themes = [
+      { value: "auto", label: t("theme_auto") },
+      { value: "day", label: t("theme_day") },
+      { value: "night", label: t("theme_night") },
+    ];
+    const fields = this.SCHEMA.map((f) => (f.name === "illustration_theme" ? { ...f, selector: { select: { mode: "dropdown", options: themes } } } : f));
+    return [...fields, { name: "language", selector: { select: { mode: "dropdown", options } } }];
   }
 
-  static DEFAULTS = { entity_prefix: "zoraxy_reverse_proxy_zoraxy", show_title: true, show_subtitle: true };
+  static DEFAULTS = { entity_prefix: "zoraxy_reverse_proxy_zoraxy", show_title: true, show_subtitle: true, illustration: true, illustration_theme: "auto" };
 
   setConfig(config) {
     this._config = Object.assign({}, config);
