@@ -70,7 +70,7 @@ const RP_BANNER_CSS = `
                         #2c323b; }
   .banner .header { position: absolute; left: 0; top: 0; bottom: 10px; right: calc(var(--rp-scene-w) + var(--rp-scene-r) + 4px);
                     padding: 0 4px 0 12px; box-sizing: border-box; }
-  .banner .titles { display: flex; flex-direction: column; gap: 2px; }
+  .banner .titles { gap: 2px; }
   .banner .name { color: inherit; }
   .banner .sub { color: #3b5b78; }
   .banner.night .sub { color: rgba(255,255,255,.78); }
@@ -78,10 +78,7 @@ const RP_BANNER_CSS = `
   .banner.night .logo { background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); }
   .banner .logo .badge { box-shadow: 0 0 0 1px rgba(13,42,69,.16), 0 1px 3px rgba(13,42,69,.18); }
   .banner .chip .dot { background: var(--c, var(--zx-ok)); }
-  /* The status pill (#status) on the title row, right after the title, in the colour of the icon. */
-  .banner .trow { display: flex; align-items: center; gap: 8px; min-width: 0; }
-  .banner .trow .name { flex: 0 100 auto; min-width: 4.5ch; }
-  .banner .trow #status { flex: 0 1 auto; min-width: 0; max-width: 51%; }
+  /* The status pill (#status) on the title row, right after the title, in the colour of the icon (see .trow). */
   .banner #status .chip { min-width: 0; max-width: 100%; box-sizing: border-box; overflow: hidden; }
   .banner #status .ct { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
   .banner .chip { background: color-mix(in srgb, var(--c, var(--zx-ok)) 18%, rgba(255,255,255,.78)); color: color-mix(in srgb, var(--c, var(--zx-ok)) 45%, #0d2a45); }
@@ -92,14 +89,6 @@ const RP_BANNER_CSS = `
   .banner .zoom:hover { background: rgba(255,255,255,.75); color: #33506b; }
   .banner.night .zoom { color: #fff; background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
   .banner.night .zoom:hover { background: rgba(255,255,255,.22); color: #fff; }
-  /* Not enough room beside the title (measured by the card: the pill would be cut), or a narrow card: the pill on
-     its own line under the subtitle; under 200 px only its dot shows (its text stays in its title). */
-  .banner[data-wrap] .titles { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; }
-  .banner[data-wrap] .trow { display: contents; } .banner[data-wrap] .trow .name { max-width: 100%; }
-  .banner[data-wrap] .titles > .sub { justify-self: stretch; } .banner[data-wrap] .trow #status { order: 9; max-width: 100%; }
-  @container (max-width: 260px) { .banner .titles { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; }
-    .banner .trow { display: contents; } .banner .trow .name { max-width: 100%; }
-    .banner .titles > .sub { justify-self: stretch; } .banner .trow #status { order: 9; max-width: 100%; } }
   .banner + .content { padding-top: 12px; }
   .rp-globe { fill: #dbeafe; stroke: #2f80ed; } .night .rp-globe { fill: #1d3a5e; }
   .rp-meridian { fill: none; stroke: #2f80ed; stroke-width: 1; }
@@ -132,6 +121,13 @@ const RP_BANNER_CSS = `
 // the page. The handler runs when the press and the release are both outside the card (a slider dragged out of the
 // card does not count), and a scroll does not count (the browser cancels the pointer); keyboard clicks still go
 // through the click event. The handler keeps its own checks (outside of the card, not in a dialog).
+// The whole width of an element's text in its own font, an ellipsised one included.
+const textWidth = (el) => {
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  return range.getBoundingClientRect().width;
+};
+
 const watchOutside = (card, handler) => {
   let downOutside = false;
   const onDown = (ev) => {
@@ -916,8 +912,21 @@ class ReverseProxyCard extends HTMLElement {
        letters (5ch of the 16 px title); the pill keeps its whole text and only gives way (ellipsis) when even
        that minimum title does not fit; the icon buttons never shrink. */
     .titles { flex: 1 1 0; min-width: 5ch; font-size: 16px; }
-    :host([hide-title]) .titles > .name, :host([hide-subtitle]) .titles > .sub { display: none; }
+    :host([hide-title]) .titles .name, :host([hide-subtitle]) .titles > .sub { display: none; }
     #status { display: flex; flex: 0 1 auto; min-width: 0; }
+    /* The status pill right after the title, centred on it, while the title stays whole and the pill's whole label fits
+       beside it; otherwise (measured by the card, see _fitPill) the pill on its own line under a one-line subtitle, and
+       if even that would not fit in the header, its dot alone (the label stays in title and aria-label). */
+    .titles { display: flex; flex-direction: column; }
+    .trow { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .trow .name { flex: 0 1 auto; min-width: 0; }
+    .trow #status { flex: none; max-width: none; }
+    .titles.below { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; }
+    .titles.below .trow { display: contents; }
+    .titles.below .name { max-width: 100%; }
+    .titles.below > .sub { justify-self: stretch; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .titles.below #status { grid-row: 3; max-width: 100%; }
+    .titles.pill-dot #status .ct { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
     .name { font-size: 16px; font-weight: 500; line-height: 1.25; color: var(--primary-text-color); text-decoration: none;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
     .sub { font-size: 12px; color: var(--secondary-text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1090,7 +1099,8 @@ class ReverseProxyCard extends HTMLElement {
     };
     this._outside ??= watchOutside(this, (ev) => this._onOutside(ev));
     this._outside.on();
-    // A new width: the status pill is fitted again (in the next frame, and only for a new width).
+    // A new width (or the web font loaded): the status pill is fitted again (in the next frame, and only for a new width).
+    document.fonts?.ready?.then(() => this._fitPill());
     if (typeof ResizeObserver !== "function") return;
     this._resize ??= new ResizeObserver((entries) => {
       const w = Math.round(entries.at(-1).contentRect.width);
@@ -1526,21 +1536,29 @@ class ReverseProxyCard extends HTMLElement {
     this._restoreFocus(focus);
   }
 
-  // The banner's status pill goes on its own line under the subtitle when it would be cut next to the title
-  // (fractional widths: scrollWidth / clientWidth are rounded).
+  // The status pill stays right after the title only while the whole title and the pill's whole label fit on that
+  // row; otherwise it takes a line of its own under the subtitle (.below), and when even then the title, the subtitle
+  // and the pill would not fit above the banner's network strip, it keeps its dot alone (.pill-dot). Measured in the
+  // real fonts, so that every language and title length gets its own answer.
   _fitPill() {
-    const pill = this.shadowRoot.querySelector(".banner .trow #status .chip");
-    const banner = pill?.closest(".banner");
-    if (!banner || !pill.getBoundingClientRect) return;
-    banner.removeAttribute("data-wrap");
-    const have = pill.getBoundingClientRect().width;
-    const box = pill.parentElement;
-    box.style.maxWidth = "none";
-    box.style.flex = "none";
-    const need = pill.getBoundingClientRect().width;
-    box.style.maxWidth = "";
-    box.style.flex = "";
-    if (need > have + 0.01) banner.setAttribute("data-wrap", "");
+    for (const t of this.shadowRoot?.querySelectorAll?.(".titles") || []) {
+      const row = t.querySelector(":scope > .trow");
+      const chip = row?.querySelector(":scope > #status");
+      if (!chip?.getBoundingClientRect) continue;
+      t.classList.remove("below", "pill-dot");
+      const name = row.querySelector(":scope > .name");
+      const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
+      const title = name?.getClientRects().length ? textWidth(name) + gap : 0;
+      const pill = chip.getBoundingClientRect().width;
+      if (title + pill <= row.getBoundingClientRect().width + 0.5) continue;
+      t.classList.add("below");
+      const r = t.getBoundingClientRect();
+      const banner = t.closest(".banner");
+      const box = banner?.getBoundingClientRect();
+      const floor = banner?.querySelector(".rp-ground")?.getBoundingClientRect().top ?? box?.bottom;
+      const tall = box && (r.bottom > floor + 0.5 || r.top < box.top - 0.5);
+      if (tall || pill > r.width + 0.5) t.classList.add("pill-dot");
+    }
   }
 
   // The card is redrawn with innerHTML: the focused control (a tile, a section header, a popup button…) is
@@ -1600,14 +1618,13 @@ class ReverseProxyCard extends HTMLElement {
       <style>${this.constructor.CSS}</style>
       <ha-card lang="${this._lang()}">
         ${this._illustrated()
-          ? this._banner(head, `<div class="trow">${this._nameLink()}<span id="status">${status}</span></div><div class="sub">${rpEsc(sub)}</div>`)
+          ? this._banner(head, `<div class="trow">${this._nameLink()}<span id="status">${status}</span></div><div class="sub" title="${rpEsc(sub)}">${rpEsc(sub)}</div>`)
           : `<div class="header">
           ${this._headerIcon(head.cls)}
           <div class="titles">
-            ${this._nameLink()}
-            <div class="sub">${rpEsc(sub)}</div>
+            <div class="trow">${this._nameLink()}<span id="status">${status}</span></div>
+            <div class="sub" title="${rpEsc(sub)}">${rpEsc(sub)}</div>
           </div>
-          <span id="status">${status}</span>
         </div>`}
 
         <div class="content">
@@ -1826,11 +1843,8 @@ class ReverseProxyMiniCard extends ReverseProxyCard {
     .mini .logo, .mini .brand-link { align-self: flex-start; }
     .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
     .head { display: flex; align-items: center; gap: 8px; min-width: 0; }
-    /* The title gives way but keeps about four letters; the link stays the size of its text. */
-    .mini .name { flex: 1 1 0; min-width: 5ch; max-width: max-content; }
     /* Natural width in a parent that sizes to its content (see :host::before in the full card). */
     :host { --zx-natural-width: 300px; }
-    .head #status { margin-left: auto; }
     .rs { display: flex; flex-wrap: wrap; gap: 2px 4px; margin-left: -4px; }
     .rs:empty { display: none; }
     .r { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; padding: 0 6px 0 4px; border-radius: 999px;
@@ -1979,10 +1993,7 @@ class ReverseProxyMiniCard extends ReverseProxyCard {
           : `<div class="mini">
           ${this._headerIcon(head.cls)}
           <div class="body">
-            <div class="head">
-              ${this._nameLink()}
-              <span id="status">${status}</span>
-            </div>
+            <div class="titles"><div class="trow head">${this._nameLink()}<span id="status">${status}</span></div></div>
             <div class="rs">${this._miniChips()}</div>
           </div>
         </div>`}

@@ -7,7 +7,7 @@
 - The header icon is always tinted with the status: green running with every route up, orange with routes down, red stopped, grey unavailable.
 - Night picture after sunset (`sun.sun`) or with the dark theme, even while the sun is up, forced with `illustration_theme: day | night`; `illustration: false` keeps the classic header. Both options are in the visual editor of both cards. The animation stops when the system asks for reduced motion.
 - README: **animated captures** (GIF, light and dark) of the header: running, a route down and night.
-- Status pill right after the title on the banner, in the header icon's colour on a frosted tint ("Upstreams down: n" in amber while the proxy runs with routes down); on its own line under the subtitle when it does not fit beside the title, its dot alone under 200 px. The mini card's expand / collapse button is a 24 px frosted round button 5 px from the banner's top right corner.
+- Status pill right after the title on the banner, in the header icon's colour on a frosted tint ("Upstreams down: n" in amber while the proxy runs with routes down); it stays beside the title only while the whole title and the pill's whole label fit on that row (measured in the real fonts, so in every language), otherwise it takes its own line under a one-line subtitle, keeping its dot alone when even that would not fit above the network strip and under 200 px; the classic header (`illustration: false`) follows the same rule. The mini card's expand / collapse button is a 24 px frosted round button 5 px from the banner's top right corner.
 
 ## 2.4.2 - 2026-11-13
 
