@@ -1571,6 +1571,16 @@ class ReverseProxyCard extends HTMLElement {
   // and the pill would not fit above the banner's network strip, it keeps its dot alone (.pill-dot). Measured in the
   // real fonts, so that every language and title length gets its own answer.
   _fitPill() {
+    // Home Assistant's <ha-card> (a Lit element) shows its content only from its first update, a microtask after it
+    // is connected: measured before, everything is 0 px wide and the pill lands on the wrong line. Fitted then.
+    const haCard = this.shadowRoot?.querySelector?.("ha-card");
+    if (haCard && haCard.hasUpdated === false) {
+      this._pillWait ??= (haCard.updateComplete?.then ? haCard.updateComplete : new Promise((r) => requestAnimationFrame(r))).then(() => {
+        this._pillWait = null;
+        this._fitPill();
+      });
+      return;
+    }
     for (const t of this.shadowRoot?.querySelectorAll?.(".titles") || []) {
       const row = t.querySelector(":scope > .trow");
       const chip = row?.querySelector(":scope > #status");
