@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.2 - 2026-11-20
+
+### Maintenance
+- README: the logos of the supported proxies (Zoraxy, Traefik, Nginx Proxy Manager) are shown centred under the integration's own logo, as the README layout asks.
+
 ## 2.5.1 - 2026-11-18
 
 ### Fixes

@@ -1,4 +1,4 @@
-const REVERSE_PROXY_CARD_VERSION = '2.5.1';
+const REVERSE_PROXY_CARD_VERSION = '2.5.2';
 
 // Escapes a value interpolated into innerHTML, as text or inside a quoted attribute (as parcelEsc in ha-parcel).
 function rpEsc(s) {
