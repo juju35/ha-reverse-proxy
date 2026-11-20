@@ -2,6 +2,9 @@
 
 ## 2.5.2 - 2026-11-20
 
+### Fixes
+- Card and mini card: a state update no longer rebuilds the whole card (`innerHTML`). The card is now patched in place: only the changed texts and attributes are written, the illustration (and its animations), the icons, the open sections and the focus are kept. The dashboard no longer jumps by itself when a proxy state changes.
+
 ### Maintenance
 - README: the logos of the supported proxies (Zoraxy, Traefik, Nginx Proxy Manager) are shown centred under the integration's own logo, as the README layout asks.
 
