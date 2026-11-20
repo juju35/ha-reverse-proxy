@@ -10,6 +10,12 @@
 
 <p align="center"><img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/custom_components/reverse_proxy/brand/icon.png" alt="Reverse Proxy (Zoraxy, Traefik, Nginx Proxy Manager)" width="120"></p>
 
+<p align="center">
+  <a href="https://github.com/tobychui/zoraxy"><img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/custom_components/reverse_proxy/brand/zoraxy.svg" alt="Zoraxy" height="48"></a>&nbsp;&nbsp;
+  <a href="https://traefik.io/traefik/"><img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/custom_components/reverse_proxy/brand/traefik.svg" alt="Traefik" height="48"></a>&nbsp;&nbsp;
+  <a href="https://nginxproxymanager.com/"><img src="https://raw.githubusercontent.com/juju35/ha-reverse-proxy/main/custom_components/reverse_proxy/brand/nginx_proxy_manager.svg" alt="Nginx Proxy Manager" height="48"></a>
+</p>
+
 Home Assistant integration and Lovelace cards for your reverse proxy — [Zoraxy](https://github.com/tobychui/zoraxy), [Traefik](https://traefik.io/traefik/) or [Nginx Proxy Manager](https://nginxproxymanager.com/): proxy status, proxy rules and their upstream health, redirects and, where the proxy's API allows it, controls, TLS certificates with ACME renewal and rules you can switch on and off from the dashboard. Formerly *ha-zoraxy*: see [Upgrading from ha-zoraxy](#upgrading-from-ha-zoraxy).
 
 [![Open your Home Assistant instance and open a repository inside the Marketplace.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=juju35&repository=ha-reverse-proxy&category=integration)

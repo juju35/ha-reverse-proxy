@@ -31,6 +31,14 @@ def normalize_host(host: str) -> str:
     return host.strip().rstrip("/").lower()
 
 
+def _refusal_reason(data: object) -> str:
+    """The server's own reason for a refused login, never the raw response (it could echo what was sent)."""
+    err = data.get("error") if isinstance(data, dict) else None
+    if isinstance(err, dict):
+        err = err.get("message")
+    return str(err)[:120] if isinstance(err, str) and err else "no reason given"
+
+
 class ProxyClient:
     """What the coordinators and the config flow need from a reverse proxy API."""
 
@@ -135,7 +143,7 @@ class ZoraxyClient(LoginClient):
         except ValueError:
             data = None
         if status != 200 or (isinstance(data, dict) and data.get("error")):
-            _LOGGER.debug("Zoraxy: login refused (HTTP %s): %s", status, body[:200])
+            _LOGGER.debug("Zoraxy: login refused (HTTP %s): %s", status, _refusal_reason(data))
             raise ProxyAuthError(f"Zoraxy refused the login (HTTP {status})")
 
         self._csrf_token = token
@@ -280,7 +288,7 @@ class NpmClient(LoginClient):
         if not isinstance(data, dict):
             raise ProxyError(f"No Nginx Proxy Manager API at {self.host} (/api/tokens gives no JSON)")
         if status in (400, 401, 403):
-            _LOGGER.debug("Nginx Proxy Manager: login refused (HTTP %s): %s", status, body[:200])
+            _LOGGER.debug("Nginx Proxy Manager: login refused (HTTP %s): %s", status, _refusal_reason(data))
             raise ProxyAuthError(f"Nginx Proxy Manager refused the login (HTTP {status})")
         if data.get("requires_2fa"):
             # The API asks for a second factor: an account with two-factor authentication cannot be polled.

@@ -43,10 +43,10 @@ const context = {
 };
 vm.createContext(context);
 vm.runInContext(
-  `${source}\nthis.zx = { ReverseProxyCard, ReverseProxyMiniCard, ReverseProxyCardEditor, ReverseProxyMiniCardEditor, ZoraxyCard, ZoraxyMiniCard, rpEsc, rpSafeUrl, REVERSE_PROXY_CARD_VERSION };`,
+  `${source}\nthis.zx = { ReverseProxyCard, ReverseProxyMiniCard, ReverseProxyCardEditor, ReverseProxyMiniCardEditor, ZoraxyCard, ZoraxyMiniCard, rpEsc, rpSafeUrl, rpPatchChildren, REVERSE_PROXY_CARD_VERSION };`,
   context,
 );
-const { ReverseProxyCard, ReverseProxyMiniCard, ReverseProxyCardEditor, ReverseProxyMiniCardEditor, ZoraxyCard, ZoraxyMiniCard, rpEsc, rpSafeUrl, REVERSE_PROXY_CARD_VERSION } = context.zx;
+const { ReverseProxyCard, ReverseProxyMiniCard, ReverseProxyCardEditor, ReverseProxyMiniCardEditor, ZoraxyCard, ZoraxyMiniCard, rpEsc, rpSafeUrl, rpPatchChildren, REVERSE_PROXY_CARD_VERSION } = context.zx;
 
 const PREFIX = 'zoraxy_reverse_proxy_zoraxy';
 const isoInDays = (n) => new Date(Date.now() + n * 86400000 + 3600000).toISOString();
@@ -1404,4 +1404,108 @@ test("no fixed width decides the pill's place: only the dot-only rule at 200 px 
   assert.doesNotMatch(css, /data-wrap|max-width: 51%/);
   assert.match(css, /\.titles\.below \.trow \{ display: contents; \}/);
   assert.match(css, /\.titles\.pill-dot #status \.ct \{ position: absolute;/);
+});
+
+// A tiny DOM for rpPatchChildren: elements with attributes and children, text nodes.
+const fakeText = (value) => ({ nodeType: 3, nodeName: '#text', nodeValue: value });
+function fakeEl(name, attrs = {}, children = []) {
+  const el = {
+    nodeType: 1,
+    nodeName: name.toUpperCase(),
+    _attrs: { ...attrs },
+    childNodes: [],
+    get id() { return this._attrs.id || ''; },
+    get attributes() { return Object.entries(this._attrs).map(([n, value]) => ({ name: n, value })); },
+    getAttribute(n) { return n in this._attrs ? this._attrs[n] : null; },
+    hasAttribute(n) { return n in this._attrs; },
+    setAttribute(n, v) { this._attrs[n] = String(v); el.writes++; },
+    removeAttribute(n) { delete this._attrs[n]; el.writes++; },
+    get lastChild() { return this.childNodes.at(-1); },
+    appendChild(n) { this.childNodes.push(n); return n; },
+    removeChild(n) { this.childNodes.splice(this.childNodes.indexOf(n), 1); return n; },
+    replaceChild(n, o) { this.childNodes[this.childNodes.indexOf(o)] = n; return o; },
+    writes: 0,
+  };
+  for (const c of children) el.appendChild(c);
+  return el;
+}
+
+test('a state update patches the card in place: kept nodes, new text and attributes only', () => {
+  const tree = (n, cls) => fakeEl('div', {}, [
+    fakeEl('svg', { class: 'rp-scene' }),
+    fakeEl('button', { class: `r ${cls}`, 'data-entity': 'sensor.a' }, [fakeText(`${n} rules`)]),
+  ]);
+  const live = tree(3, 'ok');
+  const [svg, chip] = live.childNodes;
+  rpPatchChildren(live, tree(4, 'warn'));
+  assert.equal(live.childNodes[0], svg, 'the illustration is kept');
+  assert.equal(live.childNodes[1], chip, 'the chip is kept');
+  assert.equal(chip.getAttribute('class'), 'r warn');
+  assert.equal(chip.childNodes[0].nodeValue, '4 rules');
+  // Same HTML again: nothing written.
+  const writes = chip.writes;
+  rpPatchChildren(live, tree(4, 'warn'));
+  assert.equal(chip.writes, writes);
+  // A node of another role (another first class or id) is replaced, so it never keeps the listener of another role.
+  const other = fakeEl('div', {}, [fakeEl('svg', { class: 'rp-scene' }), fakeEl('button', { class: 'zoom' })]);
+  rpPatchChildren(live, other);
+  assert.notEqual(live.childNodes[1], chip);
+  assert.equal(live.childNodes[1].getAttribute('class'), 'zoom');
+  assert.equal(live.childNodes.length, 2);
+});
+
+test('after the first render the card is patched, never rewritten; an unrelated state draws nothing', () => {
+  const states = { [`sensor.${PREFIX}_regles_proxy`]: { state: '2', attributes: { rules: [] } }, 'sensor.other': { state: '1', attributes: {} } };
+  for (const Cls of [ReverseProxyCard, ReverseProxyMiniCard]) {
+    const card = makeCard(states, Cls, {});
+    card._fitPill = () => {};
+    card.hass = card._hass;
+    // The page now holds the card: the next renders go through a template and _commit.
+    let rewrites = 0;
+    const root = card.shadowRoot;
+    let html = root.innerHTML;
+    Object.defineProperty(root, 'innerHTML', { get: () => html, set: (v) => { html = v; rewrites++; } });
+    root.firstChild = {};
+    const fragment = { querySelector: () => null, querySelectorAll: () => [], getElementById: () => null };
+    const createElement = context.document.createElement;
+    context.document.createElement = (tag) => (tag === 'template' ? { content: fragment, innerHTML: '' } : createElement(tag));
+    const commits = [];
+    card._commit = (f) => commits.push(f);
+    try {
+      card.hass = { ...card._hass, states: { ...card._hass.states, 'sensor.other': { state: '2', attributes: {} } } };
+      assert.equal(commits.length, 0, `${Cls.name}: an unrelated state does not draw`);
+      card.hass = { ...card._hass, states: { ...card._hass.states, [`sensor.${PREFIX}_regles_proxy`]: { state: '3', attributes: { rules: [] } } } };
+      assert.deepEqual(commits, [fragment], `${Cls.name}: patched once`);
+      assert.equal(rewrites, 0, `${Cls.name}: never rewritten with innerHTML`);
+    } finally {
+      context.document.createElement = createElement;
+    }
+  }
+});
+
+// Home Assistant's <ha-card> is a Lit element: it lays out its content from its first update only, a microtask after it
+// is connected. Measured before, the title and the pill are 0 px wide and the pill lands on the wrong line for a frame:
+// the card waits for that update (updateComplete), then measures once.
+test("the status pill is measured only once <ha-card> has drawn its content", async () => {
+  const card = makeCard();
+  const asked = [];
+  let drawn;
+  const haCard = { hasUpdated: false, updateComplete: new Promise((done) => (drawn = done)) };
+  const root = {
+    querySelector: (sel) => (sel === "ha-card" ? haCard : (asked.push(sel), null)),
+    querySelectorAll: (sel) => (asked.push(sel), []),
+  };
+  Object.assign(card.shadowRoot, root);
+  card._fitPill();
+  card._fitPill();
+  await null;
+  assert.deepEqual(asked, [], "nothing measured before <ha-card>'s first update");
+  haCard.hasUpdated = true;
+  drawn(true);
+  await haCard.updateComplete;
+  await null;
+  assert.ok(asked.length > 0, "measured once it is drawn");
+  const once = asked.length;
+  card._fitPill();
+  assert.equal(asked.length, once * 2, "then measured right away, with no wait");
 });

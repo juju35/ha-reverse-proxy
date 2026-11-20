@@ -1,4 +1,4 @@
-const REVERSE_PROXY_CARD_VERSION = '2.5.1';
+const REVERSE_PROXY_CARD_VERSION = '2.5.2';
 
 // Escapes a value interpolated into innerHTML, as text or inside a quoted attribute (as parcelEsc in ha-parcel).
 function rpEsc(s) {
@@ -126,6 +126,36 @@ const textWidth = (el) => {
   const range = document.createRange();
   range.selectNodeContents(el);
   return range.getBoundingClientRect().width;
+};
+
+// Patch the shadow DOM in place from the new HTML (as ha-flight-board-card's morph): the nodes that did not change
+// are kept (the illustration's SVG and its animations, the icons, the focus), only the changed text and
+// attributes are written, so a state update never rebuilds the card nor changes its height for a frame (which
+// made the dashboard scroll by itself). Nodes are matched by position when they are the same element with the same
+// id and the same first class (their role): a node of another role is replaced, so the listener bound to a kept
+// node is always the one of its role (the listeners read their data from the node when they run).
+const rpPatchAttrs = (cur, next) => {
+  for (const { name } of [...cur.attributes]) if (!next.hasAttribute(name)) cur.removeAttribute(name);
+  for (const { name, value } of next.attributes) if (cur.getAttribute(name) !== value) cur.setAttribute(name, value);
+};
+const rpRole = (n) => `${n.id || ""}|${n.getAttribute("class")?.trim().split(/\s+/)[0] || ""}`;
+const rpSameNode = (a, b) => !!a && a.nodeType === b.nodeType && a.nodeName === b.nodeName && (a.nodeType !== 1 || rpRole(a) === rpRole(b));
+const rpPatchChildren = (cur, next) => {
+  const old = [...cur.childNodes];
+  const fresh = [...next.childNodes];
+  fresh.forEach((n, i) => {
+    const o = old[i];
+    if (!rpSameNode(o, n)) {
+      if (o) cur.replaceChild(n, o);
+      else cur.appendChild(n);
+      return;
+    }
+    if (n.nodeType === 1) {
+      rpPatchAttrs(o, n);
+      rpPatchChildren(o, n);
+    } else if (o.nodeValue !== n.nodeValue) o.nodeValue = n.nodeValue;
+  });
+  while (cur.childNodes.length > fresh.length) cur.removeChild(cur.lastChild);
 };
 
 const watchOutside = (card, handler) => {
@@ -1541,6 +1571,16 @@ class ReverseProxyCard extends HTMLElement {
   // and the pill would not fit above the banner's network strip, it keeps its dot alone (.pill-dot). Measured in the
   // real fonts, so that every language and title length gets its own answer.
   _fitPill() {
+    // Home Assistant's <ha-card> (a Lit element) shows its content only from its first update, a microtask after it
+    // is connected: measured before, everything is 0 px wide and the pill lands on the wrong line. Fitted then.
+    const haCard = this.shadowRoot?.querySelector?.("ha-card");
+    if (haCard && haCard.hasUpdated === false) {
+      this._pillWait ??= (haCard.updateComplete?.then ? haCard.updateComplete : new Promise((r) => requestAnimationFrame(r))).then(() => {
+        this._pillWait = null;
+        this._fitPill();
+      });
+      return;
+    }
     for (const t of this.shadowRoot?.querySelectorAll?.(".titles") || []) {
       const row = t.querySelector(":scope > .trow");
       const chip = row?.querySelector(":scope > #status");
@@ -1580,6 +1620,28 @@ class ReverseProxyCard extends HTMLElement {
       ?.focus({ preventScroll: true });
   }
 
+  // The card's HTML, as a fragment to bind the listeners to before _commit puts it on the page: the first render
+  // (and the unit tests, without a DOM) write it as innerHTML; the next ones patch the page in place (rpPatchChildren),
+  // so a state update keeps every node that did not change. A kept node keeps its listeners; only the new nodes,
+  // bound here, bring theirs.
+  _paint(html) {
+    const root = this.shadowRoot;
+    const tpl = root.firstChild ? document.createElement("template") : null;
+    if (!tpl?.content) {
+      root.innerHTML = html;
+      return root;
+    }
+    tpl.innerHTML = html;
+    return tpl.content;
+  }
+
+  _commit(fragment) {
+    if (fragment !== this.shadowRoot) rpPatchChildren(this.shadowRoot, fragment);
+  }
+
+  // What a subclass adds to the fragment before it goes on the page (the mini card's detail button).
+  _decorate() {}
+
   _draw() {
     this._snapshot();
 
@@ -1614,7 +1676,7 @@ class ReverseProxyCard extends HTMLElement {
     };
 
     const { head, status } = this._headParts();
-    this.shadowRoot.innerHTML = `
+    const root = this._paint(`
       <style>${this.constructor.CSS}</style>
       <ha-card lang="${this._lang()}">
         ${this._illustrated()
@@ -1643,7 +1705,7 @@ class ReverseProxyCard extends HTMLElement {
           ${this._section("rules",     `${this._t("proxyRules")} (${listed ? rules.length : "–"})`,   ReverseProxyCard.ICONS.router,   this._buildRules(rules, listed))}
           ${this._has("redirects") ? this._section("redirects", `${this._t("redirections")} (${listed ? redirects.length : "–"})`, ReverseProxyCard.ICONS.redirect, this._buildRedirects(redirects, listed)) : ""}
         </div>
-      </ha-card>`;
+      </ha-card>`);
 
     // Sections collapse/expand
     // Header and domain links are not buttons/anchors: Enter and Space activate them from the keyboard too.
@@ -1652,7 +1714,7 @@ class ReverseProxyCard extends HTMLElement {
       e.preventDefault();
       action(e);
     });
-    this.shadowRoot.querySelectorAll(".sec-header").forEach(h => {
+    root.querySelectorAll(".sec-header").forEach(h => {
       const toggle = () => this._setSection(h.dataset.id, !this._sectionOpen[h.dataset.id]);
       h.addEventListener("click", toggle);
       onKey(h, toggle);
@@ -1660,11 +1722,11 @@ class ReverseProxyCard extends HTMLElement {
 
     // Switches
     for (const { id } of ReverseProxyCard.CONTROLS) {
-      this.shadowRoot.getElementById(id)?.addEventListener("click", () => this._onCtrl(id));
+      root.getElementById(id)?.addEventListener("click", () => this._onCtrl(id));
     }
 
     // Certificate renewal buttons
-    this.shadowRoot.querySelectorAll(".renew-btn").forEach(btn => {
+    root.querySelectorAll(".renew-btn").forEach(btn => {
       btn.addEventListener("click", async e => {
         e.stopPropagation();
         btn.classList.add("busy");
@@ -1680,7 +1742,7 @@ class ReverseProxyCard extends HTMLElement {
     });
 
     // Proxy rule domain links
-    this.shadowRoot.querySelectorAll(".domain-link").forEach(el => {
+    root.querySelectorAll(".domain-link").forEach(el => {
       const open = (e) => {
         e.stopPropagation();
         window.open(el.dataset.href, "_blank", "noopener,noreferrer");
@@ -1690,13 +1752,15 @@ class ReverseProxyCard extends HTMLElement {
     });
 
     // Proxy rule enable/disable buttons
-    this.shadowRoot.querySelectorAll(".rule-btn").forEach(btn => {
+    root.querySelectorAll(".rule-btn").forEach(btn => {
       btn.addEventListener("click", e => {
         e.stopPropagation();
         this._onRule(btn);
       });
     });
 
+    this._decorate(root);
+    this._commit(root);
     this._renderConfirm();
   }
 
@@ -1976,7 +2040,6 @@ class ReverseProxyMiniCard extends ReverseProxyCard {
     const focus = this._byPointer ? null : this._focusKey();
     if (this._zoomed) this._draw();
     else this._renderMini();
-    this._addZoom();
     this._fitPill();
     this._restoreFocus(focus);
   }
@@ -1984,7 +2047,7 @@ class ReverseProxyMiniCard extends ReverseProxyCard {
   _renderMini() {
     this._snapshot();
     const { head, status } = this._headParts();
-    this.shadowRoot.innerHTML = `
+    const root = this._paint(`
       <style>${this.constructor.CSS}</style>
       <ha-card lang="${this._lang()}">
         ${this._illustrated()
@@ -1997,18 +2060,24 @@ class ReverseProxyMiniCard extends ReverseProxyCard {
             <div class="rs">${this._miniChips()}</div>
           </div>
         </div>`}
-      </ha-card>`;
-    this.shadowRoot.querySelectorAll(".r").forEach((el) => {
+      </ha-card>`);
+    root.querySelectorAll(".r").forEach((el) => {
       el.addEventListener("click", () => {
         this.dispatchEvent(new CustomEvent("hass-more-info", { detail: { entityId: el.dataset.entity }, bubbles: true, composed: true }));
       });
     });
+    this._decorate(root);
+    this._commit(root);
+  }
+
+  _decorate(root) {
+    this._addZoom(root);
   }
 
   // Detail button at the end of the header, top right in both views.
-  _addZoom() {
+  _addZoom(root = this.shadowRoot) {
     // On the illustrated header the button sits at the banner's top right (the picture leaves it room).
-    const head = this._config.zoom !== false && (this.shadowRoot.querySelector(".banner") || this.shadowRoot.querySelector(".head, .header"));
+    const head = this._config.zoom !== false && (root.querySelector(".banner") || root.querySelector(".head, .header"));
     if (!head) return;
     const button = document.createElement("button");
     button.className = "zoom";
