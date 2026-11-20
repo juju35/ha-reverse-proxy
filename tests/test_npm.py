@@ -393,3 +393,20 @@ async def test_reconfigure_asks_for_the_email(hass, aioclient_mock, entry):
     await hass.async_block_till_done()  # the reload of the entry
     assert entry.data["username"] == "ops@example.org"
     assert entry.data["password"] == "new"
+
+
+@pytest.mark.parametrize(
+    ("data", "reason"),
+    [
+        ({"error": {"code": 401, "message": "Invalid email or password"}}, "Invalid email or password"),
+        ({"error": "wrong password"}, "wrong password"),
+        ({"error": "x" * 300}, "x" * 120),
+        ({"echo": "secret"}, "no reason given"),
+        (None, "no reason given"),
+    ],
+)
+def test_refused_login_logs_the_reason_only(data, reason):
+    """A refused login logs the server's reason, never the raw response."""
+    from custom_components.reverse_proxy.api import _refusal_reason
+
+    assert _refusal_reason(data) == reason

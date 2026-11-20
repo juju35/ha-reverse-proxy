@@ -6,6 +6,8 @@
 - The status pill is placed from the card's first frame: it was measured before Home Assistant's `<ha-card>` had laid out its content (0 px wide), so for a frame it showed on the wrong line (under the title, or beside it when it belongs under it), sometimes changing the card's height, before jumping to its place. It is now fitted once the card is drawn.
 - Card and mini card: a state update no longer rebuilds the whole card (`innerHTML`). The card is now patched in place: only the changed texts and attributes are written, the illustration (and its animations), the icons, the open sections and the focus are kept. The dashboard no longer jumps by itself when a proxy state changes.
 
+- Debug log of a refused login (Zoraxy, Nginx Proxy Manager): only the server's own reason is logged now, never the first 200 characters of its raw response.
+
 ### Maintenance
 - README: the logos of the supported proxies (Zoraxy, Traefik, Nginx Proxy Manager) are shown centred under the integration's own logo, as the README layout asks.
 
