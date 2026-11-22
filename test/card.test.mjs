@@ -1240,7 +1240,7 @@ test('zoraxy_url (up to 1.14.x) still gives the header link; the editor shows an
 test('the former card names are aliases of the new cards', () => {
   assert.ok(new ZoraxyCard() instanceof ReverseProxyCard);
   assert.ok(new ZoraxyMiniCard() instanceof ReverseProxyMiniCard);
-  assert.match(source, /customElements\.define\("reverse-proxy-card", ReverseProxyCard\)/);
+  assert.match(source, /(?:customElements\.define|pickerDefine)\("reverse-proxy-card", ReverseProxyCard\)/);
   for (const tag of ['zoraxy-card', 'zoraxy-mini-card', 'zoraxy-card-editor', 'zoraxy-mini-card-editor']) {
     assert.match(source, new RegExp(`\\["${tag}", \\w+\\]`), tag);
   }
