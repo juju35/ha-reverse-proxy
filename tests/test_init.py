@@ -704,8 +704,8 @@ async def test_card_served(hass, aioclient_mock, entry, hass_client):
     resp = await client.get("/reverse_proxy/reverse-proxy-card.js")
     assert resp.status == 200
     text = await resp.text()
-    assert 'customElements.define("reverse-proxy-card"' in text
-    assert 'customElements.define("reverse-proxy-mini-card"' in text
+    assert 'pickerDefine("reverse-proxy-card"' in text
+    assert 'pickerDefine("reverse-proxy-mini-card"' in text
     # The names of the cards up to 1.14.x still work.
     assert '["zoraxy-card", ZoraxyCard]' in text
 

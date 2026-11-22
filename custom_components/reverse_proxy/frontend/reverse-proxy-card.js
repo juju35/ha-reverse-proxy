@@ -1,4 +1,72 @@
-const REVERSE_PROXY_CARD_VERSION = '2.5.3';
+// ── Card picker: light previews ──────────────────────────────────────────────
+// Home Assistant's card picker builds a live preview of every card registered with `preview: true`, all at once and
+// with no lazy loading. A preview here is drawn only once it scrolls into view: the picker calls getStubConfig() right
+// before it creates the preview, which marks the next instance of that card; once connected under <hui-card-picker>,
+// that instance holds Home Assistant's state (no render, no history, no animation) until it is visible. Anywhere else
+// (a dashboard, the card editor) the card behaves as before. Editors and other elements are defined unchanged.
+function pickerDefine(tag, Card, options) {
+  const isCard = !tag.endsWith("-editor") && (typeof Card.getStubConfig === "function" || typeof Card.getConfigElement === "function");
+  if (!isCard || typeof IntersectionObserver !== "function") return customElements.define(tag, Card, options);
+  let marks = [];
+  const lazy = class extends Card {
+    static getStubConfig(...args) {
+      marks.push(Date.now());
+      return Card.getStubConfig ? Card.getStubConfig(...args) : {};
+    }
+
+    constructor() {
+      super();
+      const now = Date.now();
+      marks = marks.filter((t) => now - t < 5000);
+      if (marks.length) {
+        marks.shift();
+        this._plHold = true;
+      }
+    }
+
+    set hass(hass) {
+      if (this._plHold) this._plHass = hass;
+      else super.hass = hass;
+    }
+
+    get hass() {
+      return this._plHold ? this._plHass : super.hass;
+    }
+
+    connectedCallback() {
+      if (!this._plHold) return super.connectedCallback?.();
+      if (this.getRootNode()?.host?.localName !== "hui-card-picker") return this._plRelease();
+      if (this._plIo) return;
+      // A custom element is inline until its styles arrive: a block of a card's height keeps the cells apart, so
+      // that only the previews actually on screen intersect.
+      this.style.display = "block";
+      this.style.minHeight = "120px";
+      this._plIo = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && this._plRelease(), {
+        rootMargin: "200px",
+      });
+      this._plIo.observe(this);
+    }
+
+    disconnectedCallback() {
+      if (this._plHold) return;
+      super.disconnectedCallback?.();
+    }
+
+    _plRelease() {
+      this._plIo?.disconnect();
+      this._plIo = null;
+      this._plHold = false;
+      this.style.display = "";
+      this.style.minHeight = "";
+      if (this._plHass !== undefined) super.hass = this._plHass;
+      this._plHass = undefined;
+      if (this.isConnected) super.connectedCallback?.();
+    }
+  };
+  return customElements.define(tag, lazy, options);
+}
+
+const REVERSE_PROXY_CARD_VERSION = '2.5.4';
 
 // Escapes a value interpolated into innerHTML, as text or inside a quoted attribute (as parcelEsc in ha-parcel).
 function rpEsc(s) {
@@ -2219,18 +2287,18 @@ for (const [tag, cls] of [
   ["zoraxy-card", ZoraxyCard],
   ["zoraxy-mini-card", ZoraxyMiniCard],
 ]) {
-  if (!customElements.get(tag)) customElements.define(tag, cls);
+  if (!customElements.get(tag)) pickerDefine(tag, cls);
 }
 
 // Each card is registered on its own: a page that already loaded an older copy of this file (a stale resource
 // or a cached version without the mini card) still gets the mini card from this one.
 window.customCards = window.customCards || [];
 if (!customElements.get("reverse-proxy-card")) {
-  customElements.define("reverse-proxy-card", ReverseProxyCard);
-  window.customCards.push({ type: "reverse-proxy-card", name: "Reverse Proxy Card", description: "Status, controls, certificates and proxy rules of a Zoraxy, Traefik or Nginx Proxy Manager reverse proxy", preview: false, documentationURL: DOC_URL });
+  pickerDefine("reverse-proxy-card", ReverseProxyCard);
+  window.customCards.push({ type: "reverse-proxy-card", name: "Reverse Proxy Card", description: "Status, controls, certificates and proxy rules of a Zoraxy, Traefik or Nginx Proxy Manager reverse proxy", preview: true, documentationURL: DOC_URL });
   console.info(`%c REVERSE-PROXY-CARD %c v${REVERSE_PROXY_CARD_VERSION} `, "color:#bfdbfe;background:#0f172a;font-weight:700", "color:#0f172a;background:#bfdbfe");
 }
 if (!customElements.get("reverse-proxy-mini-card")) {
-  customElements.define("reverse-proxy-mini-card", ReverseProxyMiniCard);
-  window.customCards.push({ type: "reverse-proxy-mini-card", name: "Reverse Proxy Mini Card", description: "Zoraxy, Traefik or Nginx Proxy Manager status, rules and alerts on two lines, with a detail button showing the full card", preview: false, documentationURL: DOC_URL });
+  pickerDefine("reverse-proxy-mini-card", ReverseProxyMiniCard);
+  window.customCards.push({ type: "reverse-proxy-mini-card", name: "Reverse Proxy Mini Card", description: "Zoraxy, Traefik or Nginx Proxy Manager status, rules and alerts on two lines, with a detail button showing the full card", preview: true, documentationURL: DOC_URL });
 }
