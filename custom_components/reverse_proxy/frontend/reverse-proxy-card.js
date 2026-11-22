@@ -1,4 +1,4 @@
-const REVERSE_PROXY_CARD_VERSION = '2.5.2';
+const REVERSE_PROXY_CARD_VERSION = '2.5.3';
 
 // Escapes a value interpolated into innerHTML, as text or inside a quoted attribute (as parcelEsc in ha-parcel).
 function rpEsc(s) {
@@ -2227,10 +2227,10 @@ for (const [tag, cls] of [
 window.customCards = window.customCards || [];
 if (!customElements.get("reverse-proxy-card")) {
   customElements.define("reverse-proxy-card", ReverseProxyCard);
-  window.customCards.push({ type: "reverse-proxy-card", name: "Reverse Proxy Card", description: "Status, controls, certificates and proxy rules of a Zoraxy, Traefik or Nginx Proxy Manager reverse proxy", preview: true, documentationURL: DOC_URL });
+  window.customCards.push({ type: "reverse-proxy-card", name: "Reverse Proxy Card", description: "Status, controls, certificates and proxy rules of a Zoraxy, Traefik or Nginx Proxy Manager reverse proxy", preview: false, documentationURL: DOC_URL });
   console.info(`%c REVERSE-PROXY-CARD %c v${REVERSE_PROXY_CARD_VERSION} `, "color:#bfdbfe;background:#0f172a;font-weight:700", "color:#0f172a;background:#bfdbfe");
 }
 if (!customElements.get("reverse-proxy-mini-card")) {
   customElements.define("reverse-proxy-mini-card", ReverseProxyMiniCard);
-  window.customCards.push({ type: "reverse-proxy-mini-card", name: "Reverse Proxy Mini Card", description: "Zoraxy, Traefik or Nginx Proxy Manager status, rules and alerts on two lines, with a detail button showing the full card", preview: true, documentationURL: DOC_URL });
+  window.customCards.push({ type: "reverse-proxy-mini-card", name: "Reverse Proxy Mini Card", description: "Zoraxy, Traefik or Nginx Proxy Manager status, rules and alerts on two lines, with a detail button showing the full card", preview: false, documentationURL: DOC_URL });
 }
