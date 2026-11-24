@@ -1,0 +1,16 @@
+name: Build the frontend
+description: >-
+  Assembles the frontend files of custom_components/<domain>/frontend/ from the ES modules in src/
+  (scripts/build-frontend.mjs). They are not committed: every job that reads them runs this first.
+runs:
+  using: composite
+  steps:
+    - name: Set up Node
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version: "22"
+    - name: Assemble src/ into the frontend files
+      shell: bash
+      run: |
+        npm ci --no-audit --no-fund
+        node scripts/build-frontend.mjs

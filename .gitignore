@@ -5,3 +5,5 @@ __pycache__/
 .venv/
 report/
 node_modules/
+# Assembled from src/<stem>/ by scripts/build-frontend.mjs (not committed)
+custom_components/reverse_proxy/frontend/reverse-proxy-card.js

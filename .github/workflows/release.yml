@@ -50,7 +50,7 @@ jobs:
         id: version
         run: |
           VERSION="$(jq -r .version custom_components/reverse_proxy/manifest.json)"
-          grep -q "REVERSE_PROXY_CARD_VERSION = '$VERSION'" custom_components/reverse_proxy/frontend/reverse-proxy-card.js
+          grep -rq "REVERSE_PROXY_CARD_VERSION = '$VERSION'" src/reverse-proxy-card
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
@@ -58,18 +58,16 @@ jobs:
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Set up Node
+      # The frontend files are assembled from src/ (scripts/build-frontend.mjs); they are not committed.
+      - name: Build the frontend
+        uses: ./.github/actions/build-frontend
         if: steps.version.outputs.exists == 'false'
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: "22"
 
       # Only English stays in the frontend files of the zip; each other language is its own file next to them,
       # fetched when needed (scripts/split-frontend.mjs). The repository keeps every language in the sources.
       - name: Split the translations
         if: steps.version.outputs.exists == 'false'
         run: |
-          npm install --no-save --no-package-lock acorn@8.19.0
           node scripts/split-frontend.mjs
 
       - name: Build zip and notes

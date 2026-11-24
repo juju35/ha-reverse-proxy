@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.5 - 2026-11-24
+
+### Maintenance
+- The frontend source is split into ES modules: `src/reverse-proxy-card/` (entry `src/reverse-proxy-card/index.js`), cut at its sections, with the translations in one file per language (`i18n/<lang>.js`; the strings, formerly the static `ReverseProxyCard.I18N` literal, are now the top-level `RP_I18N` it points to). `scripts/build-frontend.mjs` assembles them, in their original order, into `custom_components/reverse_proxy/frontend/reverse-proxy-card.js`, no longer committed; the tests, the screenshots and the release build them first. The release zip is unchanged.
+
 ## 2.5.4 - 2026-11-22
 
 ### Performance

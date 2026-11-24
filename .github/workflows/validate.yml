@@ -34,7 +34,7 @@ jobs:
       - name: Same version everywhere, and in the changelog
         run: |
           VERSION="$(jq -r .version custom_components/reverse_proxy/manifest.json)"
-          grep -q "REVERSE_PROXY_CARD_VERSION = '$VERSION'" custom_components/reverse_proxy/frontend/reverse-proxy-card.js || { echo "::error file=custom_components/reverse_proxy/frontend/reverse-proxy-card.js::version $VERSION not found in custom_components/reverse_proxy/frontend/reverse-proxy-card.js"; exit 1; }
+          grep -rq "REVERSE_PROXY_CARD_VERSION = '$VERSION'" src/reverse-proxy-card || { echo "::error file=src/reverse-proxy-card/card-picker.js::version $VERSION not found in src/reverse-proxy-card"; exit 1; }
           grep -q "^## $VERSION " CHANGELOG.md || { echo "::error file=CHANGELOG.md::no '## $VERSION' entry in CHANGELOG.md"; exit 1; }
           echo "Version $VERSION everywhere"
 
@@ -52,6 +52,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # The frontend files are assembled from src/ (scripts/build-frontend.mjs); they are not committed.
+      - name: Build the frontend
+        uses: ./.github/actions/build-frontend
 
       # Latest Home Assistant: releases since 2026.3 need Python 3.14 (3.13 would resolve to 2026.2).
       - name: Set up Python
@@ -84,6 +88,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # The frontend files are assembled from src/ (scripts/build-frontend.mjs); they are not committed.
+      - name: Build the frontend
+        uses: ./.github/actions/build-frontend
+
       - name: Set up Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
@@ -104,10 +112,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Set up Node
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: "22"
+      # The frontend files are assembled from src/ (scripts/build-frontend.mjs); they are not committed.
+      - name: Build the frontend
+        uses: ./.github/actions/build-frontend
 
       - name: Run card tests
         run: node --test test/*.test.mjs
@@ -119,13 +126,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Set up Node
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: "22"
+      # The frontend files are assembled from src/ (scripts/build-frontend.mjs); they are not committed.
+      - name: Build the frontend
+        uses: ./.github/actions/build-frontend
 
       # Splits a copy of the frontend as the release does, and rebuilds every table to check it.
       - name: Check the translation split
         run: |
-          npm install --no-save --no-package-lock acorn@8.19.0
           node scripts/split-frontend.mjs --check
