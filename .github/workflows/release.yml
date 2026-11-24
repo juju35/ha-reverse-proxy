@@ -1,10 +1,10 @@
 name: Release
 
-# Publishes a GitHub release whenever main carries a version that has no tag yet:
-# bump the version in manifest.json and the card, add its CHANGELOG.md section, push, and the release follows.
+# Manual: run this workflow (Actions -> Release -> Run workflow, or `gh workflow run release.yml`)
+# to publish the version main carries, if it has no tag yet. Merging a pull request publishes nothing:
+# several bumped pull requests ship together, with the CHANGELOG.md sections of every version since
+# the previous tag, once Lint, Validate and HACS Validation pass on that commit.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -52,7 +52,10 @@ jobs:
           VERSION="$(jq -r .version custom_components/reverse_proxy/manifest.json)"
           grep -rq "REVERSE_PROXY_CARD_VERSION = '$VERSION'" src/reverse-proxy-card
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          PREVIOUS="$(git tag -l 'v*' --sort=-v:refname | head -n 1)"
+          echo "previous=${PREVIOUS#v}" >> "$GITHUB_OUTPUT"
           if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
+            echo "::notice::v$VERSION is already released: merge a version bump first"
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
@@ -75,7 +78,7 @@ jobs:
         run: |
           # AGENT.md is internal agent context: it has no business in what users install.
           (cd custom_components/reverse_proxy && zip -r ../../reverse_proxy.zip . -x "__pycache__/*" "AGENT.md")
-          .github/scripts/release-notes.sh "${{ steps.version.outputs.version }}" > notes.md
+          .github/scripts/release-notes.sh "${{ steps.version.outputs.version }}" "${{ steps.version.outputs.previous }}" > notes.md
           test -s notes.md
 
       - name: Publish release
