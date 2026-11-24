@@ -305,14 +305,17 @@ logger:
 
 ## Development
 
+The frontend source is split into ES modules under `src/reverse-proxy-card/` (entry `src/reverse-proxy-card/index.js`). `node scripts/build-frontend.mjs` (or `npm run build`) assembles them into `custom_components/reverse_proxy/frontend/reverse-proxy-card.js`, not committed: build before the tests, the screenshots and the release. Modules share one scope once assembled, so top-level names stay unique; a new module must be listed in its `index.js`.
+
 ```bash
+npm ci && npm test              # assembles the frontend (npm run build), then the card tests (node --test)
 pip install playwright pillow && playwright install chromium
 python scripts/screenshots.py   # renders both cards, for Zoraxy, Traefik and Nginx Proxy Manager, with mock entities into screenshots/, and the animated GIFs (needs ffmpeg; CHROMIUM_PATH: an installed Chromium)
 ```
 
 ### Releasing
 
-1. Bump the version in `custom_components/reverse_proxy/manifest.json` and `REVERSE_PROXY_CARD_VERSION` in the card
+1. Bump the version in `custom_components/reverse_proxy/manifest.json` and `REVERSE_PROXY_CARD_VERSION` in `src/reverse-proxy-card/card-picker.js`
 2. Add a `## <version>` section at the top of [CHANGELOG.md](https://github.com/juju35/ha-reverse-proxy/blob/main/CHANGELOG.md)
 3. Push to `main`: the **Release** workflow creates the tag and the GitHub release with the changelog section as notes
 

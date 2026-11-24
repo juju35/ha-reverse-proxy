@@ -1,0 +1,16 @@
+{
+  "name": "ha-reverse-proxy",
+  "private": true,
+  "type": "module",
+  "description": "Tooling for the integration's frontend: assembles src/ into custom_components/reverse_proxy/frontend/ and splits its translations.",
+  "scripts": {
+    "build": "node scripts/build-frontend.mjs",
+    "pretest": "node scripts/build-frontend.mjs",
+    "test": "node --test test/*.test.mjs",
+    "split": "node scripts/build-frontend.mjs && node scripts/split-frontend.mjs"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "acorn": "8.19.0"
+  }
+}

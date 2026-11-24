@@ -19,6 +19,7 @@
 ## Before opening a PR — run the checks locally
 CI mirrors these; running them first avoids round-trips:
 ```sh
+npm ci && node scripts/build-frontend.mjs   # assembles the frontend files (not committed) the checks below read
 pre-commit run -a
 vulture custom_components .vulture_whitelist.py --min-confidence 60
 npx --yes jscpd@5.4.2 .
@@ -38,7 +39,7 @@ This is an **INTEGRATION** repo. A bump is complete only when **every** file bel
 carries the new version, updated together in one commit:
 1. `CHANGELOG.md` → add a "## X.Y.Z - YYYY-MM-DD" section at the top (`### Features` | `Fixes` | `Performance` | `Maintenance`).
 2. `custom_components/reverse_proxy/manifest.json` → `"version": "X.Y.Z"`.
-3. `custom_components/reverse_proxy/frontend/reverse-proxy-card.js` → `REVERSE_PROXY_CARD_VERSION = 'X.Y.Z'`.
+3. `src/reverse-proxy-card/card-picker.js` → `REVERSE_PROXY_CARD_VERSION = 'X.Y.Z'` (assembled into `custom_components/reverse_proxy/frontend/reverse-proxy-card.js`).
 - Bump rule: `fix` → patch, `feat` → minor, breaking change → major.
 - The PR/commit title carries the version in parentheses, e.g. `feat: new option (X.Y.Z)`.
 
@@ -56,6 +57,16 @@ carries the new version, updated together in one commit:
 
 ## Supported integrations
 This is a **standalone integration** (its own integration, with its own card) — it talks to its device/service directly, not on top of other Home Assistant integrations — so it has **no** `## Supported integrations` section (that section is only for cards/integrations that sit on top of others). If it does build on external integrations, add the section (title verbatim).
+
+## Source layout
+- The hand-written frontend is split into ES modules: `src/reverse-proxy-card/` (entry `src/reverse-proxy-card/index.js`). `scripts/build-frontend.mjs` (`scripts/bundle.mjs`)
+  assembles each into `custom_components/reverse_proxy/frontend/reverse-proxy-card.js`, the classic script Home Assistant serves: modules concatenated in
+  the order of the entry file, import lines removed, `export` keywords dropped. The assembled files are **not
+  committed** (`.gitignore`): build them before the tests, the screenshots and `scripts/split-frontend.mjs`.
+  Smaller frontend files (under ~40 KB) stay hand-written in `custom_components/reverse_proxy/frontend/`.
+- Modules share one scope once assembled, so keep top-level names unique across modules; a new module must be listed
+  in its `index.js`.
+- Translations: one file per language in `src/reverse-proxy-card/i18n/<lang>.js` (`export default { … };`), gathered by `rp-i18n.js` into `RP_I18N` (`ReverseProxyCard.I18N`), rebuilt into a single object literal at build for `scripts/i18n-split.mjs`.
 
 ## Translations
 - English is the source. Keep every language in sync when a user-facing string changes.
