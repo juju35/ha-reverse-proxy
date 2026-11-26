@@ -23,9 +23,9 @@ custom_components/reverse_proxy/
 ├── icons.json           # MDI icon per translation key
 ├── translations/        # en, fr, de, es, sr, sr-Latn, it, nl, pt, pt-BR (copy of pt), pl, ro, da, sv, bg, ru, uk, hu, sk, cs, sl, lv, el
 ├── frontend/reverse-proxy-card.js  # Full card and mini card (custom:reverse-proxy-card, -mini-card; zoraxy-card aliases)
-└── brand/               # icon.svg (source) → icon.png, icon@2x.png, logo.png, logo@2x.png: rounded indigo tile, white server-network glyph,
+└── brand/               # ../../../images/icon.svg (source) → icon.png, icon@2x.png, logo.png, logo@2x.png: rounded indigo tile, white server-network glyph,
                          # orange swap badge — the style of the other ha-* integration icons (parcel, git-sync, smart-comfort);
-                         # zoraxy.svg, traefik.svg, nginx_proxy_manager.svg: the brand marks used as header badges
+                         # images/zoraxy.svg, traefik.svg, nginx_proxy_manager.svg (outside brand/): the brand marks used as header badges
 ```
 
 ## Proxy abstraction
@@ -48,7 +48,7 @@ custom_components/reverse_proxy/
 - `/api/` (status and version, `{status: "OK", version: {major, minor, revision}}`) is required; `/api/nginx/proxy-hosts`, `/api/nginx/redirection-hosts`, `/api/nginx/certificates`, `/api/nginx/access-lists` are optional (previous value kept).
 - A rule is a proxy host: domain = first `domain_names`, target `forward_scheme://forward_host:forward_port`, `enabled`, `tls` = a `certificate_id`. No upstream health check in NPM: no `upstream_health` feature, so no upstream sensor (2.4.0 created them, always `unknown`; removed since 2.4.1, #67). Port: 443 once a host has a certificate, else 80.
 - Certificates are named after their first domain name (an imported one without any: its `nice_name`); `expires_on` (`YYYY-MM-DD HH:mm:ss`, UTC) → aware ISO by `npm_expiry`. Renewal: POST `/api/nginx/certificates/{id}/renew`, Let's Encrypt only (`provider == "letsencrypt"`). Toggle: POST `/api/nginx/proxy-hosts/{id}/enable|disable`.
-- The card's brand mark is the Nginx Proxy Manager logo (brand/nginx_proxy_manager.svg, inlined in `BRANDS`).
+- The card's brand mark is the Nginx Proxy Manager logo (images/nginx_proxy_manager.svg, inlined in `BRANDS`).
 
 ## Zoraxy authentication
 
