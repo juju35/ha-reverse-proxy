@@ -1,9 +1,10 @@
-"""Repair while the Marketplace still holds this repository as the Dashboard entry it was before it became an integration.
+"""Repair while the Marketplace still holds this repository as its old Dashboard entry.
 
-That entry downloads the integration's reverse_proxy.zip as a dashboard plugin, so its installs and updates fail
-("The installed content has no reverse_proxy.zip"). Seen from its files in www/community/, or from its record in the
-Marketplace's storage when nothing was written (an install that failed, or one uninstalled and added again: the
-repository stays under Add from link with its category).
+The repository was a dashboard plugin before it became an integration. That entry downloads reverse_proxy.zip
+as a dashboard plugin, so its installs and updates fail ("The installed content has no reverse_proxy.zip").
+Seen from its files in www/community/, or from its record in the Marketplace's storage when nothing was
+written (an install that failed, or one uninstalled and added again: the repository stays under Add from link
+with its category).
 """
 
 from __future__ import annotations
@@ -23,10 +24,10 @@ ISSUE_LEGACY_DASHBOARD = "legacy_dashboard_install"
 # The Marketplace's records, keyed by GitHub repository id
 MARKETPLACE_STORE = "marketplace.repositories"
 REPOSITORY_ID = "1258769149"
-REPOSITORY_NAMES = ('juju35/ha-reverse-proxy', 'juju35/ha-zoraxy')
+REPOSITORY_NAMES = ("juju35/ha-reverse-proxy", "juju35/ha-zoraxy")
 REPOSITORY_URL = "https://github.com/juju35/ha-reverse-proxy"
 # Folders under www/community/ where the old dashboard plugin lives (before and after the repository was renamed)
-PLUGIN_DIRS = ('ha-zoraxy', 'ha-reverse-proxy')
+PLUGIN_DIRS = ("ha-zoraxy", "ha-reverse-proxy")
 PLUGIN_FILE = "zoraxy-card.js"
 PLACEHOLDERS = {
     "name": "Reverse Proxy",

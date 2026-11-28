@@ -46,9 +46,7 @@ async def test_repair_while_the_plugin_files_are_there(hass, config, folder):
     assert _issue(hass) is None
 
 
-@pytest.mark.parametrize(
-    ("key", "name"), [(REPOSITORY_ID, "x/y"), *(("1", n.upper()) for n in REPOSITORY_NAMES)]
-)
+@pytest.mark.parametrize(("key", "name"), [(REPOSITORY_ID, "x/y"), *(("1", n.upper()) for n in REPOSITORY_NAMES)])
 async def test_repair_while_the_marketplace_keeps_a_dashboard_record(hass, config, key, name):
     records = {key: {"full_name": name, "category": "plugin", "installed": False}}
     store = _store(config, json.dumps({"version": 1, "minor_version": 1, "data": records}))
