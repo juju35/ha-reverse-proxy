@@ -38,6 +38,7 @@ from .const import (
     safe_domain,
 )
 from .coordinator import COORDINATORS, ProxyDataUpdateCoordinator, entry_proxy_type, entry_settings
+from .legacy_dashboard import async_check_legacy_dashboard
 from .repairs import ProxyIssues, async_remove_issues
 
 _LOGGER = logging.getLogger(__name__)
@@ -272,6 +273,7 @@ async def _async_adopt_legacy_entry(hass: HomeAssistant, entry: ConfigEntry) -> 
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    await async_check_legacy_dashboard(hass)
     settings = entry_settings(entry)
     proxy_type = entry_proxy_type(entry)
     if proxy_type == PROXY_ZORAXY:

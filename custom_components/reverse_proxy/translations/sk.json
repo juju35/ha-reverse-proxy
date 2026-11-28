@@ -219,6 +219,10 @@
     "upstream_offline": {
       "title": "{domain} je za {proxy} nedostupná",
       "description": "Všetky upstreamy pravidla {domain} na {proxy} sú offline od {since}. Skontrolujte službu za ním; problém zmizne, hneď ako niektorý odpovie."
+    },
+    "legacy_dashboard_install": {
+      "title": "{name} je stále zaregistrovaný ako záznam dashboardu v Marketplace",
+      "description": "{name} je v Marketplace stále zaregistrovaný ako repozitár typu **Dashboard**, ako predtým, než sa stal integráciou. Marketplace preň sťahuje archív integrácie, preto inštalácie a aktualizácie zlyhávajú s chybou „{error}“. Odinštalovanie a opätovná inštalácia nepomôžu: záznam zostáva typu Dashboard.\n\n1. V **Nastavenia → Marketplace** odinštalujte záznam {name} typu **Dashboard**, ak je nainštalovaný.\n2. Otvorte **Pridať z odkazu** a odstráňte {repositories} v časti **Pridané z odkazov**.\n3. Znova pridajte `{url}` s typom **Integrácia**, aktualizujte ho odtiaľ a reštartujte.\n\nVaše dashboardy fungujú ďalej: integrácia poskytuje rovnaké karty."
     }
   }
 }

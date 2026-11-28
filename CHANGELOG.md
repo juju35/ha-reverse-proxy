@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.6 - 2026-11-28
+
+### Fixes
+- A repair in **Settings → Repairs** while the Marketplace still holds this repository as the **Dashboard** entry it was before it became an integration — from its files in `www/community/`, or from the Marketplace's records when nothing is left there (an install that failed, or one uninstalled and installed again, which keeps its category). Every install and update of that entry fails with *"The installed content has no reverse_proxy.zip"*; the repair says to remove the repository under **Add from link → Added from links** and add it again as an **Integration**.
+
 ## 2.5.5 - 2026-11-24
 
 ### Maintenance

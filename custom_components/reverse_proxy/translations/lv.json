@@ -219,6 +219,10 @@
     "upstream_offline": {
       "title": "{domain} nav sasniedzams aiz {proxy}",
       "description": "Visi noteikuma {domain} upstream serveri starpniekserverī {proxy} ir bezsaistē kopš {since}. Pārbaudiet pakalpojumu aiz tā; problēma pazūd, tiklīdz kāds atbild."
+    },
+    "legacy_dashboard_install": {
+      "title": "{name} joprojām reģistrēts kā informācijas paneļa ieraksts Marketplace",
+      "description": "{name} joprojām ir reģistrēts Marketplace kā **Informācijas paneļa** repozitorijs, kā pirms tas kļuva par integrāciju. Marketplace tam lejupielādē integrācijas arhīvu, tāpēc instalēšana un atjaunināšana neizdodas ar “{error}”. Atinstalēšana un atkārtota instalēšana nepalīdz: ieraksts paliek Informācijas paneļa tipa.\n\n1. Sadaļā **Iestatījumi → Marketplace** atinstalējiet ierakstu {name} ar tipu **Informācijas panelis**, ja tas ir instalēts.\n2. Atveriet **Pievienot no saites** un noņemiet {repositories} sadaļā **Pievienoti no saitēm**.\n3. Vēlreiz pievienojiet `{url}` ar tipu **Integrācija**, atjauniniet to no turienes un restartējiet.\n\nJūsu informācijas paneļi turpina darboties: integrācija nodrošina tās pašas kartītes."
     }
   }
 }

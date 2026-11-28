@@ -219,6 +219,10 @@
     "upstream_offline": {
       "title": "{domain} hinter {proxy} nicht erreichbar",
       "description": "Alle Upstreams der Regel {domain} auf {proxy} sind seit {since} offline. Prüfe den Dienst dahinter; dieses Problem verschwindet, sobald ein Upstream wieder antwortet."
+    },
+    "legacy_dashboard_install": {
+      "title": "{name} noch als Dashboard-Eintrag im Marketplace registriert",
+      "description": "{name} ist im Marketplace noch als **Dashboard**-Repository registriert, wie vor dem Wechsel zur Integration. Der Marketplace lädt dafür das Archiv der Integration herunter, daher schlagen Installationen und Updates mit „{error}“ fehl. Deinstallieren und erneut installieren hilft nicht: Der Eintrag bleibt ein Dashboard-Eintrag.\n\n1. Deinstalliere unter **Einstellungen → Marketplace** den Eintrag {name} vom Typ **Dashboard**, falls er installiert ist.\n2. Öffne **Über Link hinzufügen** und entferne {repositories} unter **Über Links hinzugefügt**.\n3. Füge `{url}` erneut mit dem Typ **Integration** hinzu, aktualisiere es dort und starte danach neu.\n\nDeine Dashboards funktionieren weiter: Die Integration stellt dieselben Karten bereit."
     }
   }
 }

@@ -219,6 +219,10 @@
     "upstream_offline": {
       "title": "A(z) {domain} nem érhető el a(z) {proxy} mögött",
       "description": "A(z) {domain} szabály minden upstreamje a(z) {proxy} proxyn {since} óta offline. Ellenőrizd a mögötte lévő szolgáltatást; a probléma eltűnik, amint egy upstream újra válaszol."
+    },
+    "legacy_dashboard_install": {
+      "title": "A(z) {name} még irányítópult-bejegyzésként szerepel a Marketplace-ben",
+      "description": "A(z) {name} még mindig **Irányítópult** típusú tárolóként szerepel a Marketplace-ben, mint mielőtt integráció lett. A Marketplace az integráció archívumát tölti le hozzá, ezért a telepítések és frissítések ezzel a hibával állnak le: „{error}”. Az eltávolítás és újratelepítés nem segít: a bejegyzés Irányítópult típusú marad.\n\n1. A **Beállítások → Marketplace** alatt távolítsa el a(z) {name} **Irányítópult** típusú bejegyzést, ha telepítve van.\n2. Nyissa meg a **Hozzáadás linkről** lehetőséget, és törölje a(z) {repositories} tárolót a **Linkről hozzáadva** alatt.\n3. Adja hozzá újra: `{url}`, **Integráció** típussal, frissítse onnan, majd indítsa újra.\n\nAz irányítópultjai továbbra is működnek: az integráció ugyanazokat a kártyákat szolgálja ki."
     }
   }
 }
