@@ -219,6 +219,10 @@
     "upstream_offline": {
       "title": "{domain} inaccesibil în spatele {proxy}",
       "description": "Toate upstream-urile regulii {domain} pe {proxy} sunt offline de la {since}. Verifică serviciul din spate; problema dispare imediat ce unul răspunde."
+    },
+    "legacy_dashboard_install": {
+      "title": "{name} încă înregistrat ca intrare tablou de bord în Marketplace",
+      "description": "{name} este încă înregistrat în Marketplace ca depozit **Tablou de bord**, ca înainte de a deveni integrare. Marketplace descarcă pentru el arhiva integrării, așa că instalările și actualizările eșuează cu „{error}”. Dezinstalarea și reinstalarea nu ajută: intrarea rămâne de tip Tablou de bord.\n\n1. În **Setări → Marketplace**, dezinstalați intrarea {name} de tip **Tablou de bord** dacă este instalată.\n2. Deschideți **Adăugare din link** și eliminați {repositories} de la **Adăugate din linkuri**.\n3. Adăugați din nou `{url}` cu tipul **Integrare**, actualizați-l de acolo, apoi reporniți.\n\nTablourile de bord continuă să funcționeze: integrarea oferă aceleași carduri."
     }
   }
 }

@@ -219,6 +219,10 @@
     "upstream_offline": {
       "title": "{domain} inaccesible tras {proxy}",
       "description": "Todos los servidores de origen de la regla {domain} en {proxy} están fuera de línea desde las {since}. Revisa el servicio detrás; este problema desaparece en cuanto uno responda."
+    },
+    "legacy_dashboard_install": {
+      "title": "{name} sigue registrado como entrada de panel en el Marketplace",
+      "description": "{name} sigue registrado en el Marketplace como repositorio de **Panel**, como antes de convertirse en integración. El Marketplace descarga para él el archivo de la integración, así que sus instalaciones y actualizaciones fallan con «{error}». Desinstalarlo y volver a instalarlo no ayuda: la entrada sigue siendo de Panel.\n\n1. En **Ajustes → Marketplace**, desinstala la entrada {name} de tipo **Panel** si está instalada.\n2. Abre **Añadir desde enlace** y elimina {repositories} en **Añadidos desde enlaces**.\n3. Añade de nuevo `{url}` con el tipo **Integración**, actualízalo desde ahí y reinicia.\n\nTus paneles siguen funcionando: la integración sirve las mismas tarjetas."
     }
   }
 }

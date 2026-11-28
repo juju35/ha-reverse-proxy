@@ -219,6 +219,10 @@
     "upstream_offline": {
       "title": "{domain} injoignable derrière {proxy}",
       "description": "Tous les serveurs amont de la règle {domain} sur {proxy} sont hors ligne depuis {since}. Vérifiez le service derrière ; ce problème disparaît dès qu'un serveur répond à nouveau."
+    },
+    "legacy_dashboard_install": {
+      "title": "{name} encore enregistré comme entrée tableau de bord du Marketplace",
+      "description": "{name} est encore enregistré dans le Marketplace comme dépôt **Tableau de bord**, comme avant de devenir une intégration. Le Marketplace télécharge pour lui l'archive de l'intégration, ses installations et mises à jour échouent donc avec « {error} ». Désinstaller puis réinstaller ne suffit pas : l'entrée reste de type Tableau de bord.\n\n1. Dans **Paramètres → Marketplace**, désinstallez l'entrée {name} de type **Tableau de bord** si elle est installée.\n2. Ouvrez **Ajouter depuis un lien** et supprimez {repositories} sous **Ajoutés depuis des liens**.\n3. Ajoutez à nouveau `{url}` avec le type **Intégration**, mettez-le à jour depuis cette entrée, puis redémarrez.\n\nVos tableaux de bord continuent de fonctionner : l'intégration sert les mêmes cartes."
     }
   }
 }

@@ -219,6 +219,10 @@
     "upstream_offline": {
       "title": "{domain} unreachable behind {proxy}",
       "description": "Every upstream of the {domain} rule on {proxy} has been offline since {since}. Check the service behind it; this issue goes away as soon as an upstream answers again."
+    },
+    "legacy_dashboard_install": {
+      "title": "{name} still registered as a Marketplace dashboard entry",
+      "description": "{name} is still registered in the Marketplace as a **Dashboard** repository, as before it became an integration. The Marketplace downloads the integration's archive for it, so its installs and updates fail with \"{error}\". Uninstalling and installing it again does not help: the entry stays a Dashboard one.\n\n1. In **Settings → Marketplace**, uninstall the {name} entry of type **Dashboard** if it is installed.\n2. Open **Add from link** and remove {repositories} under **Added from links**.\n3. Add `{url}` again with the type **Integration**, update it from there, then restart.\n\nYour dashboards keep working: the integration serves the same cards."
     }
   }
 }

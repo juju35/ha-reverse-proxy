@@ -219,6 +219,10 @@
     "upstream_offline": {
       "title": "{domain} nije dostupan iza {proxy}",
       "description": "Svi odredišni serveri pravila {domain} na {proxy} nisu na mreži od {since}. Proverite uslugu iza njega; problem nestaje čim neki ponovo odgovori."
+    },
+    "legacy_dashboard_install": {
+      "title": "{name} je i dalje registrovan kao unos kontrolne table u Marketplejsu",
+      "description": "{name} je i dalje registrovan u Marketplejsu kao repozitorijum **Kontrolne table**, kao pre nego što je postao integracija. Marketplejs za njega preuzima arhivu integracije, pa instalacije i ažuriranja ne uspevaju uz „{error}”. Deinstalacija i ponovna instalacija ne pomažu: unos ostaje tipa Kontrolna tabla.\n\n1. U **Podešavanja → Marketplejs** deinstalirajte unos {name} tipa **Kontrolna tabla** ako je instaliran.\n2. Otvorite **Dodaj sa linka** i uklonite {repositories} pod **Dodato sa linkova**.\n3. Ponovo dodajte `{url}` sa tipom **Integracija**, ažurirajte ga odatle, pa ponovo pokrenite.\n\nVaše kontrolne table i dalje rade: integracija pruža iste kartice."
     }
   }
 }

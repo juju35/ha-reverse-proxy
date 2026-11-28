@@ -219,6 +219,10 @@
     "upstream_offline": {
       "title": "{domain} irraggiungibile dietro {proxy}",
       "description": "Tutti gli upstream della regola {domain} su {proxy} sono offline dalle {since}. Controlla il servizio dietro; questo problema scompare appena un upstream risponde di nuovo."
+    },
+    "legacy_dashboard_install": {
+      "title": "{name} ancora registrato come voce dashboard del Marketplace",
+      "description": "{name} è ancora registrato nel Marketplace come repository **Dashboard**, come prima di diventare un'integrazione. Il Marketplace scarica per esso l'archivio dell'integrazione, quindi installazioni e aggiornamenti falliscono con «{error}». Disinstallarlo e reinstallarlo non basta: la voce resta di tipo Dashboard.\n\n1. In **Impostazioni → Marketplace**, disinstalla la voce {name} di tipo **Dashboard** se è installata.\n2. Apri **Aggiungi da link** e rimuovi {repositories} sotto **Aggiunti da link**.\n3. Aggiungi di nuovo `{url}` con il tipo **Integrazione**, aggiornalo da lì e riavvia.\n\nLe tue dashboard continuano a funzionare: l'integrazione fornisce le stesse schede."
     }
   }
 }

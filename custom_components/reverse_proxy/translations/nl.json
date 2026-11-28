@@ -219,6 +219,10 @@
     "upstream_offline": {
       "title": "{domain} onbereikbaar achter {proxy}",
       "description": "Alle upstreams van de regel {domain} op {proxy} zijn offline sinds {since}. Controleer de dienst erachter; dit probleem verdwijnt zodra een upstream weer antwoordt."
+    },
+    "legacy_dashboard_install": {
+      "title": "{name} nog geregistreerd als dashboarditem in de Marketplace",
+      "description": "{name} staat in de Marketplace nog geregistreerd als **Dashboard**-repository, zoals voordat het een integratie werd. De Marketplace downloadt er het archief van de integratie voor, dus installaties en updates mislukken met \"{error}\". Verwijderen en opnieuw installeren helpt niet: het item blijft een Dashboard-item.\n\n1. Verwijder in **Instellingen → Marketplace** het item {name} van het type **Dashboard** als het geïnstalleerd is.\n2. Open **Toevoegen via link** en verwijder {repositories} onder **Toegevoegd via links**.\n3. Voeg `{url}` opnieuw toe met het type **Integratie**, werk het daar bij en herstart.\n\nJe dashboards blijven werken: de integratie levert dezelfde kaarten."
     }
   }
 }

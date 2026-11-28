@@ -219,6 +219,10 @@
     "upstream_offline": {
       "title": "{domain} nieosiągalna za {proxy}",
       "description": "Wszystkie serwery docelowe reguły {domain} na {proxy} są offline od {since}. Sprawdź usługę za nią; ten problem zniknie, gdy któryś odpowie."
+    },
+    "legacy_dashboard_install": {
+      "title": "{name} nadal zarejestrowany jako wpis dashboardu w Marketplace",
+      "description": "{name} jest nadal zarejestrowany w Marketplace jako repozytorium typu **Dashboard**, jak przed przejściem na integrację. Marketplace pobiera dla niego archiwum integracji, więc instalacje i aktualizacje kończą się błędem „{error}”. Odinstalowanie i ponowna instalacja nie pomagają: wpis pozostaje typu Dashboard.\n\n1. W **Ustawienia → Marketplace** odinstaluj wpis {name} typu **Dashboard**, jeśli jest zainstalowany.\n2. Otwórz **Dodaj z linku** i usuń {repositories} w sekcji **Dodane z linków**.\n3. Dodaj ponownie `{url}` z typem **Integracja**, zaktualizuj go stamtąd i uruchom ponownie.\n\nTwoje dashboardy nadal działają: integracja udostępnia te same karty."
     }
   }
 }

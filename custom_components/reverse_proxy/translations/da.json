@@ -219,6 +219,10 @@
     "upstream_offline": {
       "title": "{domain} kan ikke nås bag {proxy}",
       "description": "Alle upstreams for reglen {domain} på {proxy} har været offline siden {since}. Tjek tjenesten bagved; problemet forsvinder, så snart en upstream svarer igen."
+    },
+    "legacy_dashboard_install": {
+      "title": "{name} stadig registreret som dashboard-post i Marketplace",
+      "description": "{name} er stadig registreret i Marketplace som et **Dashboard**-repository, som før det blev en integration. Marketplace downloader integrationens arkiv til det, så installationer og opdateringer fejler med \"{error}\". Afinstallation og geninstallation hjælper ikke: posten forbliver en Dashboard-post.\n\n1. Afinstaller under **Indstillinger → Marketplace** posten {name} af typen **Dashboard**, hvis den er installeret.\n2. Åbn **Tilføj fra link** og fjern {repositories} under **Tilføjet fra links**.\n3. Tilføj `{url}` igen med typen **Integration**, opdater den derfra, og genstart.\n\nDine dashboards fungerer stadig: integrationen leverer de samme kort."
     }
   }
 }

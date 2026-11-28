@@ -219,6 +219,10 @@
     "upstream_offline": {
       "title": "{domain} ni dosegljiva za {proxy}",
       "description": "Vsi strežniki pravila {domain} na {proxy} so brez povezave od {since}. Preverite storitev za njim; težava izgine, ko kateri spet odgovori."
+    },
+    "legacy_dashboard_install": {
+      "title": "{name} je še vedno registriran kot vnos nadzorne plošče v Marketplace",
+      "description": "{name} je v Marketplace še vedno registriran kot repozitorij tipa **Nadzorna plošča**, kot preden je postal integracija. Marketplace zanj prenese arhiv integracije, zato namestitve in posodobitve spodletijo z »{error}«. Odstranitev in ponovna namestitev ne pomagata: vnos ostane tipa Nadzorna plošča.\n\n1. V **Nastavitve → Marketplace** odstranite vnos {name} tipa **Nadzorna plošča**, če je nameščen.\n2. Odprite **Dodaj s povezave** in odstranite {repositories} pod **Dodano s povezav**.\n3. Znova dodajte `{url}` s tipom **Integracija**, ga od tam posodobite in znova zaženite.\n\nVaše nadzorne plošče še naprej delujejo: integracija ponuja iste kartice."
     }
   }
 }

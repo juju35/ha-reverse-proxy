@@ -66,4 +66,4 @@ export function pickerDefine(tag, Card, options) {
   return customElements.define(tag, lazy, options);
 }
 
-export const REVERSE_PROXY_CARD_VERSION = '2.5.5';
+export const REVERSE_PROXY_CARD_VERSION = '2.5.6';
